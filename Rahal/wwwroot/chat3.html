@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat Client</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
+    #chatBox { border: 1px solid #ccc; height: 400px; overflow-y: auto; padding: 10px; background: white; }
+    #messageInput { width: 80%; padding: 10px; }
+    #sendBtn { padding: 10px; }
+    .msg { margin: 8px 0; padding: 8px; border-radius: 8px; display: inline-block; }
+    .sent { background: #DCF8C6; align-self: flex-end; }
+    .received { background: #EAEAEA; }
+    .status { font-size: 12px; color: gray; margin-left: 4px; }
+    .blue { color: #00AEEF; }
+  </style>
+</head>
+<body>
+    <h2>Chat Test userId 3</h2>
+  <div>
+    <label>Receiver ID:</label>
+    <input id="receiverId" placeholder="Enter user ID to chat" />
+    <button id="loadChat">Load Chat</button>
+  </div>
+
+  <div id="chatBox"></div>
+
+  <div style="margin-top: 10px;">
+    <input id="messageInput" placeholder="Type a message..." />
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+  <script>
+    // ---- SETTINGS ----
+    const baseUrl = "https://localhost:7284"; // your backend base URL
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiVHJhdmVsbGVyIHN0cmluZyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Im1vYW1tZWR0YXJlcThAZ21haWwuY29tIiwiSXNWZXJpZmllZCI6IkZhbHNlIiwiSXNCbG9ja2VkIjoiRmFsc2UiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJUcmF2ZWxlciIsImV4cCI6MTc2MjUzMjcxNiwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoiTXlzZWN1cmVBcGlBdWRpZW5jZSJ9.VoE99gRUNjzn1jSF1BEnCWOew72tnM9i1WgeeZANuVg"; // injected later (for test you can hardcode)
+      const userId = prompt("Enter your user ID:"); // current user
+    let receiverId = "";
+
+    // ---- CONNECT TO HUB ----
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${baseUrl}/chatHub`, {
+        accessTokenFactory: () => token,
+        headers: { "X-User-Id": userId } // for testing if needed
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    async function startConnection() {
+      try {
+        await connection.start();
+        console.log("Connected to hub ✅");
+
+        // After connecting, get conversation list
+        const conversations = await connection.invoke("GetConversationList");
+        if (!conversations || conversations.length === 0) {
+          alert("No conversations found 😢");
+        } else {
+          alert("Your conversations: " + conversations.join(", "));
+        }
+      } catch (err) {
+        console.error("Connection failed:", err);
+        setTimeout(startConnection, 3000);
+      }
+    }
+
+    startConnection();
+
+    // ---- LOAD CHAT HISTORY ----
+    document.getElementById("loadChat").addEventListener("click", async () => {
+      receiverId = document.getElementById("receiverId").value.trim();
+      if (!receiverId) return alert("Please enter receiver ID.");
+
+      const messages = await connection.invoke("GetChatHistory", receiverId);
+      const chatBox = document.getElementById("chatBox");
+      chatBox.innerHTML = "";
+
+      if (!messages || messages.length === 0) {
+        chatBox.innerHTML = "<p style='color:gray;'>No chat history yet.</p>";
+        return;
+      }
+
+      messages.forEach(msg => addMessage(msg));
+    });
+
+    // ---- SEND MESSAGE ----
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+      const message = document.getElementById("messageInput").value.trim();
+      if (!message || !receiverId) return;
+
+      await connection.invoke("SendMessage", receiverId, message);
+      document.getElementById("messageInput").value = "";
+    });
+
+    // ---- RECEIVE MESSAGE ----
+    connection.on("ReceiveMessage", msg => {
+      addMessage(msg);
+      // Acknowledge read
+      connection.invoke("MarkAsRead", msg.senderId);
+    });
+
+    // ---- Message Sent Confirmation ----
+    connection.on("MessageSent", msg => {
+      addMessage(msg);
+    });
+
+    // ---- Delivery and Read Status Updates ----
+    connection.on("MessagesDelivered", (user) => {
+      updateMessageStatus(user, "Delivered");
+    });
+
+    connection.on("MessagesRead", (user) => {
+      updateMessageStatus(user, "Read");
+    });
+
+    // ---- User Online / Offline ----
+    connection.on("UserOnline", id => console.log(`🟢 ${id} online`));
+    connection.on("UserOffline", id => console.log(`🔴 ${id} offline`));
+
+    // ---- Helper: Add Message to UI ----
+    function addMessage(msg) {
+      const chatBox = document.getElementById("chatBox");
+      const isMine = msg.senderId === userId;
+      const div = document.createElement("div");
+      div.className = "msg " + (isMine ? "sent" : "received");
+      div.innerHTML = `
+        <span>${msg.content}</span>
+        <span class="status" id="status-${msg.id}">${getStatusIcon(msg.status)}</span>
+      `;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // ---- Helper: Update Message Status ----
+    function updateMessageStatus(senderId, status) {
+      document.querySelectorAll(`[id^='status-']`).forEach(el => {
+        if (status === "Delivered") el.innerHTML = "✔✔";
+        if (status === "Read") el.innerHTML = "<span class='blue'>✔✔</span>";
+      });
+    }
+
+    // ---- Helper: Status Icon ----
+    function getStatusIcon(status) {
+      switch (status) {
+        case "Sent": return "✔";
+        case "Delivered": return "✔✔";
+        case "Read": return "<span class='blue'>✔✔</span>";
+        default: return "";
+      }
+    }
+  </script>
+</body>
+</html>
