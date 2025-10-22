@@ -1,5 +1,6 @@
 ﻿using Domain.Entity;
 using Domain.Entity.Identity;
+using Talabat.Core.Specification;
 
 namespace Domain.Abstraction
 {
@@ -11,5 +12,8 @@ namespace Domain.Abstraction
         Task UpdateRangeAsync(List<T> entity);
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
+
+       
+
     }
 }

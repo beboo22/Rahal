@@ -24,15 +24,15 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Response
     {
         public ICollection<TemplateComment> Comments { get; set; }
 
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
-        public string TipsAndRecommendations { get; set; }
-        public decimal Budget { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string PhotoUrl { get; set; }
+        public string? Country { get; set; }
+        public string? City { get; set; }
+        public string? TipsAndRecommendations { get; set; }
+        public decimal? Budget { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? PhotoUrl { get; set; }
     }
 
   

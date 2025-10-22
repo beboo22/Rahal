@@ -9,7 +9,7 @@ namespace ApplicationBusiness.Dtos.Profile
 {
     public class CreateTourGuideProfileDto
     {
-        public IFormFile Photo { get; set; }
+        public string Photo { get; set; }
 
         public decimal SalaryPerDay { get; set; }
 
@@ -31,7 +31,7 @@ namespace ApplicationBusiness.Dtos.Profile
 
     public class CreateTravelerProfileDto
     {
-        public IFormFile Photo { get; set; }
+        public string Photo { get; set; }
 
         #region verification
         //// Incoming files from client
@@ -49,7 +49,7 @@ namespace ApplicationBusiness.Dtos.Profile
     }
     public class CreateTravelerCompanyProfileDto
     {
-        public IFormFile Photo { get; set; }
+        public string Photo { get; set; }
 
         #region verification
         //// Incoming files from client

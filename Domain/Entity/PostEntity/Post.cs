@@ -12,19 +12,19 @@ namespace Domain.Entity.PostEntity
     [NotMapped]
     public abstract class Post:BaseEntity
     {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string PhotoUrl { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? PhotoUrl { get; set; }
     }
     public class ExperiencePost : Post
     {
         public ICollection<Comment> Comments { get; set; }
         public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
-        public string TipsAndRecommendations { get; set; }
-        public decimal Budget { get; set; }
+        public string? Country { get; set; }
+        public string? City { get; set; }
+        public string? TipsAndRecommendations { get; set; }
+        public decimal? Budget { get; set; }
 
       
     }
@@ -33,8 +33,8 @@ namespace Domain.Entity.PostEntity
         public ICollection<Comment> Comments { get; set; }
         public int CreatedById { get; set; }
         public TravelCompany CreatedBy { get; set; }
-        public string Requirements { get; set; }
-        public string Status { get; set; }
+        public string? Requirements { get; set; }
+        public string? Status { get; set; }
     }
 
 

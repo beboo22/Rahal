@@ -84,7 +84,7 @@ namespace Presentation.Controllers
                     //return Ok(new ApiResultResponse<string>(200, jwtResponse.Token.AccessToken));
             return Ok(result);
         }
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTrip>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpPost("logout")]

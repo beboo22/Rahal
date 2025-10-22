@@ -201,7 +201,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 trip.CustomizationFee = totalPrice * 0.05m;
                 await _wTRepo.AddAsync(trip);
                 await _uot.SaveChangesAsync();
-                var temp = new TemplateTrip
+                var temp = new PrivateTemplateTrip
                 {
                     Id = trip.Id,
                     Title = trip.Title,
@@ -224,7 +224,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                         TripCategory = a.TripCategory,
                     }).ToList()
                 };
-                return new ApiResultResponse<TemplateTrip>((int)HttpStatusCode.Created, temp, "Trip Added Successfully");
+                return new ApiResultResponse<PrivateTemplateTrip>((int)HttpStatusCode.Created, temp, "Trip Added Successfully");
 
             }
             catch (Exception ex)

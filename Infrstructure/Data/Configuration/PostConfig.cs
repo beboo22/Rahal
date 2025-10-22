@@ -14,12 +14,21 @@ namespace Infrstructure.Data.Configuration
         public void Configure(EntityTypeBuilder<Post> builder)
         {
             builder.UseTpcMappingStrategy();
-
+            builder.Property(x=>x.Title).IsRequired(false);
+            builder.Property(x=>x.Description).IsRequired(false);
+            builder.Property(x=>x.PhotoUrl).IsRequired(false);
         }
-    }internal class PostExConfig : IEntityTypeConfiguration<ExperiencePost>
+    }
+    internal class PostExConfig : IEntityTypeConfiguration<ExperiencePost>
     {
         public void Configure(EntityTypeBuilder<ExperiencePost> builder)
         {
+            builder.Property(x=>x.Description).IsRequired(false);
+            builder.Property(x=>x.PhotoUrl).IsRequired(false);
+            builder.Property(x=>x.City).IsRequired(false);
+            builder.Property(x=>x.Country).IsRequired(false);
+            builder.Property(x=>x.Budget).IsRequired(false);
+            builder.Property(x=>x.TipsAndRecommendations).IsRequired(false);
             builder.Property(ex => ex.Budget).HasColumnType("decimal(18,2)");
         }
     }

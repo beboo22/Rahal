@@ -178,7 +178,9 @@ namespace Application.Fetures.Authentication.Command
             if (tokenEntity == null) return new ApiResponse((int)HttpStatusCode.BadRequest, "Invalid token");
 
             var user = tokenEntity.User;
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.ResetPasswordDto.NewPassword);
+            //user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.ResetPasswordDto.NewPassword);
+            var hasher = new PasswordHasher<User>();
+            user.PasswordHash = hasher.HashPassword(user, request.ResetPasswordDto.NewPassword);
             user.LastPasswordResetTime = DateTime.UtcNow;
 
             foreach (var rt in user.RefreshTokens)

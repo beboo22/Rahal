@@ -5,6 +5,7 @@ using Infrstructure.Impelementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Talabat.Core.Specification;
 
 namespace Infrastructure
 {
@@ -32,6 +33,7 @@ namespace Infrastructure
             services.AddScoped(typeof(IReadGenericRepo<>), typeof(ReadGenericRepo<>));
             services.AddScoped(typeof(IReadUserRepo<>), typeof(ReadUserRepo<>));
             services.AddScoped(typeof(IWriteUserRepo), typeof(WriteUserRepo));
+            services.AddScoped(typeof(ISpecification<>), typeof(Specification<>));
             
 
 

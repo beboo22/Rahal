@@ -61,7 +61,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
                 var entity = new TravelCompany
                 {
-                    PhotoUrl = SaveFile(request.dto.Photo, $"Travelecompany{request.Id}"),
+                    PhotoUrl = request.dto.Photo,
 
                     Id = request.Id,
                     Ssn = request.dto.Ssn,
@@ -101,8 +101,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     Id = entity.Id,
                     Ssn = entity.Ssn,
                     Bio = entity.Bio,
-                    FrontIdentityPhotoUrl = entity.FrontIdentityPhotoUrl,
-                    BackIdentityPhotoUrl = entity.BackIdentityPhotoUrl,
                     BusinessGalaries = entity.travelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
                     {
                         PhotoUrl = s.PhotoUrl,
@@ -162,8 +160,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     Id = tComp.Id,
                     Ssn = tComp.Ssn,
                     Bio = tComp.Bio,
-                    FrontIdentityPhotoUrl = tComp.FrontIdentityPhotoUrl,
-                    BackIdentityPhotoUrl = tComp.BackIdentityPhotoUrl,
                     BusinessGalaries = tComp.travelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
                     {
                         PhotoUrl = s.PhotoUrl,
@@ -226,8 +222,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     SalaryPerDay = tComp.SalaryPerDay,
                     Ssn = tComp.Ssn,
                     Bio = tComp.Bio,
-                    FrontIdentityPhotoUrl = tComp.FrontIdentityPhotoUrl,
-                    BackIdentityPhotoUrl = tComp.BackIdentityPhotoUrl,
                     BusinessGalaries = tComp.tourGuidBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
                     {
                         PhotoUrl = s.PhotoUrl,
@@ -280,7 +274,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                 var entity = new TourGuide
                 {
 
-                    PhotoUrl = SaveFile(request.dto.Photo, $"Tourgiude{request.Id}"),
+                    PhotoUrl = request.dto.Photo,
                     SalaryPerDay = request.dto.SalaryPerDay,
                     Id = request.Id,
                     Ssn = request.dto.Ssn,
@@ -312,8 +306,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     SalaryPerDay = entity.SalaryPerDay,
                     Ssn = entity.Ssn,
                     Bio = entity.Bio,
-                    FrontIdentityPhotoUrl = entity.FrontIdentityPhotoUrl,
-                    BackIdentityPhotoUrl = entity.BackIdentityPhotoUrl,
                     BusinessGalaries = entity.tourGuidBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
                     {
                         PhotoUrl = s.PhotoUrl,
@@ -375,8 +367,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     Id = tComp.Id,
                     Ssn = tComp.Ssn,
                     Bio = tComp.Bio,
-                    FrontIdentityPhotoUrl = tComp.FrontIdentityPhotoUrl,
-                    BackIdentityPhotoUrl = tComp.BackIdentityPhotoUrl,
                     Adresses = tComp.trvelerAddresses.Select(s => new Dtos.Profile.Adress
                     {
                         BuildingNumber = s.BuildingNumber,
@@ -418,7 +408,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                 }
                 var entity = new Traveler
                 {
-                    PhotoUrl = SaveFile(request.dto.Photo,$"Traveller{request.Id}"),
+                    PhotoUrl = request.dto.Photo,
                     Id = request.Id,
                     Ssn = request.dto.Ssn,
                     UserId = request.Id,
@@ -440,8 +430,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     Id = entity.Id,
                     Ssn = entity.Ssn,
                     Bio = entity.Bio,
-                    FrontIdentityPhotoUrl = entity.FrontIdentityPhotoUrl,
-                    BackIdentityPhotoUrl = entity.BackIdentityPhotoUrl,
                     Adresses = entity.trvelerAddresses.Select(s => new Dtos.Profile.Adress
                     {
                         BuildingNumber = s.BuildingNumber,

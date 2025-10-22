@@ -2,6 +2,7 @@
 using Domain.Abstraction;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Talabat.Core.Specification;
 
 namespace InfraStructure.Impelementation
 {
@@ -28,6 +29,30 @@ namespace InfraStructure.Impelementation
             }
             return entity;
         }
+
+
+        public IQueryable<T> GetAllSpec(ISpecification<T> spec)
+        {
+            var items =  ApplySpec(spec).AsNoTracking();
+            return items;
+        }
+        public async Task<T> GetByIDSpec(ISpecification<T> spec)
+        {
+            var items = await ApplySpec(spec).FirstOrDefaultAsync();
+            if (items == null)
+            {
+                throw new KeyNotFoundException($"Entity not found.");
+            }
+            return items;
+        }
+        private IQueryable<T> ApplySpec(ISpecification<T> spec)
+        => SpecificationEvaluation<T>.GetQuery(_context.Set<T>(), spec);
+
+
+
+
+
+
 
     }
 }
