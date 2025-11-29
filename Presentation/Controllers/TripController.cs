@@ -4,87 +4,14 @@ using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.BaseResponce;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
-    //    [Route("api/[controller]")]
-    //    [ApiController]
-    //    public class TripController : ApiController
-    //    {
-    //        public TripController(ISender sender) : base(sender) { }
-
-    //        // POST: api/trip
-    //        /// <summary>
-    //        /// Creates a new public trip.
-    //        /// </summary>
-    //        /// <param name="dto">Trip details to create.</param>
-    //        /// <param name="createdById">ID of the user creating the trip.</param>
-    //        /// <returns>The created trip data.</returns>
-    //        [ProducesResponseType(typeof(ApiResultResponse<TemplateTrip>), StatusCodes.Status201Created)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    //        [HttpPost("Public/{createdById:int}")]
-    //        public async Task<IActionResult> CreateTrip([FromBody] AddPublicTripDto dto, int createdById)
-    //        {
-    //            var result = await Sender.Send(new AddPublicTrip(dto, createdById));
-    //            return Ok(result);
-    //        }
-
-
-    //        // DELETE: api/trip/{id}
-    //        // POST: api/trip
-    //        /// <summary>
-    //        /// Delelte public trip.
-    //        /// </summary>
-    //        /// <param name="dto">Trip details to create.</param>
-    //        /// <param name="createdById">ID of the user creating the trip.</param>
-    //        /// <returns>The created trip data.</returns>
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status201Created)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    //        [HttpDelete("Public/{id:int}")]
-    //        public async Task<IActionResult> DeleteTrip(int id)
-    //        {
-    //            var result = await Sender.Send(new DeletePublicTrip(id));
-    //            return Ok(result);
-    //        }
-    //        // POST: api/trip
-    //        /// <summary>
-    //        /// Creates a new Private trip.
-    //        /// </summary>
-    //        /// <param name="dto">Trip details to create.</param>
-    //        /// <param name="createdById">ID of the user creating the trip.</param>
-    //        /// <returns>The created trip data.</returns>
-    //        [ProducesResponseType(typeof(ApiResultResponse<TemplateTrip>), StatusCodes.Status201Created)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    //        [HttpPost("Private/{createdById:int}")]
-    //        public async Task<IActionResult> CreatePrivateTrip([FromBody] AddPrivateTripDto dto, int createdById)
-    //        {
-    //            var result = await Sender.Send(new AddPrivateTrip(dto, createdById));
-    //            return Ok(result);
-    //        }
-
-    //        // DELETE: api/trip/{id}
-    //        // POST: api/trip
-    //        /// <summary>
-    //        /// Delete  trip.
-    //        /// </summary>
-    //        /// <param name="dto">Trip details to create.</param>
-    //        /// <param name="createdById">ID of the user creating the trip.</param>
-    //        /// <returns>The created trip data.</returns>
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    //        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    //        [HttpDelete("Private/{id:int}")]
-    //        public async Task<IActionResult> DeletePrivateTrip(int id)
-    //        {
-    //            var result = await Sender.Send(new DeletePrivateTrip(id));
-    //            return Ok(result);
-    //        }
-    //    }
     [Route("api/[controller]")]
     [ApiController]
     public class PublicTripController : ApiController
@@ -97,19 +24,27 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResultResponse<TemplateTrip>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpPost("{createdById:int}")]
-        public async Task<IActionResult> CreatePublicTrip([FromBody] AddPublicTripDto dto, int createdById)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
+        [HttpPost()]
+        public async Task<IActionResult> CreatePublicTrip([FromBody] AddPublicTripDto dto)
         {
-            var result = await Sender.Send(new AddPublicTrip(dto, createdById));
+            var userId = GetUserId();
+
+            var result = await Sender.Send(new AddPublicTrip(dto, userId.Value));
             return Ok(result);
         }
-
+        private int? GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
+        }
         /// <summary>
         /// Delete a public trip.
         /// </summary>
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePublicTrip(int id)
         {
@@ -122,6 +57,7 @@ namespace Presentation.Controllers
         /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<List<TemplateTrip>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
         [HttpGet("All")]
         public async Task<IActionResult> GetAllTrips()
         {
@@ -143,6 +79,7 @@ namespace Presentation.Controllers
     }
     [Route("api/[controller]")]
     [ApiController]
+
     public class PrivateTripController : ApiController
     {
         public PrivateTripController(ISender sender) : base(sender) { }
@@ -153,19 +90,27 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResultResponse<PrivateTemplateTrip>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpPost("{createdById:int}")]
-        public async Task<IActionResult> CreatePrivateTrip([FromBody] AddPrivateTripDto dto, int createdById)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
+        [HttpPost()]
+        public async Task<IActionResult> CreatePrivateTrip([FromBody] AddPrivateTripDto dto)
         {
-            var result = await Sender.Send(new AddPrivateTrip(dto, createdById));
+            var userId = GetUserId();
+
+            var result = await Sender.Send(new AddPrivateTrip(dto, userId.Value));
             return Ok(result);
         }
-
+        private int? GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
+        }
         /// <summary>
         /// Delete a private trip.
         /// </summary>
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePrivateTrip(int id)
         {
@@ -178,10 +123,13 @@ namespace Presentation.Controllers
         /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<List<PrivateTemplateTrip>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [HttpGet("User/{userId:int}")]
-        public async Task<IActionResult> GetPrivateTripsByUserId(int userId)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
+        [HttpGet("User")]
+        public async Task<IActionResult> GetPrivateTripsByUserId()
         {
-            var result = await Sender.Send(new GetPrivateTripforUserId(userId));
+            var userId = GetUserId();
+
+            var result = await Sender.Send(new GetPrivateTripforUserId(userId.Value));
             return Ok(result);
         }
     }

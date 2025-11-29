@@ -34,6 +34,8 @@ namespace Infrastructure
             services.AddScoped(typeof(IReadUserRepo<>), typeof(ReadUserRepo<>));
             services.AddScoped(typeof(IWriteUserRepo), typeof(WriteUserRepo));
             services.AddScoped(typeof(ISpecification<>), typeof(Specification<>));
+            services.AddScoped(typeof(IGoogleDriveRepo), typeof(GoogleDrvieRepository));
+            services.AddScoped(typeof(IPhotoService), typeof(PhotoService));
             
 
 

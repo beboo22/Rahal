@@ -18,6 +18,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApplicationBusiness.Fetures.Profile.Query
 {
@@ -117,6 +118,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
         {
             var temp = await _RTR.GetAll()
                             .AsNoTracking()
+                            .AsSplitQuery()//'IQueryable<Traveler>' does not contain a definition for 'AsSplitQuery' and no accessible extension method 'AsSplitQuery' accepting a first argument of type 'IQueryable<Traveler>' could be found (are you missing a using directive or an assembly reference?)
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTraveler
                             {
@@ -171,8 +173,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     Street = s.Street,
                                 }).ToList(),
                             })
-                            .FirstOrDefaultAsync()
-                            ;
+                            .FirstOrDefaultAsync();
             if (temp == null)
                 return new ApiResponse((int)HttpStatusCode.NotFound, "there's no profile to user");
 

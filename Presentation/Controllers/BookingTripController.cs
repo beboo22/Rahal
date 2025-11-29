@@ -43,6 +43,10 @@ namespace Presentation.Controllers
             return Ok(res);
         }
         // POST api/<BookingTripController>//UserId/TripId
+        /// <summary>
+        /// Creates a new trip.
+        /// </summary>
+        /// <response code="201">Returns the created trip ID and message</response>
         [ProducesResponseType(typeof(ApiResultResponse<BookingTripTemplate>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]

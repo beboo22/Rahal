@@ -37,6 +37,10 @@ namespace Infrastructure.Data
         }
         //Dbsets
 
+
+
+        public DbSet<GenericDiscount> GenericDiscounts { get; set; } // ✅ helps querying base type
+        public DbSet<SpecificDiscount> SpecificDiscounts { get; set; } // ✅ helps querying base type
         public DbSet<User> Users { get; set; } // ✅ helps querying base type
         public DbSet<Traveler> Travelers { get; set; }
         public DbSet<Admin> Admins { get; set; }

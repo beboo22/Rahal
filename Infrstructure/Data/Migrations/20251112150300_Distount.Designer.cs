@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrstructure.Data.Migrations
 {
     [DbContext(typeof(WriteSysDbContext))]
-    partial class WriteSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251112150300_Distount")]
+    partial class Distount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,7 +29,7 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.HasSequence("TripSequence");
 
-            modelBuilder.Entity("Domain.Entity.GenericDiscount", b =>
+            modelBuilder.Entity("Domain.Entity.Discount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -36,7 +39,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -61,12 +64,9 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("GenericDiscounts");
+                    b.ToTable("Discount");
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.Admin", b =>
@@ -417,54 +417,6 @@ namespace Infrstructure.Data.Migrations
                     b.ToTable((string)null);
 
                     b.UseTpcMappingStrategy();
-                });
-
-            modelBuilder.Entity("Domain.Entity.SpecificDiscount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CurrentUsage")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("DiscountValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsPercentage")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MaxUsage")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("TripId");
-
-                    b.ToTable("SpecificDiscounts");
                 });
 
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>
@@ -1164,9 +1116,9 @@ namespace Infrstructure.Data.Migrations
                     b.ToTable("PublicTrips");
                 });
 
-            modelBuilder.Entity("Domain.Entity.GenericDiscount", b =>
+            modelBuilder.Entity("Domain.Entity.Discount", b =>
                 {
-                    b.HasOne("Domain.Entity.Identity.Admin", "Creator")
+                    b.HasOne("Domain.Entity.Identity.User", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1270,25 +1222,6 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("HiringPost");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Domain.Entity.SpecificDiscount", b =>
-                {
-                    b.HasOne("Domain.Entity.Identity.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entity.TripEntity.PublicTrip", "Trip")
-                        .WithMany()
-                        .HasForeignKey("TripId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Creator");
-
-                    b.Navigation("Trip");
                 });
 
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>

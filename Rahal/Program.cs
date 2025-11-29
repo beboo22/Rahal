@@ -1,4 +1,4 @@
-using Application.Fetures.Authentication.Command;
+﻿using Application.Fetures.Authentication.Command;
 using Application.Fetures.Authentication.Command.Models;
 using Application.Fetures.Authentication.Query;
 using Application.Fetures.Authentication.Query.Models;
@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using Rahal.Middleware;
 using System.Text;
+using CloudinaryDotNet;
+using Domain.Abstraction;
 namespace Rahal
 {
     public class Program
@@ -39,6 +41,10 @@ namespace Rahal
                 cfg.RegisterServicesFromAssembly(typeof(Infrastructure.AssemblyReference).Assembly);
 
             });
+            // ...
+            // هيقرأ الـ Section اللي عملناها في appsettings.json
+            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+            // ...
 
 
 

@@ -25,20 +25,12 @@ namespace Infrastructure.Data
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ReadSysDbContext).Assembly);
 
-            // Configure base type with TPC
-            //modelBuilder.Entity<User>().UseTpcMappingStrategy();
-
-            //// Configure tables
-            //modelBuilder.Entity<Traveler>().ToTable("Travelers");
-            //modelBuilder.Entity<RefreshToken>().ToTable("RefreshTokens");
-            //modelBuilder.Entity<PasswordResetToken>().ToTable("PasswordResetTokens");
-            //modelBuilder.Entity<TourGuide>().ToTable("TourGuides");
-            //modelBuilder.Entity<TravelCompany>().ToTable("TravelCompanies");
-            //modelBuilder.Entity<Admin>().ToTable("Admins");
-            //modelBuilder.Entity<User>().Ignore(u => u.RefreshTokens);
         }
 
         // DbSets
+
+        public DbSet<GenericDiscount> GenericDiscounts { get; set; } // ✅ helps querying base type
+        public DbSet<SpecificDiscount> SpecificDiscounts { get; set; } // ✅ helps querying base type
         public DbSet<User> Users { get; set; } // ✅ helps querying base type
         public DbSet<Traveler> Travelers { get; set; }
         public DbSet<Admin> Admins { get; set; }
