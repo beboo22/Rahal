@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrstructure.Data.Migrations
 {
     [DbContext(typeof(WriteSysDbContext))]
-    partial class WriteSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421223643_AddHotel_flightPay")]
+    partial class AddHotel_flightPay
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -897,12 +900,6 @@ namespace Infrstructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseSequence(b.Property<int>("Id"));
 
-                    b.Property<string>("City")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Country")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -1724,8 +1721,20 @@ namespace Infrstructure.Data.Migrations
                 {
                     b.HasBaseType("Domain.Entity.PostEntity.Post");
 
+                    b.Property<decimal?>("Budget")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
+
+                    b.Property<string>("TipsAndRecommendations")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasIndex("CreatedById");
 

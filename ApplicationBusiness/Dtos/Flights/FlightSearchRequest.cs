@@ -103,6 +103,16 @@ namespace ApplicationBusiness.Dtos.Flights
         public int LowestPrice { get; set; }
         public string PriceLevel { get; set; } = string.Empty;
         public List<int[]> PriceHistory { get; set; } = new();
+        public PriceInsights()
+        {
+            
+        }
+        public PriceInsights(int lowestPrice, string priceLevel)
+        {
+            LowestPrice = lowestPrice;
+            PriceLevel = priceLevel;
+        }
 
     }
+
 }

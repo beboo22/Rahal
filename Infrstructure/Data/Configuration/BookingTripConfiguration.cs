@@ -20,7 +20,7 @@ namespace Infrstructure.Data.Configuration
             builder.Property(b => b.BookingDate)
                    .IsRequired();
 
-            
+
 
             builder.Property(b => b.TotalBookingPrice)
                    .HasColumnType("decimal(18,2)");
@@ -40,6 +40,14 @@ namespace Infrstructure.Data.Configuration
                    .WithMany(u => u.BookingPublicTrips)
                    .HasForeignKey(b => b.UserId)
                    .OnDelete(DeleteBehavior.Cascade);// When a User is deleted, their associated BookingTrips are also deleted.
+            //builder.HasOne(b => b.Hotels)
+            //           .WithMany()
+            //           .HasForeignKey()
+            //           .OnDelete(DeleteBehavior.NoAction);// When a User is deleted, their associated BookingTrips are also deleted.
+            //builder.HasOne(b => b.FlightOffers)
+            //        .WithMany()
+            //        .HasForeignKey()
+            //        .OnDelete(DeleteBehavior.NoAction);// When a User is deleted, their associated BookingTrips are also deleted.
         }
     }
     public class BookingPrivateTripConfiguration : IEntityTypeConfiguration<BookingPrivateTrip>
@@ -53,7 +61,14 @@ namespace Infrstructure.Data.Configuration
             builder.Property(b => b.BookingDate)
                    .IsRequired();
 
-            
+            //builder.HasOne(b => b.Hotels)
+            //           .WithMany()
+            //           .HasForeignKey()
+            //           .OnDelete(DeleteBehavior.NoAction);// When a User is deleted, their associated BookingTrips are also deleted.
+            //builder.HasOne(b => b.FlightOffers)
+            //        .WithMany()
+            //        .HasForeignKey()
+            //        .OnDelete(DeleteBehavior.NoAction);
 
             builder.Property(b => b.TotalBookingPrice)
                    .HasColumnType("decimal(18,2)");

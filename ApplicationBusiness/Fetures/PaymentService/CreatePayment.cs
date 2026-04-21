@@ -7,7 +7,10 @@ using System.Windows.Input;
 namespace ApplicationBusiness.Fetures.PaymentService
 {
     public record HandlePaymobWebhookCommand(JsonElement Payload,string hmac) : IRequest<bool>;
-    public record CreatePayment(int BookId):ICommand<ApiResponse>;
+    public record PublicTripCreatePayment(int BookId):ICommand<ApiResponse>;
+    public record PrivateTripCreatePayment(int BookId):ICommand<ApiResponse>;
+    public record FlightCreatePayment(int BookId):ICommand<ApiResponse>;
+    public record HotleCreatePayment(int BookId):ICommand<ApiResponse>;
 
 
 //public class HandlePaymobWebhookCommand : ICommand<bool>

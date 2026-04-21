@@ -149,7 +149,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
             return int.Parse(parts[^1]);
         }
     }
-    internal class PaymentCommandHandler : ICommandHandler<CreatePayment, ApiResponse>
+    internal class PublicTripPaymentCommandHandler : ICommandHandler<PublicTripCreatePayment, ApiResponse>
     {
         private IWriteGenericRepo<PaymentRequest> _Wrepo;
         private IReadGenericRepo<BookingPublicTrip> _ROrepo;
@@ -157,7 +157,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
 
         private IPaymobService paymobService;
 
-        public PaymentCommandHandler(IPaymobService paymobService, IReadGenericRepo<BookingPublicTrip> rOrepo, IWriteGenericRepo<PaymentRequest> wrepo, IWriteUnitOfWork unitOfWork)
+        public PublicTripPaymentCommandHandler(IPaymobService paymobService, IReadGenericRepo<BookingPublicTrip> rOrepo, IWriteGenericRepo<PaymentRequest> wrepo, IWriteUnitOfWork unitOfWork)
         {
             this.paymobService = paymobService;
             _ROrepo = rOrepo;
@@ -165,7 +165,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ApiResponse> Handle(CreatePayment request, CancellationToken cancellationToken)
+        public async Task<ApiResponse> Handle(PublicTripCreatePayment request, CancellationToken cancellationToken)
         {
 
 

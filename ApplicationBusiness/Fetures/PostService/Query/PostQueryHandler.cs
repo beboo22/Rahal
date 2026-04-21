@@ -160,8 +160,8 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                             Title = p.Title,
                             City = p.City,
                             Country = p.Country,
-                            Budget = p.Budget,
-                            TipsAndRecommendations = p.TipsAndRecommendations,
+                            //Budget = p.Budget,
+                            //TipsAndRecommendations = p.TipsAndRecommendations,
                             Comments = p.Comments.Select(c => new TemplateComment
                             {
                                 CreatedAt = c.CreatedAt,
@@ -195,8 +195,8 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                             Title = p.Title,
                             City = p.City,
                             Country = p.Country,
-                            Budget = p.Budget,
-                            TipsAndRecommendations = p.TipsAndRecommendations,
+                            //Budget = p.Budget,
+                            //TipsAndRecommendations = p.TipsAndRecommendations,
                             Comments = p.Comments.Select(c => new TemplateComment
                             {
                                 CreatedAt = c.CreatedAt,
@@ -218,7 +218,7 @@ namespace ApplicationBusiness.Fetures.PostService.Query
             try
             {
                 var spec = new ExperiencePostSearchSpecification(request.date, request.title, request.country,
-                    request.city,request.tipsAndRecommendations,request.budget,request.page,request.capacity);
+                    request.city,request.page,request.capacity);
 
                 var posts = await _RPR
                     .GetAllSpec(spec)
@@ -229,10 +229,10 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                         Description = x.Description,
                         FullName = $"{x.CreatedBy.FName} {x.CreatedBy.LName}",
                         PhotoUrl = x.PhotoUrl,
-                        Budget = x.Budget,
+                        //Budget = x.Budget,
                         City = x.City,
                         Country = x.Country,
-                        TipsAndRecommendations = x.TipsAndRecommendations,
+                        //TipsAndRecommendations = x.TipsAndRecommendations,
                         CreatedAt = x.CreatedAt,
                         Comments = x.Comments.Select(c => new TemplateComment
                         {

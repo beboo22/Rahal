@@ -119,11 +119,11 @@ namespace Presentation.Controllers
             var result = await Sender.Send(new AddExperiencePostCommand(new AddExperiencePostDto
             {
                 PhotoUrl = "",
-                Budget = dto.Budget,
+                //Budget = dto.Budget,
                 Description = dto.Description,
                 City = dto.City,
                 Country = dto.Country,
-                TipsAndRecommendations = dto.TipsAndRecommendations,
+                //TipsAndRecommendations = dto.TipsAndRecommendations,
                 Title = dto.Title,
             }, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))));
             return Ok(result);

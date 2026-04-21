@@ -9,37 +9,46 @@ using System.Threading.Tasks;
 namespace ApplicationBusiness.Abstraction.spacification
 {
 
-    //public class HotelSearchHistorySpecification : Specification<HotelSearchHistory>
-    //{
-    //    public HotelSearchHistorySpecification(HotelHistoryFilter filter)
-    //    {
-    //        crateria = x => true;
+    public class HotelSearchHistorySpecification : Specification<HotelSearchHistory>
+    {
+        public HotelSearchHistorySpecification(HotelHistoryFilter filter)
+        {
+            crateria = x => true;
 
-    //        if (!string.IsNullOrWhiteSpace(filter.UserId))
-    //            AndAlso(x => x.UserId == filter.UserId);
+            if (!string.IsNullOrWhiteSpace(filter.Destination))
+            {
+                AndAlso(x =>
+                    x.Hotels.Any(h =>
+                        h.Name.Contains(filter.Destination) ||
+                        h.NearbyPlaces.Contains(filter.Destination)));
+            }
 
-    //        if (!string.IsNullOrWhiteSpace(filter.Destination))
-    //            AndAlso(x => x.Destination.Contains(filter.Destination));
+            if (filter.MinPrice.HasValue)
+            {
+                AndAlso(x =>
+                    x.Hotels.Any(h =>
+                        h.LowestPrice >= filter.MinPrice.Value));
+            }
 
-    //        if (filter.CheckInFrom.HasValue)
-    //            AndAlso(x => x.CheckInDate >= filter.CheckInFrom.Value);
+            if (filter.MaxPrice.HasValue)
+            {
+                AndAlso(x =>
+                    x.Hotels.Any(h =>
+                        h.LowestPrice <= filter.MaxPrice.Value));
+            }
 
-    //        if (filter.CheckInTo.HasValue)
-    //            AndAlso(x => x.CheckInDate <= filter.CheckInTo.Value);
+            if (filter.MinRating.HasValue)
+            {
+                AndAlso(x =>
+                    x.Hotels.Any(h =>
+                        h.Rating >= filter.MinRating.Value));
+            }
 
-    //        if (filter.MinPrice.HasValue)
-    //            AndAlso(x => x.MinPrice >= filter.MinPrice.Value);
+            AddOrderByDecs(x => x.CreatedAt);
 
-    //        if (filter.MaxPrice.HasValue)
-    //            AndAlso(x => x.MaxPrice <= filter.MaxPrice.Value);
-
-    //        if (filter.MinRating.HasValue)
-    //            AndAlso(x => x.MinRating >= filter.MinRating.Value);
-
-    //        AddOrderByDecs(x => x.CreatedAt);
-    //        ApplyPagination(filter.PageIndex, filter.PageSize);
-    //    }
-    //}
+            ApplyPagination(filter.PageIndex, filter.PageSize);
+        }
+    }
 
     public class HotelHistoryFilter
     {

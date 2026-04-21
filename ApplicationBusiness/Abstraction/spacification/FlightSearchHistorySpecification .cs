@@ -8,34 +8,59 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Abstraction.spacification
 {
-    //public class FlightSearchHistorySpecification : Specification<FlightSearchHistory>
-    //{
-    //    public FlightSearchHistorySpecification(FlightHistoryFilter filter)
-    //    {
-    //        crateria = x => true;
+    public class FlightSearchHistorySpecification : Specification<FlightSearchHistory>
+    {
+        public FlightSearchHistorySpecification(FlightHistoryFilter filter)
+        {
+            crateria = x => true;
 
-    //        if (!string.IsNullOrWhiteSpace(filter.UserId))
-    //            AndAlso(x => x.UserId == filter.UserId);
+            if (!string.IsNullOrWhiteSpace(filter.Destination))
+            {
+                AndAlso(x =>
+                    x.BestFlights.Any(f =>
+                        f.Flights.Any(s =>
+                            s.ArrivalAirport.Name.Contains(filter.Destination)))
+                    ||
+                    x.OtherFlights.Any(f =>
+                        f.Flights.Any(s =>
+                            s.ArrivalAirport.Name.Contains(filter.Destination))));
+            }
 
-    //        if (!string.IsNullOrWhiteSpace(filter.Destination))
-    //            AndAlso(x => x.ArrivalId.Contains(filter.Destination));
+            if (filter.FromDate.HasValue)
+            {
+                AndAlso(x =>
+                    x.BestFlights.Any(f =>
+                        f.Flights.Any(s =>
+                            s.DepartureTime >= filter.FromDate.Value))
+                    ||
+                    x.OtherFlights.Any(f =>
+                        f.Flights.Any(s =>
+                            s.DepartureTime >= filter.FromDate.Value)));
+            }
 
-    //        if (filter.FromDate.HasValue)
-    //            AndAlso(x => x.DepartureDate >= filter.FromDate.Value);
+            if (filter.ToDate.HasValue)
+            {
+                AndAlso(x =>
+                    x.BestFlights.Any(f =>
+                        f.Flights.Any(s =>
+                            s.DepartureTime <= filter.ToDate.Value))
+                    ||
+                    x.OtherFlights.Any(f =>
+                        f.Flights.Any(s =>
+                            s.DepartureTime <= filter.ToDate.Value)));
+            }
 
-    //        if (filter.ToDate.HasValue)
-    //            AndAlso(x => x.DepartureDate <= filter.ToDate.Value);
+            if (filter.MinPrice.HasValue)
+                AndAlso(x => x.PriceInsights.LowestPrice >= filter.MinPrice.Value);
 
-    //        if (filter.MinPrice.HasValue)
-    //            AndAlso(x => x.MinPrice >= filter.MinPrice.Value);
+            if (filter.MaxPrice.HasValue)
+                AndAlso(x => x.PriceInsights.LowestPrice <= filter.MaxPrice.Value);
 
-    //        if (filter.MaxPrice.HasValue)
-    //            AndAlso(x => x.MaxPrice <= filter.MaxPrice.Value);
+            AddOrderByDecs(x => x.CreatedAt);
 
-    //        AddOrderByDecs(x => x.CreatedAt);
-    //        ApplyPagination(filter.PageIndex, filter.PageSize);
-    //    }
-    //}
+            ApplyPagination(filter.PageIndex, filter.PageSize);
+        }
+    }
 
     public class FlightHistoryFilter
     {

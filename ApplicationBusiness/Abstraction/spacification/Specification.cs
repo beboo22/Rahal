@@ -59,8 +59,8 @@ namespace Application.Abstraction.spacification
             string? title,
             string? country,
             string? city,
-            string? tipsAndRecommendations,
-            decimal? budget, 
+            //string? tipsAndRecommendations,
+            //decimal? budget, 
             int? pageIndex, 
             int pageSize = 5)
         {
@@ -78,11 +78,11 @@ namespace Application.Abstraction.spacification
             if (!string.IsNullOrWhiteSpace(city))
                 _criteria = _criteria.AndAlso(post => post.City.Contains(city));
 
-            if (!string.IsNullOrWhiteSpace(tipsAndRecommendations))
-                _criteria = _criteria.AndAlso(post => post.TipsAndRecommendations.Contains(tipsAndRecommendations));
+            //if (!string.IsNullOrWhiteSpace(tipsAndRecommendations))
+            //    _criteria = _criteria.AndAlso(post => post.TipsAndRecommendations.Contains(tipsAndRecommendations));
 
-            if (budget.HasValue)
-                _criteria = _criteria.AndAlso(post => post.Budget <= budget.Value);
+            //if (budget.HasValue)
+            //    _criteria = _criteria.AndAlso(post => post.Budget <= budget.Value);
 
             crateria = _criteria;
 

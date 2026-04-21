@@ -1,4 +1,5 @@
-﻿using Domain.Entity.Identity;
+﻿using Domain.Entity.Hotel_flights;
+using Domain.Entity.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -21,6 +22,8 @@ namespace Domain.Entity.TripEntity
         public decimal AppProfit { get; set; }
         public bool IsPaid { get; set; } = false;
         public bool Canceled { get; set; } = false;
+        public Hotel? Hotels { get; set; }
+        public FlightOffer? FlightOffers { get; set; }
     }
 
 

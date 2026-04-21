@@ -69,8 +69,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     Title = p.Title,
                                     City = p.City,
                                     Country = p.Country,
-                                    Budget = p.Budget,
-                                    TipsAndRecommendations = p.TipsAndRecommendations,
+                                    //Budget = p.Budget,
+                                    //TipsAndRecommendations = p.TipsAndRecommendations,
                                     Comments = p.Comments.Select(c => new TemplateComment
                                     {
                                         CreatedAt = c.CreatedAt,
@@ -155,8 +155,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     Title = p.Title,
                                     City = p.City,
                                     Country = p.Country,
-                                    Budget = p.Budget,
-                                    TipsAndRecommendations = p.TipsAndRecommendations,
+                                    //Budget = p.Budget,
+                                    //TipsAndRecommendations = p.TipsAndRecommendations,
                                     Comments = p.Comments.Select(c => new TemplateComment
                                     {
                                         CreatedAt = c.CreatedAt,
@@ -231,8 +231,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                         Title = p.Title,
                         City = p.City,
                         Country = p.Country,
-                        Budget = p.Budget,
-                        TipsAndRecommendations = p.TipsAndRecommendations,
+                        //Budget = p.Budget,
+                        //TipsAndRecommendations = p.TipsAndRecommendations,
                         Comments = p.Comments.Select(c => new TemplateComment
                         {
                             CreatedAt = c.CreatedAt,

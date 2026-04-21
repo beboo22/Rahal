@@ -25,10 +25,28 @@ namespace Presentation.Controllers
                 return Redirect("https://rahhal-app.vercel.app/");
             return Redirect("https://rahhal-app.vercel.app/faild");
         }
-        [HttpPost("payforpublic")]
-        public async Task<IActionResult> payforpublic()
+        [HttpPost("payforpublicTrip")]
+        public async Task<IActionResult> payforpublic(int id)
         {
-            var result = await Sender.Send(new CreatePayment(1));
+            var result = await Sender.Send(new PublicTripCreatePayment(id));
+            return Ok(result);
+        }
+        [HttpPost("payforprivateTrip")]
+        public async Task<IActionResult> payforPrivate(int id)
+        {
+            var result = await Sender.Send(new PrivateTripCreatePayment(id));
+            return Ok(result);
+        }
+        [HttpPost("payforFlight")]
+        public async Task<IActionResult> payforFlight(int id)
+        {
+            var result = await Sender.Send(new FlightCreatePayment(id));
+            return Ok(result);
+        }
+        [HttpPost("payforHotel")]
+        public async Task<IActionResult> payforHotel(int id)
+        {
+            var result = await Sender.Send(new HotleCreatePayment(id));
             return Ok(result);
         }
 

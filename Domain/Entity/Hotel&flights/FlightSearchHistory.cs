@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Domain.Entity.Identity;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,8 +10,8 @@ namespace Domain.Entity.Hotel_flights
 {
     public class FlightSearchHistory:BaseEntity
     {
-        public IReadOnlyCollection<FlightOffer> BestFlights { get; private set; } = new List<FlightOffer>();
-        public IReadOnlyCollection<FlightOffer> OtherFlights { get; private set; } = new List<FlightOffer>();
+        public ICollection<FlightOffer> BestFlights { get; private set; } = new List<FlightOffer>();
+        public ICollection<FlightOffer> OtherFlights { get; private set; } = new List<FlightOffer>();
         public PriceInsights PriceInsights { get; private set; }
         public string SearchId { get; private set; } = string.Empty;
         public string Currency { get; private set; } = string.Empty;
@@ -31,13 +33,23 @@ namespace Domain.Entity.Hotel_flights
 
     }
 
+    public class PayFlight : BaseEntity
+    {
+        public FlightOffer FlightOffer { get; set; }
+        public int FlightOfferId { get; set; }
+        public bool IsPaid { get; set; } = false;
+        public bool Canceled { get; set; }
+        public User User { get; set; }
+        public decimal TotalBookingPrice { get; set; }
+    }
+
+
     public class FlightOffer:BaseEntity
     {
-        public IReadOnlyCollection<FlightSegment> Flights { get; private set; } = new List<FlightSegment>();
+        public ICollection<FlightSegment> Flights { get; private set; } = new List<FlightSegment>();
         public int TotalDuration { get; private set; }
         public decimal Price { get; private set; }
         public string Type { get; private set; } = string.Empty;
-        public IReadOnlyCollection<string> AirlineLogos { get; private set; } = new List<string>();
         public int Layovers { get; private set; }
         public bool CarbonEmissions { get; private set; }
         public string BookingToken { get; private set; } = string.Empty;
@@ -49,7 +61,6 @@ namespace Domain.Entity.Hotel_flights
             int totalDuration,
             decimal price,
             string type,
-            IEnumerable<string> airlineLogos,
             int layovers,
             bool carbonEmissions,
             string bookingToken)
@@ -58,7 +69,6 @@ namespace Domain.Entity.Hotel_flights
             TotalDuration = totalDuration;
             Price = price;
             Type = type;
-            AirlineLogos = airlineLogos.ToList();
             Layovers = layovers;
             CarbonEmissions = carbonEmissions;
             BookingToken = bookingToken;
@@ -131,21 +141,16 @@ namespace Domain.Entity.Hotel_flights
     {
         public decimal LowestPrice { get; private set; }
         public string PriceLevel { get; private set; } = string.Empty;
-        public ICollection<List<decimal>> PriceHistory { get; private set; }
-            = new List<List<decimal>>();
+       
 
         private PriceInsights() { }
 
         public PriceInsights(
             decimal lowestPrice,
-            string priceLevel,
-            IEnumerable<IEnumerable<decimal>> priceHistory)
+            string priceLevel)
         {
             LowestPrice = lowestPrice;
             PriceLevel = priceLevel;
-            PriceHistory = priceHistory
-                .Select(x => (List<decimal>)x.ToList())
-                .ToList();
         }
     }
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Domain.Entity.Identity;
+using Domain.Entity.TravelerEntity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +10,7 @@ namespace Domain.Entity.Hotel_flights
 {
     public class HotelSearchHistory:BaseEntity
     {
-        public IReadOnlyCollection<Hotel> Hotels { get; private set; } = new List<Hotel>();
+        public ICollection<Hotel> Hotels { get; private set; } = new List<Hotel>();
         public string SearchId { get; private set; } = string.Empty;
         public HotelBrands Brands { get; private set; }
         public string Currency { get; private set; } = string.Empty;
@@ -35,16 +37,16 @@ namespace Domain.Entity.Hotel_flights
         public string Link { get; private set; } = string.Empty;
         public decimal Rating { get; private set; }
         public int Reviews { get; private set; }
-        public IReadOnlyCollection<string> Images { get; private set; } = new List<string>();
+        public string Images { get; private set; }
         public decimal LowestPrice { get; private set; }
         public string PriceLabel { get; private set; } = string.Empty;
         public HotelLocation Location { get; private set; }
-        public IReadOnlyCollection<string> Amenities { get; private set; } = new List<string>();
-        public IReadOnlyCollection<string> NearbyPlaces { get; private set; } = new List<string>();
+        public string Amenities { get; private set; }
+        public string NearbyPlaces { get; private set; } 
         public string PropertyToken { get; private set; } = string.Empty;
         public bool SponsoredHotel { get; private set; }
         public int EcoLabel { get; private set; }
-        public IReadOnlyCollection<RatePerNight> RatesPerNight { get; private set; } = new List<RatePerNight>();
+        public ICollection<RatePerNight> RatesPerNight { get; private set; } = new List<RatePerNight>();
 
         private Hotel() { }
 
@@ -54,33 +56,41 @@ namespace Domain.Entity.Hotel_flights
             string link,
             decimal rating,
             int reviews,
-            IEnumerable<string> images,
+            IEnumerable<HotelImage> images,
             decimal lowestPrice,
             string priceLabel,
             HotelLocation location,
-            IEnumerable<string> amenities,
             IEnumerable<string> nearbyPlaces,
             string propertyToken,
             bool sponsoredHotel,
             int ecoLabel,
-            IEnumerable<RatePerNight> ratesPerNight)
+            IEnumerable<RatePerNight> ratesPerNight,
+            IEnumerable<string> amenities
+            )
         {
+            Amenities = string.Join(",", amenities);
             Name = name;
             Description = description;
             Link = link;
             Rating = rating;
             Reviews = reviews;
-            Images = images.ToList();
+            Images = string.Join(",", images);
             LowestPrice = lowestPrice;
             PriceLabel = priceLabel;
             Location = location;
-            Amenities = amenities.ToList();
-            NearbyPlaces = nearbyPlaces.ToList();
+            NearbyPlaces = string.Join(",", nearbyPlaces);
             PropertyToken = propertyToken;
             SponsoredHotel = sponsoredHotel;
             EcoLabel = ecoLabel;
             RatesPerNight = ratesPerNight.ToList();
         }
+    }
+
+    
+
+    public class HotelImage:BaseEntity
+    {
+        public string Images { get; set; }
     }
 
     public class HotelLocation:BaseEntity
@@ -113,17 +123,21 @@ namespace Domain.Entity.Hotel_flights
 
     public class HotelBrands:BaseEntity
     {
-        public IReadOnlyCollection<string> Names { get; private set; } = new List<string>();
+        public string Names { get; private set; }
 
-        private HotelBrands() { }
+        public HotelBrands() { }
 
-        public HotelBrands(IEnumerable<string> names)
-        {
-            Names = names.ToList();
-        }
     }
 
-
+    public class PayHotel : BaseEntity
+    {
+        public Hotel Hotel { get; set; }
+        public int HotelId { get; set; }
+        public bool IsPaid { get; set; } = false;
+        public bool Canceled { get; set; }
+        public User User { get; set; }
+        public decimal TotalBookingPrice { get; set; }
+    }
 
 
 

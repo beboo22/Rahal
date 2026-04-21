@@ -20,20 +20,28 @@ namespace Presentation.Controllers
     public class TravelController : ControllerBase
     {
         private readonly ISerpApiService _serpApiService;
-        //private readonly IFlightSearchHistoryRepository _flightHistoryRepo;
-        //private readonly IHotelSearchHistoryRepository _hotelHistoryRepo;
+        private readonly IReadFlightSearchHistoryRepository _flightHistoryRepo;
+        private readonly IWriteFlightSearchHistoryRepository _WflightHistoryRepo;
+        private readonly IReadHotelSearchHistoryRepository _hotelHistoryRepo;
+        private readonly IWriteHotelSearchHistoryRepository _whotelHistoryRepo;
         private readonly ILogger<TravelController> _logger;
 
         public TravelController(
             ISerpApiService serpApiService,
-            //IFlightSearchHistoryRepository flightHistoryRepo,
-            //IHotelSearchHistoryRepository hotelHistoryRepo,
-            ILogger<TravelController> logger)
+            ILogger<TravelController> logger,
+            IReadHotelSearchHistoryRepository hotelHistoryRepo,
+            IReadFlightSearchHistoryRepository flightHistoryRepo,
+            IWriteHotelSearchHistoryRepository whotelHistoryRepo,
+            IWriteFlightSearchHistoryRepository wflightHistoryRepo)
         {
             _serpApiService = serpApiService;
             //_flightHistoryRepo = flightHistoryRepo;
             //_hotelHistoryRepo = hotelHistoryRepo;
             _logger = logger;
+            _hotelHistoryRepo = hotelHistoryRepo;
+            _flightHistoryRepo = flightHistoryRepo;
+            _whotelHistoryRepo = whotelHistoryRepo;
+            _WflightHistoryRepo = wflightHistoryRepo;
         }
 
         /// <summary>Search for available flights.</summary>
@@ -57,7 +65,7 @@ namespace Presentation.Controllers
             // Persist search history (fire and forget — don't block response)
             if (result is ApiResultResponse<FlightSearchResponse> response)
 
-            _ = PersistFlightHistoryAsync(request, response.Data?.BestFlights?.Count ?? 0);
+            _ = PersistFlightHistoryAsync(response.Data, response.Data?.BestFlights?.Count ?? 0);
 
             return Ok(result);
         }
@@ -81,118 +89,199 @@ namespace Presentation.Controllers
                     : BadRequest(result);
             if(result is ApiResultResponse<HotelSearchResponse>  response)
 
-            _ = PersistHotelHistoryAsync(request, response.Data?.Properties?.Count ?? 0);
+            _ = PersistHotelHistoryAsync(response.Data, response.Data?.Properties?.Count ?? 0);
 
             return Ok(result);
         }
 
         /// <summary>Retrieve flight search history.</summary>
-        //[HttpGet("flights/history")]
-        //[ProducesResponseType(typeof(ApiResultResponse<object>), 200)]
-        //public async Task<IActionResult> GetFlightHistory(
-        //    [FromQuery] FlightHistoryFilter filter,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var spec = new FlightSearchHistorySpecification(filter);
-        //    var items = await _flightHistoryRepo.ListAsync(spec, cancellationToken);
-        //    var count = await _flightHistoryRepo.CountAsync(spec, cancellationToken);
+        [HttpGet("flights/history")]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), 200)]
+        public async Task<IActionResult> GetFlightHistory(
+            [FromQuery] FlightHistoryFilter filter,
+            CancellationToken cancellationToken)
+        {
+            var spec = new FlightSearchHistorySpecification(filter);
+            var items = await _flightHistoryRepo.ListAsync(spec, cancellationToken);
+            var count = await _flightHistoryRepo.CountAsync(spec, cancellationToken);
 
-        //    var pagination = new PaginationMeta
-        //    {
-        //        PageIndex = filter.PageIndex,
-        //        PageSize = filter.PageSize,
-        //        TotalCount = count
-        //    };
+            var pagination = new PaginationMeta
+            {
+                PageIndex = filter.PageIndex,
+                PageSize = filter.PageSize,
+                TotalCount = count
+            };
 
-        //    return Ok(new ApiResultResponse<object>(200,new
-        //    {
-        //        pagination = pagination,
-        //        items = items
-        //    }, "Flight history retrieved."));
-        //}
+            return Ok(new ApiResultResponse<object>(200, new
+            {
+                pagination = pagination,
+                items = items
+            }, "Flight history retrieved."));
+        }
 
         /// <summary>Retrieve hotel search history.</summary>
-        //[HttpGet("hotels/history")]
-        //[ProducesResponseType(typeof(ApiResultResponse<object>), 200)]
-        //public async Task<IActionResult> GetHotelHistory(
-        //    [FromQuery] HotelHistoryFilter filter,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var spec = new HotelSearchHistorySpecification(filter);
-        //    var items = await _hotelHistoryRepo.ListAsync(spec, cancellationToken);
-        //    var count = await _hotelHistoryRepo.CountAsync(spec, cancellationToken);
+        [HttpGet("hotels/history")]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), 200)]
+        public async Task<IActionResult> GetHotelHistory(
+            [FromQuery] HotelHistoryFilter filter,
+            CancellationToken cancellationToken)
+        {
+            var spec = new HotelSearchHistorySpecification(filter);
+            var items = await _hotelHistoryRepo.ListAsync(spec, cancellationToken);
+            var count = await _hotelHistoryRepo.CountAsync(spec, cancellationToken);
 
-        //    var pagination = new PaginationMeta
-        //    {
-        //        PageIndex = filter.PageIndex,
-        //        PageSize = filter.PageSize,
-        //        TotalCount = count
-        //    };
+            var pagination = new PaginationMeta
+            {
+                PageIndex = filter.PageIndex,
+                PageSize = filter.PageSize,
+                TotalCount = count
+            };
 
-        //    return Ok(new ApiResultResponse<object>(200, new
-        //    {
-        //        pagination = pagination,
-        //        items = items
-        //    }, "Hotel history retrieved."));
-        //}
+            return Ok(new ApiResultResponse<object>(200, new
+            {
+                pagination = pagination,
+                items = items
+            }, "Hotel history retrieved."));
+        }
 
         // ─────────── Private Helpers ───────────
 
-        private async Task PersistFlightHistoryAsync(FlightSearchRequest request, int resultCount)
+        private async Task PersistFlightHistoryAsync(FlightSearchResponse request, int resultCount)
         {
-            //try
-            //{
-            //    var history = new FlightSearchHistory
-            //    {
-            //        UserId = User.Identity?.Name ?? "anonymous",
-            //        DepartureId = request.DepartureId,
-            //        ArrivalId = request.ArrivalId,
-            //        DepartureDate = DateTime.TryParse(request.OutboundDate, out var d) ? d : DateTime.UtcNow,
-            //        ReturnDate = DateTime.TryParse(request.ReturnDate, out var r) ? r : null,
-            //        TripType = request.TripType,
-            //        TravelClass = request.TravelClass,
-            //        Adults = request.Adults,
-            //        Children = request.Children,
-            //        Currency = request.Currency,
-            //        ResultCount = resultCount
-            //    };
-            //    //await _flightHistoryRepo.AddAsync(history);
-            //    //await _flightHistoryRepo.SaveChangesAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, "Failed to persist flight search history.");
-            //}
+            try
+            {
+                var bestFlights = request.BestFlights
+                    .Select(MapFlightResult)
+                    .ToList();
+
+                var otherFlights = request.OtherFlights
+                    .Select(MapFlightResult)
+                    .ToList();
+
+                var priceInsights = request.PriceInsights == null
+                    ? null
+                    : new Domain.Entity.Hotel_flights.PriceInsights(
+                        request.PriceInsights.LowestPrice,
+                        request.PriceInsights.PriceLevel);
+
+                var history = new FlightSearchHistory(
+                    bestFlights,
+                    otherFlights,
+                    priceInsights!,
+                    request.SearchId,
+                    request.currency);
+
+                await _WflightHistoryRepo.AddAsync(history);
+                //await _flightHistoryRepo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to persist flight search history.");
+            }
+        }
+        private FlightSegment MapFlightLeg(FlightLeg leg)
+        {
+            return new FlightSegment(
+                new AirportInfo(
+                    leg.DepartureAirport.Name,
+                    leg.DepartureAirport.Id,
+                    DateTime.Parse(leg.DepartureTime)
+                ),
+                new AirportInfo(
+                    leg.ArrivalAirport.Name,
+                    leg.ArrivalAirport.Id,
+                    DateTime.Parse(leg.ArrivalTime)
+                ),
+                DateTime.Parse(leg.DepartureTime),
+                DateTime.Parse(leg.ArrivalTime),
+                leg.Duration,
+                leg.Airplane,
+                leg.Airline,
+                leg.AirlineLogo,
+                leg.TravelClass,
+                leg.FlightNumber,
+                leg.Overnight,
+                leg.LegRoom ?? 0
+            );
+        }
+        private FlightOffer MapFlightResult(FlightResult result)
+        {
+            var segments = result.Flights
+                .Select(MapFlightLeg)
+                .ToList();
+
+            return new FlightOffer(
+                segments,
+                result.TotalDuration,
+                result.Price,
+                result.Type,
+                result.Layovers,
+                result.CarbonEmissions,
+                result.BookingToken
+            );
         }
 
-        private async Task PersistHotelHistoryAsync(HotelSearchRequest request, int resultCount)
+        private async Task PersistHotelHistoryAsync(HotelSearchResponse request, int resultCount)
         {
-            //try
-            //{
-            //    var history = new HotelSearchHistory
-            //    {
-            //        UserId = User.Identity?.Name ?? "anonymous",
-            //        Destination = request.Destination,
-            //        CheckInDate = DateTime.TryParse(request.CheckInDate, out var ci) ? ci : DateTime.UtcNow,
-            //        CheckOutDate = DateTime.TryParse(request.CheckOutDate, out var co) ? co : DateTime.UtcNow,
-            //        Adults = request.Adults,
-            //        Children = request.Children,
-            //        Rooms = request.Rooms,
-            //        Currency = request.Currency,
-            //        //MinRating = request.MinRating,
-            //        MinPrice = request.MinPrice,
-            //        MaxPrice = request.MaxPrice,
-            //        //SortBy = request.SortBy,
-            //        ResultCount = resultCount
-            //    };
-            //    //await _hotelHistoryRepo.AddAsync(history);
-            //    //await _hotelHistoryRepo.SaveChangesAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, "Failed to persist hotel search history.");
-            //}
+            try
+            {
+                var hotels = request.Properties
+                    .Select(MapHotelResult)
+                    .ToList();
+
+                var brands = request.Brands == null
+                    ? null
+                    : new HotelBrands();
+
+                var history = new HotelSearchHistory(
+                    hotels,
+                    request.SearchId,
+                    brands!,
+                    request.currency);
+
+                await _whotelHistoryRepo.AddAsync(history);
+                //await _hotelHistoryRepo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to persist hotel search history.");
+            }
         }
+
+        private Hotel MapHotelResult(HotelResult hotel)
+        {
+            var rates = hotel.RatePerNight
+                .Select(r => new RatePerNight(
+                    r.Lowest,
+                    r.BeforeTaxesFees))
+                .ToList();
+
+            var location = new Domain.Entity.Hotel_flights.HotelLocation(
+                (decimal)hotel.Location.Latitude,
+                (decimal)hotel.Location.Longitude);
+
+            return new Hotel(
+                hotel.Name,
+                hotel.Description,
+                hotel.Link,
+                (decimal)hotel.Rating,
+                hotel.Reviews,
+                hotel.Images.Select(i => new HotelImage { Images = i }),
+                hotel.LowestPrice,
+                hotel.PriceLabel,
+                location,
+                hotel.NearbyPlaces,
+                hotel.PropertyToken,
+                hotel.SponsoredHotel,
+                hotel.EcoLabel ?? 0,
+                rates,
+                hotel.Amenities
+            );
+        }
+
+
+
+
     }
 
 

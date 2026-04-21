@@ -45,7 +45,7 @@ namespace InfraStructure.Impelementation
             }
             return items;
         }
-        private IQueryable<T> ApplySpec(ISpecification<T> spec)
+        protected IQueryable<T> ApplySpec(ISpecification<T> spec)
         => SpecificationEvaluation<T>.GetQuery(_context.Set<T>(), spec);
 
 

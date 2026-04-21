@@ -22,30 +22,5 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             CancellationToken cancellationToken = default);
     }
 
-    public interface IFlightSearchHistoryRepository
-    {
-        Task<IReadOnlyList<FlightSearchHistory>> ListAsync(
-            ISpecification<FlightSearchHistory> spec,
-            CancellationToken cancellationToken = default);
-
-        Task<int> CountAsync(
-            ISpecification<FlightSearchHistory> spec,
-            CancellationToken cancellationToken = default);
-
-        Task AddAsync(FlightSearchHistory entity, CancellationToken cancellationToken = default);
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
-    }
-    public interface IHotelSearchHistoryRepository
-    {
-        Task<IReadOnlyList<HotelSearchHistory>> ListAsync(
-            ISpecification<HotelSearchHistory> spec,
-            CancellationToken cancellationToken = default);
-
-        Task<int> CountAsync(
-            ISpecification<HotelSearchHistory> spec,
-            CancellationToken cancellationToken = default);
-
-        Task AddAsync(HotelSearchHistory entity, CancellationToken cancellationToken = default);
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
-    }
+    
 }

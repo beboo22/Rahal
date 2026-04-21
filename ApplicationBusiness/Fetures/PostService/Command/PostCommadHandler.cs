@@ -134,8 +134,8 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                     Title = request.dto.Title,
                     Description = request.dto.Description,
                     City = request.dto.City,
-                    Budget = request.dto.Budget,
-                    TipsAndRecommendations = request.dto.TipsAndRecommendations,
+                    //Budget = request.dto.Budget,
+                    //TipsAndRecommendations = request.dto.TipsAndRecommendations,
                 });
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
@@ -158,8 +158,8 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't UpdatePost Bec. he is not the create it");
                 post.Country = request.dto.Country;
                 post.City = request.dto.City;
-                post.Budget = request.dto.Budget;
-                post.TipsAndRecommendations = request.dto.TipsAndRecommendations;
+                //post.Budget = request.dto.Budget;
+                //post.TipsAndRecommendations = request.dto.TipsAndRecommendations;
                 post.CreatedById = request.createdBy;
                 post.Description = request.dto.Description;
                 post.Title = request.dto.Title;

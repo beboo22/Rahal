@@ -21,6 +21,19 @@ namespace Infrstructure.Impelementation
             _context = context;
         }
 
+        public async Task<bool> BlockUserrAsync(int id, DateTime from, DateTime to)
+        {
+            var user = _context.Users.Find(id);
+            if (user == null)
+                return false;
+            user.BlockedCounter++;
+            user.BlockedStartDate = from;
+            user.BlockedEndDate = to;
+            user.IsBlocked = true;
+            await UpdateAsync(user, id);
+            return true;
+        }
+
         public async Task<bool> ExistsAsync(string Email)
         {
             var exists = await _context.Set<User>().AsNoTracking().AnyAsync(e => e.Email == Email);

@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrstructure.Data.Migrations
 {
     [DbContext(typeof(WriteSysDbContext))]
-    partial class WriteSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421204759_AddHotel_flightToBook")]
+    partial class AddHotel_flightToBook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -394,82 +397,6 @@ namespace Infrstructure.Data.Migrations
                     b.HasIndex("BrandsId");
 
                     b.ToTable("HotelSearchHistorys");
-                });
-
-            modelBuilder.Entity("Domain.Entity.Hotel_flights.PayFlight", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Canceled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FlightOfferId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("TotalBookingPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FlightOfferId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PayFlights");
-                });
-
-            modelBuilder.Entity("Domain.Entity.Hotel_flights.PayHotel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Canceled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("TotalBookingPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("payHotels");
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.PriceInsights", b =>
@@ -896,12 +823,6 @@ namespace Infrstructure.Data.Migrations
                         .HasDefaultValueSql("NEXT VALUE FOR [PostSequence]");
 
                     SqlServerPropertyBuilderExtensions.UseSequence(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Country")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -1724,8 +1645,20 @@ namespace Infrstructure.Data.Migrations
                 {
                     b.HasBaseType("Domain.Entity.PostEntity.Post");
 
+                    b.Property<decimal?>("Budget")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
+
+                    b.Property<string>("TipsAndRecommendations")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasIndex("CreatedById");
 
@@ -1953,44 +1886,6 @@ namespace Infrstructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Brands");
-                });
-
-            modelBuilder.Entity("Domain.Entity.Hotel_flights.PayFlight", b =>
-                {
-                    b.HasOne("Domain.Entity.Hotel_flights.FlightOffer", "FlightOffer")
-                        .WithMany()
-                        .HasForeignKey("FlightOfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entity.Identity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FlightOffer");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Domain.Entity.Hotel_flights.PayHotel", b =>
-                {
-                    b.HasOne("Domain.Entity.Hotel_flights.Hotel", "Hotel")
-                        .WithMany()
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entity.Identity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Hotel");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.RatePerNight", b =>

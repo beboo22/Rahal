@@ -7,18 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Fetures\FlightService\**" />
-    <EmbeddedResource Remove="Fetures\FlightService\**" />
-    <None Remove="Fetures\FlightService\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Fetures\CommentService\Query\model\" />
     <Folder Include="Fetures\CommentService\Query\Responce\" />
+    <Folder Include="Fetures\FlightService\Query\Temp\" />
+    <Folder Include="Fetures\HotelService\Command\Model\" />
+    <Folder Include="Fetures\HotelService\Query\Temp\" />
     <Folder Include="Fetures\Profile\Query\Response\" />
     <Folder Include="Fetures\TEST\Command\Models\" />
     <Folder Include="Fetures\TEST\Query\Models\" />

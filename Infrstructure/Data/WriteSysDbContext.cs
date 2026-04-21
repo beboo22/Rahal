@@ -75,12 +75,14 @@ namespace Infrastructure.Data
         
         
         public DbSet<PriceInsights> PriceInsightss { get; set; }
-        public DbSet<AirportInfo> AirportInfos { get; set; }
+        //public DbSet<AirportInfo> AirportInfos { get; set; }
         public DbSet<FlightSegment> FlightSegments { get; set; }
         public DbSet<FlightOffer> FlightOffers { get; set; }
         public DbSet<FlightSearchHistory> FlightSearchHistorys { get; set; }
 
 
+        public DbSet<PayFlight> PayFlights { get; set; }
+        public DbSet<PayHotel> payHotels { get; set; }
 
 
 

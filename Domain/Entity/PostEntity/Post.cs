@@ -15,18 +15,18 @@ namespace Domain.Entity.PostEntity
         public string? Title { get; set; }
         public string? Description { get; set; }
         public string? PhotoUrl { get; set; }
+        public string? Country { get; set; }
+        public string? City { get; set; }
     }
     public class ExperiencePost : Post
     {
         public ICollection<ExperiencePostComment> Comments { get; set; }
         public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
-        public string? Country { get; set; }
-        public string? City { get; set; }
-        public string? TipsAndRecommendations { get; set; }
-        public decimal? Budget { get; set; }
+        //public string? TipsAndRecommendations { get; set; }
+        //public decimal? Budget { get; set; }
 
-      
+
     }
     public class HiringPost : Post
     {
