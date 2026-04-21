@@ -1,6 +1,10 @@
 ﻿using Application.Abestraction;
+using Application.Abstraction.spacification;
+using Application.Abstraction.Specification;
+using Application.Features.PaymentService;
+using ApplicationBusiness.Fetures.PaymentService.Strategies;
+using ApplicationBusiness.RealTimeservice.ChatService;
 using ApplicationBusiness.service;
-using Domain.Abstraction;
 using Infrastructure.Abestraction;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -22,8 +26,16 @@ namespace ApplicationBusiness
 
             //services.AddScoped(typeof(IAuthentication),typeof(Authentication<>));
             services.AddScoped(typeof(IAuthentication), typeof(Authentication));
+            services.AddScoped(typeof(IPaymobService), typeof(PaymobService));
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IChatService, ChatService>();
+            services.AddScoped(typeof(ISpecification<>), typeof(Specification<>));
+            services.AddScoped<IPaymentHandlerStrategy, PublicTripPaymentHandler>();
+            services.AddScoped<IPaymentHandlerStrategy, PrivateTripPaymentHandler>();
+            //services.AddScoped<IPaymentHandlerStrategy, HotelPaymentHandler>();
+            //services.AddScoped<IPaymentHandlerStrategy, FlightPaymentHandler>();
+
+            services.AddScoped<PaymentHandlerFactory>();
             services.AddSignalR(options =>
             {
                 // optional configuration

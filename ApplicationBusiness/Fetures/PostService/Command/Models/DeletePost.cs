@@ -10,4 +10,6 @@ namespace ApplicationBusiness.Fetures.PostService.Command.Models
 {
     public record DeleteHiringPostCommand(int id, int createdBy) : ICommand<ApiResponse>;
     public record DeleteExperiencePostCommand(int id, int CreatedBy) : ICommand<ApiResponse>;
+    public record IsExperiencePostExistCommand(int id) : ICommand<ApiResponse>;
+    public record IsHiringPostExistCommand(int id) : ICommand<ApiResponse>;
 }

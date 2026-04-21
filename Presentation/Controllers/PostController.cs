@@ -68,7 +68,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetPost([FromQuery] string title)
         {
             var result = await Sender.Send(new GetExperiencePostByTitle(title));
@@ -78,12 +78,26 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet("Bydate")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetPost([FromQuery] DateTime date)
         {
             var result = await Sender.Send(new GetHiringPost(date));
             return Ok(result);
         }
+        
+        [ProducesResponseType(typeof(ApiResultResponse<List<HiringPostTemplate>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        [HttpGet("By")]
+        //[Authorize]
+        public async Task<IActionResult> GetPost([FromQuery] DateTime? Date, string? Title, int? page, int capacity = 5)
+        {
+            var result = await Sender.Send(new GetHiringSpacificationPost(Date,Title,page,capacity));
+            return Ok(result);
+        }
+
+
+
 
     }
     [Route("api/[controller]")]
@@ -99,7 +113,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany")]
+        [Authorize]
         public async Task<IActionResult> CreatePost([FromForm] AddExperiencePostControllerDto dto)
         {
             var result = await Sender.Send(new AddExperiencePostCommand(new AddExperiencePostDto
@@ -119,7 +133,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpPut]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany")]
+        [Authorize]
         public async Task<IActionResult> UpdatePost([FromBody] UpdateExperiencePostDto dto)
         {
             var result = await Sender.Send(new UpdateExperiencePostCommand(dto, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))));
@@ -129,7 +143,8 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpDelete("{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany")]
+        [Authorize]
+
         public async Task<IActionResult> DeletePost(int id)
         {
             var result = await Sender.Send(new DeleteExperiencePostCommand(id, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))));
@@ -140,7 +155,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetPost([FromQuery]string title)
         {
             var result = await Sender.Send(new GetExperiencePostByTitle(title));
@@ -150,12 +165,27 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet("Bydate")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetPost([FromQuery]DateTime date)
         {
             var result = await Sender.Send(new GetExperiencePost(date));
             return Ok(result);
         }
-
+       
+        [ProducesResponseType(typeof(ApiResultResponse<List<ExperiencePostTemplate>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        [HttpGet("By")]
+        //[Authorize]
+        public async Task<IActionResult> GetPost([FromQuery] DateTime? date,
+            string? title,
+            string? country,
+            string? city,
+            string? tipsAndRecommendations,
+            decimal? budget, int? pageIndex, int pageSize = 5)
+        {
+            var result = await Sender.Send(new GetExperienceSpacificationPost(date, title, country, city,tipsAndRecommendations,budget, pageIndex, pageSize));
+            return Ok(result);
+        }
     }
 }

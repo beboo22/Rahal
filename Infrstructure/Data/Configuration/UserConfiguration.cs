@@ -43,8 +43,8 @@ namespace Infrstructure.Data.Configuration
             builder.HasIndex(u => u.Email)
                    .IsUnique();
 
-            builder.Property(u => u.PasswordHash)
-                   .IsRequired();
+            //builder.Property(u => u.PasswordHash)
+            //       .IsRequired();
 
             builder.Property(u => u.IsActive)
                    .HasDefaultValue(true);
@@ -64,10 +64,10 @@ namespace Infrstructure.Data.Configuration
                    .HasForeignKey(r => r.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(u => u.PasswordResetTokens)
-                   .WithOne(r => r.User)
-                   .HasForeignKey(r => r.UserId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(u => u.PasswordResetTokens)
+            //       .WithOne(r => r.User)
+            //       .HasForeignKey(r => r.UserId)
+            //       .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(u => u.Languages)
                    .WithOne(l => l.User)

@@ -15,7 +15,8 @@ namespace ApplicationBusiness.Fetures.PostService.Command
 {
     internal class HiringPostCommadHandler : ICommandHandler<AddHiringPostCommand, ApiResponse>,
         ICommandHandler<UpdateHiringPostCommand, ApiResponse>,
-        ICommandHandler<DeleteHiringPostCommand, ApiResponse>
+        ICommandHandler<DeleteHiringPostCommand, ApiResponse>,
+        ICommandHandler<IsHiringPostExistCommand, ApiResponse>
     {
         private IWriteUnitOfWork _uow { get; set; }
 
@@ -32,7 +33,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 await _WPR.AddAsync(new HiringPost
                 {
                     CreatedById = request.CreatedBy,
@@ -43,6 +44,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                     Requirements = request.dto.Requirements,
                 });
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(200);
             }
             catch (Exception ex)
@@ -55,7 +57,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 var post = await _RPR.GetByIdAsync(request.dto.Id);
                 if (post.CreatedById != request.createdBy)
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't UpdatePost Bec. he is not the create it");
@@ -67,6 +69,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                 post.Description = request.dto.Description;
                 await _WPR.UpdateAsync(post, post.Id);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(200);
             }
             catch (Exception ex)
@@ -79,12 +82,13 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 var post = await _RPR.GetByIdAsync(request.id);
                 if (post.CreatedById != request.createdBy)
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't Delete Post Bec. he is not the create it");
                 await _WPR.DeleteAsync(request.id);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(200);
             }
             catch (Exception ex)
@@ -92,10 +96,19 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                 return new ApiResponse(500);
             }
         }
+
+        public async Task<ApiResponse> Handle(IsHiringPostExistCommand request, CancellationToken cancellationToken)
+        {
+            if (await _WPR.ExistsAsync(request.id))
+                return new ApiResponse((int)HttpStatusCode.Found, "Post Is Found");
+            return new ApiResponse((int)HttpStatusCode.NotFound, "Hiring Post is not found");
+        }
     }
     internal class ExperiencePostCommadHandler : ICommandHandler<AddExperiencePostCommand, ApiResponse>,
         ICommandHandler<UpdateExperiencePostCommand, ApiResponse>,
-        ICommandHandler<DeleteExperiencePostCommand, ApiResponse>
+        ICommandHandler<DeleteExperiencePostCommand, ApiResponse>,
+        ICommandHandler<IsExperiencePostExistCommand, ApiResponse>
+
     {
         private IWriteUnitOfWork _uow { get; set; }
 
@@ -112,7 +125,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 await _WPR.AddAsync(new ExperiencePost
                 {
                     CreatedById = request.CreatedBy,
@@ -125,6 +138,8 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                     TipsAndRecommendations = request.dto.TipsAndRecommendations,
                 });
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
+
                 return new ApiResponse(200);
             }
             catch (Exception ex)
@@ -137,7 +152,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 var post = await _RPR.GetByIdAsync(request.dto.Id);
                 if (post.CreatedById != request.createdBy)
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't UpdatePost Bec. he is not the create it");
@@ -151,6 +166,7 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                 post.Description = request.dto.Description;
                 await _WPR.UpdateAsync(post, post.Id);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(200);
             }
             catch (Exception ex)
@@ -163,12 +179,13 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 var post = await _RPR.GetByIdAsync(request.id);
                 if (post.CreatedById != request.CreatedBy)
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't Delete Post Bec. he is not the create it");
                 await _WPR.DeleteAsync(request.id);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(200);
             }
             catch (Exception ex)
@@ -176,6 +193,13 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                 return new ApiResponse(500);
             }
 
+        }
+
+        public async Task<ApiResponse> Handle(IsExperiencePostExistCommand request, CancellationToken cancellationToken)
+        {
+            if (await _WPR.ExistsAsync(request.id))
+                return new ApiResponse((int)HttpStatusCode.Found, "Post Is Found");
+            return new ApiResponse((int)HttpStatusCode.NotFound, "Experience Post is not found");
         }
     }
 }

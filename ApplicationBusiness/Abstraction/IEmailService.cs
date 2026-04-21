@@ -8,6 +8,7 @@ namespace Infrastructure.Abestraction
 {
     public interface IEmailService
     {
-        Task<bool> SendEmail(string to, string subject, string body);
+        Task<bool> SendEmail(string to, string subject, string body, bool isHtml = false);
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Application.Abstraction.message;
+using Application.Fetures.Authentication.Command.Models;
 using ApplicationBusiness.Fetures.Profile.Command.Models;
 using Domain.Abstraction;
 using Domain.BaseResponce;
@@ -6,6 +7,7 @@ using Domain.Entity.Identity;
 using Domain.Entity.TourGuidEntity;
 using Domain.Entity.TravelerCompanyEntity;
 using Domain.Entity.TravelerEntity;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -27,18 +29,23 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         private IReadGenericRepo<TravelCompany> _RTR;
 
 
-        public ProfileTravelCompanyCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TravelCompany> wTR, IReadGenericRepo<TravelCompany> rTR)
+        public ISender Sender { get; set; }
+
+
+
+        public ProfileTravelCompanyCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TravelCompany> wTR, IReadGenericRepo<TravelCompany> rTR, ISender sender)
         {
             _writeUnitOfWork = writeUnitOfWork;
             _WTR = wTR;
             _RTR = rTR;
+            Sender = sender;
         }
 
         public async Task<ApiResponse> Handle(CreateTravelerCompanyProfileCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                await _writeUnitOfWork.BeginTransiaction();
+                await _writeUnitOfWork.BeginTransactionAsync();
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
                 if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
@@ -94,7 +101,12 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
                 };
                 await _WTR.AddAsync(entity);
+
+                await Sender.Send(new VerifiedUser(request.Id));
+
+
                 await _writeUnitOfWork.SaveChangesAsync();
+                await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTravelComapny
                 {
                     PhotoUrl = entity.PhotoUrl,
@@ -130,7 +142,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         {
             try
             {
-                await _writeUnitOfWork.BeginTransiaction();
+                await _writeUnitOfWork.BeginTransactionAsync();
                 var tComp = await _RTR.GetAll().Include(x=>x.travelCompanyBusinessGalaries).Include(x=>x.traveleCompanyAddresses).FirstOrDefaultAsync(x=>x.Id== request.Id);
                 if (tComp != null)
                     return new ApiResponse(404, "There's no profile to User");
@@ -154,7 +166,9 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     Country = s.Country,
                 }).ToList();
                 await _WTR.UpdateAsync(tComp, request.Id);
+
                 await _writeUnitOfWork.SaveChangesAsync();
+                await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTravelComapny
                 {
                     Id = tComp.Id,
@@ -189,20 +203,22 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         IWriteUnitOfWork _writeUnitOfWork;
         IWriteGenericRepo<TourGuide> _WTR;
         IReadGenericRepo<TourGuide> _RTR;
+        public ISender Sender { get; set; }
 
 
-        public ProfileTourGiudeCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TourGuide> wTR, IReadGenericRepo<TourGuide> rTR)
+        public ProfileTourGiudeCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TourGuide> wTR, IReadGenericRepo<TourGuide> rTR, ISender sender)
         {
             _writeUnitOfWork = writeUnitOfWork;
             _WTR = wTR;
             _RTR = rTR;
+            Sender = sender;
         }
 
         public async Task<ApiResponse> Handle(UpdateTourGuideProfileCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                await _writeUnitOfWork.BeginTransiaction();
+                await _writeUnitOfWork.BeginTransactionAsync();
                 var tComp = await _RTR.GetByIdAsync(request.Id);
                 tComp.SalaryPerDay = request.dto.SalaryPerDay;
                 tComp.Ssn = request.dto.Ssn;
@@ -215,7 +231,9 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     Country = s.Country,
                 }).ToList();
                 await _WTR.UpdateAsync(tComp, request.Id);
+
                 await _writeUnitOfWork.SaveChangesAsync();
+                await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTourGuide
                 {
                     Id = tComp.Id,
@@ -249,7 +267,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         {
             try
             {
-                await _writeUnitOfWork.BeginTransiaction();
+                await _writeUnitOfWork.BeginTransactionAsync();
 
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
                 if (!Directory.Exists(uploadPath))
@@ -299,6 +317,9 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                 };
                 await _WTR.AddAsync(entity);
                 await _writeUnitOfWork.SaveChangesAsync();
+                await Sender.Send(new VerifiedUser(request.Id));
+
+                await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTourGuide
                 {
                  PhotoUrl=entity.PhotoUrl,   
@@ -335,20 +356,22 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         IWriteUnitOfWork _writeUnitOfWork;
         IWriteGenericRepo<Traveler> _WTR;
         IReadGenericRepo<Traveler> _RTR;
+        public ISender Sender { get; set; }
 
 
-        public ProfileTravelerCommandHandler(IWriteGenericRepo<Traveler> wTR, IWriteUnitOfWork writeUnitOfWork, IReadGenericRepo<Traveler> rTR)
+        public ProfileTravelerCommandHandler(IWriteGenericRepo<Traveler> wTR, IWriteUnitOfWork writeUnitOfWork, IReadGenericRepo<Traveler> rTR, ISender sender)
         {
             _WTR = wTR;
             _writeUnitOfWork = writeUnitOfWork;
             _RTR = rTR;
+            Sender = sender;
         }
 
         public async Task<ApiResponse> Handle(UpdateTravelerProfileCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                await _writeUnitOfWork.BeginTransiaction();
+                await _writeUnitOfWork.BeginTransactionAsync();
                 var tComp = await _RTR.GetByIdAsync(request.Id);
                 tComp.Ssn = request.dto.Ssn;
                 tComp.Bio = request.dto.Bio;
@@ -362,6 +385,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                 }).ToList();
                 await _WTR.UpdateAsync(tComp, request.Id);
                 await _writeUnitOfWork.SaveChangesAsync();
+                await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTraveler
                 {
                     Id = tComp.Id,
@@ -387,7 +411,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         {
             try
             {
-                await _writeUnitOfWork.BeginTransiaction();
+                await _writeUnitOfWork.BeginTransactionAsync();
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
                 if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
@@ -423,7 +447,10 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
                 };
                 await _WTR.AddAsync(entity);
+                var newtoken = await Sender.Send(new VerifiedUser(request.Id));
                 await _writeUnitOfWork.SaveChangesAsync();
+
+                await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTraveler
                 {
                     PhotoUrl = entity.PhotoUrl,

@@ -1,25 +1,34 @@
-﻿using Application.Fetures.Authentication.Command;
-using Application.Fetures.Authentication.Command.Models;
-using Application.Fetures.Authentication.Query;
-using Application.Fetures.Authentication.Query.Models;
-using ApplicationBusiness;
-using ApplicationBusiness.Fetures.Authentication.Command.Models;
-using ApplicationBusiness.Fetures.Authentication.Query.Models;
+﻿using ApplicationBusiness;
 using ApplicationBusiness.service;
-using Domain.BaseResponce;
 using Domain.Entity.Identity;
-using Domain.Entity.TourGuidEntity;
-using Domain.Entity.TravelerCompanyEntity;
-using Domain.Entity.TravelerEntity;
 using Infrastructure;
 using Infrastructure.Data;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using Rahal.Middleware;
 using System.Text;
-using CloudinaryDotNet;
 using Domain.Abstraction;
+using ApplicationBusiness.Abstraction.SerpApiService;
+using ApplicationBusiness.Configuration;
+using ApplicationBusiness.Dtos.Flights;
+using ApplicationBusiness.Dtos.Hotels;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Polly.Extensions.Http;
+using Polly;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using StackExchange.Redis;
+
+
+
+
+
+
+
+
+
 namespace Rahal
 {
     public class Program
@@ -115,8 +124,86 @@ namespace Rahal
             });
 
 
+            //builder.Services.AddHttpClient<IAmadeusAuthService, AmadeusAuthService>();
+            //builder.Services.AddHttpClient<IHotelApiClient, HotelApiClient>();
+            //builder.Services.AddScoped<IHotelService, HotelService>();
+            //builder.Services.AddScoped<IFlightAvailabilityService, FlightAvailabilityService>();
+
+
+            builder.Services.Configure<SerpApiSettings>(
+             builder.Configuration.GetSection(SerpApiSettings.SectionName));
+
+            // ── Validators ────────────────────────────────────────────────────────
+            //builder.Services.AddFluentValidationAutoValidation();
+            //builder.Services.AddScoped<IValidator<FlightSearchRequest>, FlightSearchRequestValidator>();
+            //builder.Services.AddScoped<IValidator<HotelSearchRequest>, HotelSearchRequestValidator>();
+
+            // ── Polly Policies ────────────────────────────────────────────────────
+            //var retryPolicy = HttpPolicyExtensions
+            //    .HandleTransientHttpError()
+            //    .WaitAndRetryAsync(
+            //        retryCount: 3,
+            //        sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt)),
+            //        onRetry: (outcome, timespan, retryAttempt, _) =>
+            //        {
+            //            Console.WriteLine($"[SerpAPI] Retry {retryAttempt} after {timespan.TotalMs}ms — {outcome.Exception?.Message}");
+            //        });
+
+            var timeoutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(
+                builder.Configuration.GetValue("SerpApi:TimeoutSeconds", 30));
+
+            // ── HttpClient + Polly ────────────────────────────────────────────────
+            builder.Services.AddHttpClient<ISerpApiService, SerpApiService>(client =>
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("User-Agent", "TravelModule/1.0");
+            });
+            //.AddPolicyHandler(retryPolicy)
+            //.AddPolicyHandler(timeoutPolicy);
+
+            // ── Repositories ──────────────────────────────────────────────────────
+            // Replace these with your EF Core implementations:
+            // builder.Services.AddScoped<IFlightSearchHistoryRepository, FlightSearchHistoryRepository>();
+            // builder.Services.AddScoped<IHotelSearchHistoryRepository, HotelSearchHistoryRepository>();
+
+            // ── Redis Caching (optional) ──────────────────────────────────────────
+            //var redisConn = builder.Configuration.GetRequiredSection("Redis")["ConnectionString"];// .GetConnectionString("Redis");
+            //if (!string.IsNullOrEmpty(redisConn))
+            //{
+            //    builder.Services.AddStackExchangeRedisCache(options =>
+            //    {
+            //        options.Configuration = redisConn;
+            //        options.InstanceName = "Rahal:";
+            //    });
+            //}
+            //else
+            //{
+            //}
+                builder.Services.AddDistributedMemoryCache(); // fallback to in-memory
+
+
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var configuration = new ConfigurationOptions
+                {
+                    EndPoints =
+                    {
+                        { "redis-19301.c341.af-south-1-1.ec2.redns.redis-cloud.com", 19301 }
+                    },
+                    User = "default",
+                    Password = "uJhzvCJD1pjVz9lBh4gKVc9OrKRL9pTR",
+                    Ssl = true,
+                    AbortOnConnectFail = false
+                };
+
+                return ConnectionMultiplexer.Connect(configuration);
+            });
+
+
+
             var app = builder.Build();
-            app.UseMiddleware<ExceptionMiddleware>();  
+            app.UseMiddleware<ExceptionMiddleware>();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -135,14 +222,14 @@ namespace Rahal
             var db = service.GetRequiredService<WriteSysDbContext>();
             try
             {
-                if (!db.Set<Role>().Any())
+                if (!db.Set<Domain.Entity.Identity.Role>().Any())
                 {
-                    db.Roles.AddRange(new List<Role>()
+                    db.Roles.AddRange(new List<Domain.Entity.Identity.Role>()
                     {
-                        new Role() { RoleName = "Admin"},
-                        new Role() { RoleName = "Traveler"},
-                        new Role() { RoleName = "TravelCompany"},
-                        new Role() { RoleName = "TourGuide"},
+                        new Domain.Entity.Identity.Role() { RoleName = RoleEnum.Admin},
+                        new Domain.Entity.Identity.Role() { RoleName = RoleEnum.Traveler},
+                        new Domain.Entity.Identity.Role() { RoleName = RoleEnum.TravelCompany},
+                        new Domain.Entity.Identity.Role() { RoleName = RoleEnum.TourGuide},
                     });
                     await db.SaveChangesAsync();
                 }

@@ -32,4 +32,5 @@ namespace Domain.BaseResponce
             };
         }
     }
+
 }

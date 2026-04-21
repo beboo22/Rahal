@@ -10,6 +10,7 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Models
 {
     public record GetRecentHiringPost : IQuery<ApiResponse>;
     public record GetHiringPost(DateTime Date) : IQuery<ApiResponse>;
+    public record GetHiringSpacificationPost(DateTime? Date, string? Title,int? page,int capacity=5) : IQuery<ApiResponse>;
     public record GetLastWeekHiringPost : IQuery<ApiResponse>;
     public record GetLastMonthHiringPost : IQuery<ApiResponse>;
     public record GetLastYearHiringPost : IQuery<ApiResponse>;
@@ -22,4 +23,10 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Models
     public record GetRecentExperiencePost : IQuery<ApiResponse>;
     public record GetLastWeekExperiencePost : IQuery<ApiResponse>;
     public record GetExperiencePostByTitle(string Title): IQuery<ApiResponse>;
+    public record GetExperienceSpacificationPost(DateTime? date,
+            string? title,
+            string? country,
+            string? city,
+            string? tipsAndRecommendations,
+            decimal? budget,int? page,int capacity=5) : IQuery<ApiResponse>;
 }

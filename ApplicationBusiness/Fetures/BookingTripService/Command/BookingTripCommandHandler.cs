@@ -16,16 +16,16 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
 {
     internal class BookingTripCommandHandler : ICommandHandler<BookTrip, ApiResponse>,ICommandHandler<DeleteBookTrip, ApiResponse>
     {
-        public IWriteGenericRepo<BookingTrip> _WBTR { get; set; }
+        public IWriteGenericRepo<BookingPublicTrip> _WBTR { get; set; }
         public IWriteGenericRepo<User> _WUR { get; set; }
         public IReadGenericRepo<User> _RUR { get; set; }
         public IWriteGenericRepo<PublicTrip> _WTR { get; set; }
-        public IReadGenericRepo<BookingTrip> _RBTR { get; set; }
+        public IReadGenericRepo<BookingPublicTrip> _RBTR { get; set; }
         public IReadGenericRepo<PublicTrip> _RTR { get; set; }
 
         public IWriteUnitOfWork _uof { get; set; }
 
-        public BookingTripCommandHandler(IWriteGenericRepo<BookingTrip> wBTR, IReadGenericRepo<BookingTrip> rBTR, IWriteUnitOfWork uof, IWriteGenericRepo<User> wUR, IWriteGenericRepo<PublicTrip> wTR, IReadGenericRepo<PublicTrip> rTR, IReadGenericRepo<User> rUR)
+        public BookingTripCommandHandler(IWriteGenericRepo<BookingPublicTrip> wBTR, IReadGenericRepo<BookingPublicTrip> rBTR, IWriteUnitOfWork uof, IWriteGenericRepo<User> wUR, IWriteGenericRepo<PublicTrip> wTR, IReadGenericRepo<PublicTrip> rTR, IReadGenericRepo<User> rUR)
         {
             _WBTR = wBTR;
             _RBTR = rBTR;
@@ -38,7 +38,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
 
         public async Task<ApiResponse> Handle(BookTrip request, CancellationToken cancellationToken)
         {
-            await _uof.BeginTransiaction();
+            await _uof.BeginTransactionAsync();
             try
             {
                 var Check = await _RTR.GetByIdAsync(request.TripId);
@@ -54,7 +54,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 if (Check.CreatedById == request.UserId)
                     return new ApiResponse((int)HttpStatusCode.Conflict, "User who create trip can't book it");
                 var Trip = await _RTR.GetByIdAsync(request.TripId);
-                var entity = new BookingTrip()
+                var entity = new BookingPublicTrip()
                 {
                     PublicTripId = request.TripId,
                     UserId = request.UserId,
@@ -62,13 +62,14 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 entity.TotalBookingPrice = Trip.Price + Trip.TravelerFee;
                 await _WBTR.AddAsync(entity);
                 await _uof.SaveChangesAsync();
+                await _uof.CommitAsync();
 
                 var item = new BookingTripTemplate()
                 {
                     TripTilte = Trip.Title,
                     BookingDate = entity.BookingDate,
                     TotalBookingPrice = entity.TotalBookingPrice,
-                    IsPaid = entity.IsPaid
+                    IsPaid = false
                 };
                 return new ApiResultResponse<BookingTripTemplate>((int)HttpStatusCode.Created,item,"Booking trip created successfully");
             }
@@ -82,7 +83,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
 
         public async Task<ApiResponse> Handle(DeleteBookTrip request, CancellationToken cancellationToken)
         {
-            await _uof.BeginTransiaction();
+            await _uof.BeginTransactionAsync();
             try
             {
                 //get userid from book
@@ -99,6 +100,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                  */
                 await Task.WhenAll(_WUR.UpdateAsync(user, user.Id), _WBTR.DeleteAsync(request.BookingId));
                 await _uof.SaveChangesAsync();
+                await _uof.CommitAsync();
                 return new ApiResponse((int)HttpStatusCode.OK);
             }
             catch (Exception ex)

@@ -34,7 +34,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
 
                 var entity = new SpecificDiscount
                 {
@@ -47,6 +47,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
 
                 await _writeRepo.AddAsync(entity);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
 
                 return new ApiResultResponse<SpecificDiscount>((int)HttpStatusCode.Created, entity, "Specific discount created");
             }
@@ -60,7 +61,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
 
                 var discount = await _readRepo.GetByIdAsync(request.Id);
                 if (discount == null)
@@ -72,6 +73,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
 
                 await _writeRepo.UpdateAsync(discount, discount.Id);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
 
                 return new ApiResultResponse<SpecificDiscount>(200, discount, "Specific discount updated");
             }
@@ -106,7 +108,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
 
                 var entity = new GenericDiscount
                 {
@@ -119,6 +121,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
 
                 await _writeRepo.AddAsync(entity);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
 
                 return new ApiResultResponse<GenericDiscount>((int)HttpStatusCode.Created, entity, "Generic discount created");
             }
@@ -132,7 +135,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
 
                 var discount = await _readRepo.GetByIdAsync(request.Id);
                 if (discount == null)
@@ -144,6 +147,7 @@ namespace ApplicationBusiness.Fetures.Discount.Command
 
                 await _writeRepo.UpdateAsync(discount, request.Id);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
 
                 return new ApiResultResponse<GenericDiscount>(200, discount, "Generic discount updated");
             }

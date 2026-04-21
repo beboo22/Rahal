@@ -18,7 +18,7 @@ namespace Domain.Entity.PostEntity
     }
     public class ExperiencePost : Post
     {
-        public ICollection<Comment> Comments { get; set; }
+        public ICollection<ExperiencePostComment> Comments { get; set; }
         public int CreatedById { get; set; }
         public User CreatedBy { get; set; }
         public string? Country { get; set; }
@@ -30,7 +30,7 @@ namespace Domain.Entity.PostEntity
     }
     public class HiringPost : Post
     {
-        public ICollection<Comment> Comments { get; set; }
+        public ICollection<HiringPostComment> Comments { get; set; }
         public int CreatedById { get; set; }
         public TravelCompany CreatedBy { get; set; }
         public string? Requirements { get; set; }

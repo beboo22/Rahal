@@ -11,7 +11,7 @@
     public class Role:BaseEntity
     {
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public string RoleName { get; set; }
+        public RoleEnum RoleName { get; set; }
     }
 
 }

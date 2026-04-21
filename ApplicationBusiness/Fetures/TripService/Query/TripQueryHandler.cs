@@ -1,17 +1,12 @@
 ﻿using Application.Abstraction.message;
+using Application.Abstraction.Specification;
 using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.TripEntity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using Talabat.Core.Specification;
 
 namespace ApplicationBusiness.Fetures.TripService.Query
 {

@@ -11,6 +11,7 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Response
 {
     public class HiringPostTemplate
     {
+        public int Id { get; set; }
         public ICollection<TemplateComment> Comments { get; set; }
         public string FullName { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -23,7 +24,7 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Response
     public class ExperiencePostTemplate
     {
         public ICollection<TemplateComment> Comments { get; set; }
-
+        public int Id { get; set; }
         public string? FullName { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? Country { get; set; }

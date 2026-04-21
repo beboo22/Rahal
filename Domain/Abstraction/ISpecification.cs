@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Talabat.Core.Specification
+namespace Application.Abstraction.Specification
 {
     public interface ISpecification<T> where T : BaseEntity
     {
@@ -28,4 +28,5 @@ namespace Talabat.Core.Specification
 
 
     }
+
 }

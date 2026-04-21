@@ -16,15 +16,15 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                                     
     {
         private IWriteGenericRepo<PublicTrip> _wTRepo;
-        private IWriteGenericRepo<BookingTrip> _wBTRepo;
+        private IWriteGenericRepo<BookingPublicTrip> _wBTRepo;
         private IWriteGenericRepo<User> _wURepo;
 
 
 
-        private IReadGenericRepo<BookingTrip> _rBTRepo;
+        private IReadGenericRepo<BookingPublicTrip> _rBTRepo;
         private IWriteUnitOfWork _uot;
 
-        public PublicTripCommadHandler(IWriteUnitOfWork wUnitOfWork, IWriteGenericRepo<PublicTrip> wTRepo, IReadGenericRepo<BookingTrip> rBTRepo, IWriteGenericRepo<BookingTrip> wBTRepo, IWriteGenericRepo<User> wURepo)
+        public PublicTripCommadHandler(IWriteUnitOfWork wUnitOfWork, IWriteGenericRepo<PublicTrip> wTRepo, IReadGenericRepo<BookingPublicTrip> rBTRepo, IWriteGenericRepo<BookingPublicTrip> wBTRepo, IWriteGenericRepo<User> wURepo)
         {
             _uot = wUnitOfWork;
             _wTRepo = wTRepo;
@@ -35,7 +35,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         public async Task<ApiResponse> Handle(AddPublicTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransiaction();
+            await _uot.BeginTransactionAsync();
             try
             {
                 var checkUser = await _wURepo.ExistsAsync(request.CreatedById);
@@ -72,6 +72,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 trip.OwnerTripFee = totalPrice * 0.05m; // 5 % fee for trip owner
                 await _wTRepo.AddAsync(trip);
                 await _uot.SaveChangesAsync();
+                await _uot.CommitAsync();
                 var temp = new TemplateTrip
                 {
                     Id = trip.Id,
@@ -109,7 +110,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         public async Task<ApiResponse> Handle(DeletePublicTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransiaction();
+            await _uot.BeginTransactionAsync();
             try
             {
                 var bookings = _rBTRepo.GetAll()
@@ -139,6 +140,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 await Task.WhenAll(tasks);
 
                 await _uot.SaveChangesAsync();
+                await _uot.CommitAsync();
 
                 return new ApiResponse(200, "Trip deleted successfully");
             }
@@ -167,7 +169,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
         }
         public async Task<ApiResponse> Handle(AddPrivateTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransiaction();
+            await _uot.BeginTransactionAsync();
             try
             {
                 var checkUser = await _wURepo.ExistsAsync(request.CreatedById);
@@ -201,6 +203,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 trip.CustomizationFee = totalPrice * 0.05m;
                 await _wTRepo.AddAsync(trip);
                 await _uot.SaveChangesAsync();
+                await _uot.CommitAsync();
                 var temp = new PrivateTemplateTrip
                 {
                     Id = trip.Id,
@@ -236,13 +239,14 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         public async Task<ApiResponse> Handle(DeletePrivateTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransiaction();
+            await _uot.BeginTransactionAsync();
             try
             {
                 await _wTRepo.DeleteAsync(request.Id);
 
 
                 await _uot.SaveChangesAsync();
+                await _uot.CommitAsync();
 
                 return new ApiResponse(200, "Trip deleted successfully");
             }

@@ -2,7 +2,7 @@
 using Domain.Abstraction;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Talabat.Core.Specification;
+using Application.Abstraction.Specification;
 
 namespace InfraStructure.Impelementation
 {

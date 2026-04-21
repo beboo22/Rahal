@@ -1,5 +1,7 @@
-﻿using Application.Abstraction.message;
+﻿using Application.Abestraction;
+using Application.Abstraction.message;
 using Application.Fetures.Authentication.Command.Models;
+using ApplicationBusiness.Dtos.Auth;
 using ApplicationBusiness.Fetures.Authentication.Command.Models;
 using Domain.Abstraction;
 using Domain.BaseResponce;
@@ -8,44 +10,47 @@ using Domain.Entity.TourGuidEntity;
 using Domain.Entity.TravelerCompanyEntity;
 using Domain.Entity.TravelerEntity;
 using Infrastructure.Abestraction;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace Application.Fetures.Authentication.Command
 {
-    public class AuthenticationCommandHandler : ICommandHandler<ResetRequestCommand, ApiResponse>,
-                                                ICommandHandler<ResetPasswordCommand, ApiResponse>,
+    public class AuthenticationCommandHandler : ICommandHandler<VerifyOtpCommand, ApiResponse>,
                                                 ICommandHandler<signUpCommand, ApiResponse>,
-                                                ICommandHandler<LogOutCommand, ApiResponse>
+                                                ICommandHandler<IsUserExist, ApiResponse>,
+                                                ICommandHandler<LogOutCommand, ApiResponse>,
+                                                ICommandHandler<VerifiedUser, ApiResponse>
+
     {
         private IWriteUnitOfWork _uow;
+
         private IWriteUserRepo _wur;
         private IReadGenericRepo<User> _rur;
         private IWriteGenericRepo<RefreshToken> _wgrRepo;
+        private IAuthentication authServ;
+
         private IWriteGenericRepo<UserRole> _WURR;
         private IReadGenericRepo<RefreshToken> _rgrRepo;
-        private IWriteGenericRepo<PasswordResetToken> _wgpRepo;
-        private IReadGenericRepo<PasswordResetToken> _rgpRepo;
-        private IEmailService _emailService;
-        public AuthenticationCommandHandler(IWriteUserRepo writeUserRepo, IWriteUnitOfWork uow, IWriteGenericRepo<RefreshToken> wurRepo, IReadGenericRepo<RefreshToken> rurRepo, IReadGenericRepo<User> rur, IEmailService emailService, IWriteGenericRepo<PasswordResetToken> wgpRepo, IReadGenericRepo<PasswordResetToken> rgpRepo, IWriteGenericRepo<UserRole> wURR)
+
+        public AuthenticationCommandHandler(IWriteUnitOfWork uow, IWriteUserRepo wur, IWriteGenericRepo<UserRole> wURR, IReadGenericRepo<User> rur, IAuthentication authServ, IWriteGenericRepo<RefreshToken> wgrRepo, IReadGenericRepo<RefreshToken> rgrRepo)
         {
-            _wur = writeUserRepo;
             _uow = uow;
-            _wgrRepo = wurRepo;
-            _rgrRepo = rurRepo;
-            _rur = rur;
-            _emailService = emailService;
-            _wgpRepo = wgpRepo;
-            _rgpRepo = rgpRepo;
+            _wur = wur;
             _WURR = wURR;
+            _rur = rur;
+            this.authServ = authServ;
+            _wgrRepo = wgrRepo;
+            _rgrRepo = rgrRepo;
         }
+
 
         public async Task<ApiResponse> Handle(signUpCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
 
                 if (request.signUpData == null)
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User data is required.");
@@ -64,10 +69,7 @@ namespace Application.Fetures.Authentication.Command
                     }).ToList() ?? new List<Languages>(),
                     LName = request.signUpData.LName.Trim(),
                     FName = request.signUpData.FName.Trim(),
-                    //Bio = request.signUpData.Bio?.Trim(),
-                    //Ssn = request.signUpData.Ssn.Trim(),
                     Age = request.signUpData.Age,
-                    PasswordHash = request.signUpData.Password,
                     phoneNumbers = request.signUpData.phoneNumbers?.Select(p => new PhoneNumber
                     {
                         CountryCode = p.CountryCode,
@@ -76,28 +78,19 @@ namespace Application.Fetures.Authentication.Command
                     }).ToList() ?? new List<PhoneNumber>(),
                 };
 
-                var hasher = new PasswordHasher<User>();
-                newUser.PasswordHash = hasher.HashPassword(newUser, request.signUpData.Password);
 
-                // 🔹 Inject roles here
-                //foreach (var roleId in request.signUpData.RoleIds)
-                //{
-                //    newUser.Roles.Add(new UserRole
-                //    {
-                //        RoleId = roleId,
-                //        User = newUser
-                //    });
-                //}
                 await _wur.AddAsync(newUser);
-                var userRoles = request.signUpData.RoleIds.Select(roleId => new UserRole
+                var userRoles = request.signUpData.Roles.Select(roleId => new UserRole
                 {
-                    RoleId = roleId,
+                    RoleId = ((int)roleId) + 1,
                     User = newUser  // EF Core will resolve the foreign key automatically
                 }).ToList();
                 await _WURR.AddRangAsync(userRoles);
 
 
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
+
                 return new ApiResponse((int)HttpStatusCode.OK, "User registered successfully.");
             }
             catch (Exception ex)
@@ -108,93 +101,61 @@ namespace Application.Fetures.Authentication.Command
         }
 
 
-        //public async Task<ApiResponse> Handle(LogOutCommand request, CancellationToken cancellationToken)
-        //{
-        //    var storedToken = await _rurRepo.GetAll()
-        //                    .Include(s => s.Traveler)
-        //                    .Include(s => s.TourGuid)
-        //                    .Include(s => s.TravelerCompany)
-        //                    .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
 
-
-
-        //    if (storedToken != null)
-        //    {
-        //        storedToken.Revoked = true;
-        //        storedToken./*how can i handel this*/.LastLogoutTime = DateTime.UtcNow; // Update last logout time
-        //        await _uow.BeginTransiaction();
-        //        await _wurRepo.UpdateAsync(storedToken, storedToken.Id);
-        //        await _uow.SaveChangesAsync();
-        //    }
-        //}
-
-
-
-
-
-
-        public async Task<ApiResponse> Handle(ResetRequestCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse> Handle(
+    VerifyOtpCommand request,
+    CancellationToken cancellationToken)
         {
-            var user = await _rur.GetAll().FirstOrDefaultAsync(u => u.Email == request.ResetRequestDto.Email);
+            var user = await _rur.GetAll().Include(u => u.Roles).ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(
+                    x => x.Email == request.Email,
+                    cancellationToken);
 
             if (user == null)
-                return new ApiResponse((int)HttpStatusCode.NotFound); // Don't reveal existence
-
-            await _uow.BeginTransiaction();
-
-            var resetToken = Guid.NewGuid().ToString(); // better: use secure RNG
-            var pssreset = new PasswordResetToken
-            {
-                UserId = user.Id,
-                Token = resetToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(1)
-            };
-
-            int role = -1;
+                return new ApiResponse(404, "User not found");
 
 
+            if (!user.ValidateOtp(request.Otp))
+                return new ApiResponse(
+                    400,
+                    "Invalid or expired OTP");
 
-            await _wgpRepo.AddAsync(pssreset);
-            await _uow.SaveChangesAsync();
 
-            // include role in the reset link
-            var resetLink = $"https://localhost:7030/reset-password?token={resetToken}&role={role}";
-            _emailService.SendEmail(user.Email, "Password Reset Request",
-               $"Click the link to reset your password: {resetLink}");
+            user.ClearOtp();
+            await _uow.BeginTransactionAsync();
 
-            return new ApiResponse(200, "Check your email for password reset instructions.");
-        }
-
-        public async Task<ApiResponse> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
-        {
-            await _uow.BeginTransiaction();
-            var query = _rgpRepo.GetAll();
-
-            var tokenEntity = await query
-                .Include(r => r.User)
-                    .ThenInclude(rt => rt.RefreshTokens)
-                .FirstOrDefaultAsync(r => r.Token == request.ResetPasswordDto.Token && r.ExpiresAt > DateTime.UtcNow, cancellationToken);
-
-            if (tokenEntity == null) return new ApiResponse((int)HttpStatusCode.BadRequest, "Invalid token");
-
-            var user = tokenEntity.User;
-            //user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.ResetPasswordDto.NewPassword);
-            var hasher = new PasswordHasher<User>();
-            user.PasswordHash = hasher.HashPassword(user, request.ResetPasswordDto.NewPassword);
-            user.LastPasswordResetTime = DateTime.UtcNow;
-
-            foreach (var rt in user.RefreshTokens)
-                rt.Revoked = true;
             await _wur.UpdateAsync(user, user.Id);
-            await _wgpRepo.DeleteAsync(tokenEntity.Id); // one-time use
             await _uow.SaveChangesAsync();
+            await _uow.CommitAsync();
+
+            var token =
+                await authServ.CreateTokenAsync(user);
 
 
+            return new ApiResultResponse<UserDto>(
+                200,
+                new UserDto
+                {
+                    FName = user.FName,
+                    LName = user.LName,
+                    Email = user.Email,
+                    Age = user.Age,
+                    BlockedEndDate = user.BlockedEndDate,
+                    BlockedStartDate = user.BlockedStartDate,
+                    FinancialBalance = user.FinancialBalance,
+                    IsActive = user.IsActive,
+                    IsBlocked = user.IsBlocked,
+                    Isverified = user.Isverified,
 
-            return new ApiResponse(200, "Password reset successful");
+                    Token = new Token
+                    {
+                        AccessToken = token.AccessToken,
+                        ExpiryDate = token.Expiration,
+                        RefreshToken = token.RefreshToken
+                    }
+                },
+                "OTP verified successfully");
         }
-
-
 
         public async Task<ApiResponse> Handle(LogOutCommand request, CancellationToken cancellationToken)
         {
@@ -214,96 +175,46 @@ namespace Application.Fetures.Authentication.Command
             if (user != null)
                 user.LastLogoutTime = DateTime.UtcNow;
 
-            await _uow.BeginTransiaction();
+            await _uow.BeginTransactionAsync();
             await _wgrRepo.UpdateAsync(storedToken, storedToken.Id);
             await _uow.SaveChangesAsync();
+            await _uow.CommitAsync();
+
 
             return new ApiResponse((int)HttpStatusCode.OK, "Logged out successfully.");
         }
 
+        public Task<ApiResponse> Handle(IsUserExist request, CancellationToken cancellationToken)
+        {
+            var exists = _rur.GetAll().Any(u => u.Id == request.UserId);
+            if (exists)
+                return Task.FromResult(new ApiResponse((int)HttpStatusCode.OK, "User exists."));
+            else
+                return Task.FromResult(new ApiResponse((int)HttpStatusCode.NotFound, "User does not exist."));
+        }
 
-        //public async Task<ApiResponse> Handle(LogOutCommand request, CancellationToken cancellationToken)
-        //{
-        //    var storedToken = await _rurRepo.GetAll()
-        //        .Include(s => s.Traveler)
-        //        .Include(s => s.TourGuid)
-        //        .Include(s => s.TravelerCompany)
-        //        .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
+        public async Task<ApiResponse> Handle(VerifiedUser request, CancellationToken cancellationToken)
+        {
+            var user = await _rur.GetByIdAsync(request.Id);
+            if (user == null)
+                return new ApiResponse(404);
+            try
+            {
+                //await _uow.BeginTransactionAsync();
 
-        //    if (storedToken == null)
-        //        return new ApiResponse((int)HttpStatusCode.BadRequest, "Invalid refresh token.");
+                user.Isverified = true;
+                await _wur.UpdateAsync(user, request.Id);
 
-        //    storedToken.Revoked = true;
+                //await _uow.CommitAsync();
+                return new ApiResponse(200, "update sucuss");
 
-        //    // 🔑 switch expression on the user type
-        //    switch (storedToken)
-        //    {
-        //        case { Traveler: not null }:
-        //            storedToken.Traveler.LastLogoutTime = DateTime.UtcNow;
-        //            break;
-        //        case { TourGuid: not null }:
-        //            storedToken.TourGuid.LastLogoutTime = DateTime.UtcNow;
-        //            break;
-        //        case { TravelerCompany: not null }:
-        //            storedToken.TravelerCompany.LastLogoutTime = DateTime.UtcNow;
-        //            break;
-        //    }
-
-        //    await _uow.BeginTransiaction();
-        //    await _wurRepo.UpdateAsync(storedToken, storedToken.Id);
-        //    await _uow.SaveChangesAsync();
-
-        //    return new ApiResponse((int)HttpStatusCode.OK, "Logged out successfully.");
-        //}
-
-
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync();
+                return new ApiResponse((int)HttpStatusCode.InternalServerError, $"Internal server error: {ex.Message}");
+            }
+        }
     }
-
-
-    //public class AuthenticationCommandHandler : ICommandHandler<LogOutCommand, ApiResponse>
-    //{
-    //    private IWriteUnitOfWork _uow;
-    //    private IWriteGenericRepo<RefreshToken> _wgrRepo;
-    //    private IReadGenericRepo<RefreshToken> _rgrRepo;
-
-    //    public AuthenticationCommandHandler(IReadGenericRepo<RefreshToken> rgrRepo, IWriteGenericRepo<RefreshToken> wgrRepo, IWriteUnitOfWork uow)
-    //    {
-    //        _rgrRepo = rgrRepo;
-    //        _wgrRepo = wgrRepo;
-    //        _uow = uow;
-    //    }
-
-    //    public async Task<ApiResponse> Handle(LogOutCommand request, CancellationToken cancellationToken)
-    //    {
-    //        var storedToken = await _rgrRepo.GetAll()
-    //            .Include(s => s.Traveler)
-    //            .Include(s => s.TourGuide)
-    //            .Include(s => s.TravelCompany)
-    //            .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
-
-    //        if (storedToken == null)
-    //            return new ApiResponse((int)HttpStatusCode.BadRequest, "Invalid refresh token.");
-
-    //        // revoke token
-    //        storedToken.Revoked = true;
-
-    //        //  unify user reference (Traveler, TourGuid, or TravelerCompany)
-    //        User? user = storedToken.Traveler as User
-    //          ?? storedToken.TourGuide as User
-    //          ?? storedToken.TravelCompany as User;
-
-
-    //        if (user != null)
-    //            user.LastLogoutTime = DateTime.UtcNow;
-
-    //        await _uow.BeginTransiaction();
-    //        await _wgrRepo.UpdateAsync(storedToken, storedToken.Id);
-    //        await _uow.SaveChangesAsync();
-
-    //        return new ApiResponse((int)HttpStatusCode.OK, "Logged out successfully.");
-    //    }
-
-    //}
-
 }
 

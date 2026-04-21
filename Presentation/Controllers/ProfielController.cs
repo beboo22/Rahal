@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
+using ApplicationBusiness.Fetures.Authentication.Query.Models;
 
 namespace Presentation.Controllers
 {
@@ -30,7 +31,43 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
             var result = await Sender.Send(new CreateTravelerCompanyProfileCommand(dto, userId.Value));
-            return Ok(result);
+
+            if (result.statusCode != StatusCodes.Status201Created)
+                return Ok(result);
+
+            // ✅ 1. نجيب refresh token من الكوكي
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Ok(result); // أو ترجع error لو حابب
+
+            // ✅ 2. نطلع token جديد
+            var refreshResult = await Sender.Send(new RefreshTokenModel(refreshToken));
+
+            if (refreshResult is not JwtAuthResponse jwtResponse || jwtResponse.statusCode != 200)
+                return Ok(result); // fallback
+
+            // ✅ 3. نحدث الكوكي
+            Response.Cookies.Append("refreshToken", jwtResponse.Token.RefreshToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            // ✅ 4. نرجع access token الجديد
+            return Ok(new ApiResultResponse<object>(
+                200,
+                new
+                {
+                    Profile = result is ApiResultResponse<TemplateTravelComapny> typereuslt ? typereuslt.Data : null,
+                    AccessToken = jwtResponse.Token.AccessToken,
+                    refreshToken = jwtResponse.Token.RefreshToken
+                },
+                "Profile created & token refreshed"
+            ));
+
+
         }
 
         // PUT: api/travelcompanyprofile
@@ -82,7 +119,41 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
             var result = await Sender.Send(new CreateTourGuideProfileCommand(dto, userId.Value));
-            return Ok(result);
+
+            if (result.statusCode != StatusCodes.Status201Created)
+                return Ok(result);
+
+            // ✅ 1. نجيب refresh token من الكوكي
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Ok(result); // أو ترجع error لو حابب
+
+            // ✅ 2. نطلع token جديد
+            var refreshResult = await Sender.Send(new RefreshTokenModel(refreshToken));
+
+            if (refreshResult is not JwtAuthResponse jwtResponse || jwtResponse.statusCode != 200)
+                return Ok(result); // fallback
+
+            // ✅ 3. نحدث الكوكي
+            Response.Cookies.Append("refreshToken", jwtResponse.Token.RefreshToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            // ✅ 4. نرجع access token الجديد
+            return Ok(new ApiResultResponse<object>(
+                200,
+                new
+                {
+                    Profile = result is ApiResultResponse<TemplateTourGuide> typereuslt ? typereuslt.Data : null,
+                    AccessToken = jwtResponse.Token.AccessToken,
+                    refreshToken = jwtResponse.Token.RefreshToken
+                },
+                "Profile created & token refreshed"
+            ));
         }
 
         // PUT: api/tourguideprofile
@@ -134,7 +205,41 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
             var result = await Sender.Send(new CreateTravelerProfileCommand(dto, userId.Value));
-            return Ok(result);
+
+            if (result.statusCode != StatusCodes.Status201Created)
+                return Ok(result);
+
+            // ✅ 1. نجيب refresh token من الكوكي
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Ok(result); // أو ترجع error لو حابب
+
+            // ✅ 2. نطلع token جديد
+            var refreshResult = await Sender.Send(new RefreshTokenModel(refreshToken));
+
+            if (refreshResult is not JwtAuthResponse jwtResponse || jwtResponse.statusCode != 200)
+                return Ok(result); // fallback
+
+            // ✅ 3. نحدث الكوكي
+            Response.Cookies.Append("refreshToken", jwtResponse.Token.RefreshToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            // ✅ 4. نرجع access token الجديد
+            return Ok(new ApiResultResponse<object>(
+                200,
+                new
+                {
+                    Profile = result is ApiResultResponse<TemplateTraveler> typereuslt ? typereuslt.Data:null,
+                    AccessToken = jwtResponse.Token.AccessToken,
+                    refreshToken = jwtResponse.Token.RefreshToken
+                },
+                "Profile created & token refreshed"
+            ));
         }
 
         // PUT: api/travelerprofile

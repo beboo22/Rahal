@@ -51,8 +51,8 @@ namespace Application.Abestraction
             // Add all user roles as separate claims
             foreach (var role in user.Roles.Select(r => r.Role?.RoleName))
             {
-                if (!string.IsNullOrEmpty(role))
-                    authClaims.Add(new Claim(ClaimTypes.Role, role));
+                if (!string.IsNullOrEmpty(role.ToString()))
+                    authClaims.Add(new Claim(ClaimTypes.Role, role.ToString()));
             }
 
             // --- 2. Access Token ---
@@ -84,7 +84,7 @@ namespace Application.Abestraction
                 UserId = user.Id,
                 Revoked = false,
                 Token = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddDays(7) // configurable too
+                ExpiresAt = DateTime.UtcNow.AddDays(10) // configurable too
             };
 
             // --- 4. Cleanup old tokens ---
@@ -97,8 +97,10 @@ namespace Application.Abestraction
                 await _WRepo.DeleteAsync(item.Id);
 
             // --- 5. Save new refresh token ---
+            await _Uow.BeginTransactionAsync();
             await _WRepo.AddAsync(refreshTokenEntity);
             await _Uow.SaveChangesAsync();
+            await _Uow.CommitAsync();
 
             return (accessToken, refreshToken, jwtToken.ValidTo);
         }
@@ -108,7 +110,7 @@ namespace Application.Abestraction
         public async Task<(string AccessToken, string RefreshToken, DateTime Expiration)?> RefreshTokenAsync(string refreshToken)
         {
             var refreshTokenEntity = await _RRepo.GetAll()
-                                        .Include(r => r.User)
+                                        .Include(r => r.User).ThenInclude(u=>u.Roles).ThenInclude(ur => ur.Role)
                                         .FirstOrDefaultAsync(r => r.Token == refreshToken);
 
             if (refreshTokenEntity == null || refreshTokenEntity.ExpiresAt <= DateTime.UtcNow)
@@ -117,7 +119,10 @@ namespace Application.Abestraction
             // Invalidate the old refresh token
             refreshTokenEntity.Revoked = true;
             await _WRepo.UpdateAsync(refreshTokenEntity, refreshTokenEntity.Id);
+            await _Uow.BeginTransactionAsync();
             await _Uow.SaveChangesAsync();
+            await _Uow.CommitAsync();
+
 
             // Issue new token for the user
             return await CreateTokenAsync(refreshTokenEntity.User);

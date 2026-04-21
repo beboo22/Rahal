@@ -4,8 +4,8 @@ namespace Domain.Abstraction
 {
     public interface IWriteUnitOfWork:IDisposable
     {
-        Task BeginTransiaction();
-        //Task CommitAsync();
+        Task BeginTransactionAsync();
+        Task CommitAsync();
         Task RollbackAsync();
         Task SaveChangesAsync();
     }

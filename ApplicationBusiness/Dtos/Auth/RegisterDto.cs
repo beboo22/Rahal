@@ -19,11 +19,9 @@ namespace ApplicationBusiness.Dtos.Auth
 
         [EmailAddress]
         public string Email { get; set; } = null!;
-        [Required]
-        public string Password { get; set; } = null!;
         public virtual List<LanguagesDto> Languages { get; set; }
         public virtual List<PhoneNumberDto> phoneNumbers { get; set; }
-        public List<int> RoleIds { get; set; }
+        public List<RoleEnum> Roles { get; set; }
 
 
     }

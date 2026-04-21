@@ -8,13 +8,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Entity.TripEntity
 {
-    public class Review:BaseEntity
+    public abstract class Review:BaseEntity
     {
-        public int? PublicTripId { get; set; }
-        public PublicTrip? PublicTrip { get; set; }
-
-        public int? PrivateTripId { get; set; }
-        public PrivateTrip? PrivateTrip { get; set; }
+        
 
         public int? ReviewerId { get; set; }
         public User? Reviewer { get; set; }
@@ -24,6 +20,20 @@ namespace Domain.Entity.TripEntity
         
         public decimal Rating { get; set; }
         public string Feedback { get; set; }
+    }
+    public class ReviewPublicTrip : Review
+    {
+        public int? PublicTripId { get; set; }
+        public PublicTrip? PublicTrip { get; set; }
+    }
+    public class ReviewPrivateTrip : Review
+    {
+       
+
+        public int? PrivateTripId { get; set; }
+        public PrivateTrip? PrivateTrip { get; set; }
+
+        
     }
     
 }

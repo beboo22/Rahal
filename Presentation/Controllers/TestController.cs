@@ -1,41 +1,38 @@
-﻿using ApplicationBusiness.Dtos.Profile;
-using Domain.Abstraction;
-using Domain.BaseResponce;
-using Microsoft.AspNetCore.Http;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TestController : ControllerBase
+    public class TestController : ApiController
     {
-        //private IGoogleDriveRepo googleDriveRepo { get; set; }
+        public TestController(ISender sender) : base(sender) { }
 
-        //public TestController(IGoogleDriveRepo googleDriveRepo)
-        //{
-        //    this.googleDriveRepo = googleDriveRepo;
-        //}
+    //    [HttpPost("flight-availability")]
+    //    public async Task<IActionResult> FlightAvailability(
+    //FlightAvailabilityRequest request)
+    //    {
+    //        var result = await Sender.Send(
+    //            new GetFlightAvailabilityQuery(request));
+
+    //        return Ok(result);
+    //    }
 
 
 
-        //[HttpPost]
-        //public async Task<ActionResult<ApiResponse>> test([FromForm] BusinessGalary businessGalaries) 
-        //{
-        //    return await googleDriveRepo.UploadFile("Test", businessGalaries.Photo);
-        //}
-        private IPhotoService photoService;
 
-        public TestController(IPhotoService photoService)
-        {
-            this.photoService = photoService;
-        }
+    //    [HttpPost("search")]
+    //    public async Task<IActionResult> SearchHotels(
+    //[FromBody] HotelSearchRequest request)
+    //    {
+    //        var response = await Sender
+    //            .Send(new SearchHotelsQuery(request));
 
-        [HttpPost]
-        public async Task<ActionResult<ApiResponse>> test([FromForm] BusinessGalary businessGalaries)
-        {
-            return await photoService.AddPhotoAsync(businessGalaries.Photo);
-        }
+    //        return StatusCode(response.statusCode, response);
+    //    }
+
+
 
     }
 }

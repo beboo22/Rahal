@@ -34,6 +34,7 @@ namespace Domain.Entity.TripEntity
         public ICollection<ActivityPrivateTrip> PrivateActivities { get; set; } = new List<ActivityPrivateTrip>();
         public ICollection<RequestTourGuidePrivateTrip> requestTourGuides { get; set; }
          = new List<RequestTourGuidePrivateTrip>();
+        public ICollection<BookingPrivateTrip> BookingPrivateTrips { get; set; }
     }
     public class PublicTrip : Trip
     {
@@ -50,7 +51,7 @@ namespace Domain.Entity.TripEntity
         public int? TourGuideId { get; set; }
         [ForeignKey("TourGuideId")]
         public User? TourGuide { get; set; }
-        public ICollection<BookingTrip> BookingTrips { get; set; }
+        public ICollection<BookingPublicTrip> BookingPublicTrips { get; set; }
     }
 
 

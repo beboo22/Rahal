@@ -16,9 +16,9 @@ namespace ApplicationBusiness.Fetures.TripService.Command
     {
         private IWriteUnitOfWork _uow;
         private IWriteGenericRepo<Review> _wrr;
-        private IReadGenericRepo<BookingTrip> _rbr;
+        private IReadGenericRepo<BookingPublicTrip> _rbr;
         private IReadGenericRepo<PublicTrip> _rTr;
-        public ReviewPublicTripCommandHandler(IWriteUnitOfWork uow, IWriteGenericRepo<Review> wrr, IReadGenericRepo<BookingTrip> rbr, IReadGenericRepo<PublicTrip> rTr)
+        public ReviewPublicTripCommandHandler(IWriteUnitOfWork uow, IWriteGenericRepo<Review> wrr, IReadGenericRepo<BookingPublicTrip> rbr, IReadGenericRepo<PublicTrip> rTr)
         {
             _uow = uow;
             _wrr = wrr;
@@ -30,7 +30,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 //Ensure that User Already Booking and The Trip is finished
                 var checkBooking = _rbr.GetAll().Any(b => b.PublicTripId == request.dto.TripId && b.UserId == request.UserId);
                 if (!checkBooking)
@@ -38,7 +38,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 var checkTrip = _rTr.GetAll().FirstOrDefault(t => t.Id == request.dto.TripId);
                 if (checkTrip?.StartDate.AddDays(checkTrip.Duration) > DateTime.UtcNow)
                     return new ApiResponse((int)HttpStatusCode.Forbidden, "should Make review After Finished the Trip");
-                var review = new Review()
+                var review = new ReviewPublicTrip()
                 {
                     PublicTripId = request.dto.TripId,
                     ReviewerId = request.UserId,
@@ -48,6 +48,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 };
                 await _wrr.AddAsync(review);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(201, "successfully Create");
             }
             catch (Exception ex)
@@ -76,7 +77,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
         {
             try
             {
-                await _uow.BeginTransiaction();
+                await _uow.BeginTransactionAsync();
                 var Trip = await _rTr.GetByIdAsync(request.dto.TripId);
                 if (Trip is not null)
                     return new ApiResponse(404, "Not Found Trip");
@@ -88,7 +89,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 if (check)
                     return new ApiResponse((int)HttpStatusCode.Forbidden, "can't put review now");
 
-                var review = new Review()
+                var review = new ReviewPrivateTrip()
                 {
                     PrivateTripId = request.dto.TripId,
                     ReviewerId = request.UserId,
@@ -99,6 +100,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     review.RevieweeId = tourGuideId;
                 await _wrr.AddAsync(review);
                 await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
                 return new ApiResponse(201, "successfully Create");
             }
             catch (Exception ex)

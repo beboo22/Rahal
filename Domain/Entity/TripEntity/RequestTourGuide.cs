@@ -4,7 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entity.TripEntity
 {
-    public class RequestTourGuidePulicTrip : BaseEntity
+
+    public abstract class RequestTourGuide : BaseEntity
+    {
+        public bool? Accept { get; set; }
+        public DateTime AcceptedAt { get; set; }
+    }
+    public class RequestTourGuidePulicTrip : RequestTourGuide
     {
         public int PublicTripId { get; set; }
         [ForeignKey(nameof(PublicTripId))]
@@ -13,7 +19,7 @@ namespace Domain.Entity.TripEntity
         [ForeignKey(nameof(TourGuideId))]
         public TourGuide TourGuide { get; set; }
     }
-    public class RequestTourGuidePrivateTrip : BaseEntity
+    public class RequestTourGuidePrivateTrip : RequestTourGuide
     {
         public int PrivateTripId { get; set; }
         [ForeignKey(nameof(PrivateTripId))]

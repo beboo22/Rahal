@@ -16,9 +16,9 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Query
 {
     internal class BookingTripQueryHandler : IQueryHandler<GetBookingById, ApiResponse>, IQueryHandler<GetAllBooking, ApiResponse>
     {
-        IReadGenericRepo<BookingTrip> _RBTR { get; set; }
+        IReadGenericRepo<BookingPublicTrip> _RBTR { get; set; }
 
-        public BookingTripQueryHandler(IReadGenericRepo<BookingTrip> rBTR)
+        public BookingTripQueryHandler(IReadGenericRepo<BookingPublicTrip> rBTR)
         {
             _RBTR = rBTR;
         }

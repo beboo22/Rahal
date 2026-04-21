@@ -38,7 +38,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTourGuide
                             {
-                                BookedTrip = item.User.BookingTrips.Select(x => new BookingTripTemplate
+                                BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                                 {
                                     BookingDate = x.BookingDate,
                                     Id = x.Id,
@@ -61,6 +61,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                             }).ToList(),
                                 ExperiencePostTemplates = item.User.Posts.Select(p => new ExperiencePostTemplate
                                 {
+                                    Id=p.Id,
                                     CreatedAt = p.CreatedAt,
                                     FullName = $"{item.User.FName} {item.User.LName}",
                                     Description = p.Description,
@@ -122,7 +123,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTraveler
                             {
-                                BookedTrip = item.User.BookingTrips.Select(x=>new BookingTripTemplate
+                                BookedTrip = item.User.BookingPublicTrips.Select(x=>new BookingTripTemplate
                                 {
                                     BookingDate = x.BookingDate,
                                     Id = x.Id,
@@ -145,6 +146,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                             }).ToList(),
                                 ExperiencePostTemplates = item.User.Posts.Select(p => new ExperiencePostTemplate
                                 {
+
+                                    Id = p.Id,
                                     CreatedAt = p.CreatedAt,
                                     FullName = $"{item.User.FName} {item.User.LName}",
                                     Description = p.Description,
@@ -196,7 +199,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                 .Select(item => new TemplateTravelComapny
                 {
-                    BookedTrip = item.User.BookingTrips.Select(x => new BookingTripTemplate
+                    BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                     {
                         BookingDate = x.BookingDate,
                         Id = x.Id,
@@ -219,6 +222,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                             }).ToList(),
                     ExperiencePostTemplates = item.User.Posts.Select(p => new ExperiencePostTemplate
                     {
+
+                        Id = p.Id,
                         CreatedAt = p.CreatedAt,
                         FullName = $"{item.User.FName} {item.User.LName}",
                         Description = p.Description,

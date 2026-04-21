@@ -26,6 +26,33 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.HasSequence("TripSequence");
 
+            modelBuilder.Entity("Domain.Entity.Amadeus.HotelSearchCache", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResponseJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RouteKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HotelSearchCaches");
+                });
+
             modelBuilder.Entity("Domain.Entity.GenericDiscount", b =>
                 {
                     b.Property<int>("Id")
@@ -233,9 +260,8 @@ namespace Infrstructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("RoleName")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -300,12 +326,20 @@ namespace Infrstructure.Data.Migrations
                     b.Property<DateTime?>("LastLogoutTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("LastPasswordResetTime")
+                    b.Property<DateTime?>("LastOtpRequestTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
+                    b.Property<DateTime?>("NextOtpAllowedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OtpCode")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("OtpExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OtpRequestCount")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -347,7 +381,7 @@ namespace Infrstructure.Data.Migrations
                     b.ToTable("userRoles");
                 });
 
-            modelBuilder.Entity("Domain.Entity.PostEntity.Comment", b =>
+            modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePostComment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -359,9 +393,6 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("ExperiencePostId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HiringPostId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsEdited")
@@ -381,11 +412,45 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("ExperiencePostId");
 
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ExperiencePostComments");
+                });
+
+            modelBuilder.Entity("Domain.Entity.PostEntity.HiringPostComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("HiringPostId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Msg")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("HiringPostId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("HiringPostComments");
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.Post", b =>
@@ -628,6 +693,9 @@ namespace Infrstructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
@@ -647,6 +715,9 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<int>("TravelCompanyId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -678,6 +749,9 @@ namespace Infrstructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Street")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -685,6 +759,9 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<int>("TravelCompanyId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -877,7 +954,7 @@ namespace Infrstructure.Data.Migrations
                     b.ToTable("ActivityPublicTrip", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entity.TripEntity.BookingTrip", b =>
+            modelBuilder.Entity("Domain.Entity.TripEntity.BookingPrivateTrip", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -890,6 +967,56 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("Canceled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PrivateTripId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalBookingPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalOwnerProfit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrivateTripId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BookingPrivateTrips");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TripEntity.BookingPublicTrip", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AppProfit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Canceled")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -918,7 +1045,39 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BookingTrips", (string)null);
+                    b.ToTable("BookingPublicTrips");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TripEntity.PaymentRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EntityType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProviderRef")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaymentRequests");
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.RequestTourGuidePrivateTrip", b =>
@@ -928,6 +1087,12 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("Accept")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -947,7 +1112,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TourGuideId");
 
-                    b.ToTable("RequestTourGuidePrivateTrip");
+                    b.ToTable("RequestTourGuidePrivateTrips");
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.RequestTourGuidePulicTrip", b =>
@@ -957,6 +1122,12 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("Accept")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -976,7 +1147,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TourGuideId");
 
-                    b.ToTable("RequestTourGuidePulicTrip");
+                    b.ToTable("RequestTourGuidePulicTrips");
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.Review", b =>
@@ -990,14 +1161,19 @@ namespace Infrstructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
                     b.Property<string>("Feedback")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PrivateTripId")
+                    b.Property<int?>("PrivateTripId1")
                         .HasColumnType("int");
 
-                    b.Property<int?>("PublicTripId")
+                    b.Property<int?>("PublicTripId1")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Rating")
@@ -1014,15 +1190,19 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PrivateTripId");
+                    b.HasIndex("PrivateTripId1");
 
-                    b.HasIndex("PublicTripId");
+                    b.HasIndex("PublicTripId1");
 
                     b.HasIndex("RevieweeId");
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Review");
+
+                    b.HasDiscriminator().HasValue("Review");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.Trip", b =>
@@ -1100,7 +1280,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("ExperiencePost");
+                    b.ToTable("ExperiencePosts");
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.HiringPost", b =>
@@ -1118,7 +1298,31 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("HiringPost");
+                    b.ToTable("HiringPosts");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPrivateTrip", b =>
+                {
+                    b.HasBaseType("Domain.Entity.TripEntity.Review");
+
+                    b.Property<int?>("PrivateTripId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("PrivateTripId");
+
+                    b.HasDiscriminator().HasValue("ReviewPrivateTrip");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPublicTrip", b =>
+                {
+                    b.HasBaseType("Domain.Entity.TripEntity.Review");
+
+                    b.Property<int?>("PublicTripId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("PublicTripId");
+
+                    b.HasDiscriminator().HasValue("ReviewPublicTrip");
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.PrivateTrip", b =>
@@ -1200,7 +1404,7 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.Identity.PasswordResetToken", b =>
                 {
                     b.HasOne("Domain.Entity.Identity.User", "User")
-                        .WithMany("PasswordResetTokens")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1249,12 +1453,25 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entity.PostEntity.Comment", b =>
+            modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePostComment", b =>
                 {
                     b.HasOne("Domain.Entity.PostEntity.ExperiencePost", "ExperiencePost")
                         .WithMany("Comments")
                         .HasForeignKey("ExperiencePostId");
 
+                    b.HasOne("Domain.Entity.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExperiencePost");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entity.PostEntity.HiringPostComment", b =>
+                {
                     b.HasOne("Domain.Entity.PostEntity.HiringPost", "HiringPost")
                         .WithMany("Comments")
                         .HasForeignKey("HiringPostId");
@@ -1264,8 +1481,6 @@ namespace Infrstructure.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ExperiencePost");
 
                     b.Navigation("HiringPost");
 
@@ -1401,16 +1616,35 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("PublicTrip");
                 });
 
-            modelBuilder.Entity("Domain.Entity.TripEntity.BookingTrip", b =>
+            modelBuilder.Entity("Domain.Entity.TripEntity.BookingPrivateTrip", b =>
+                {
+                    b.HasOne("Domain.Entity.TripEntity.PrivateTrip", "PrivateTrip")
+                        .WithMany("BookingPrivateTrips")
+                        .HasForeignKey("PrivateTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entity.Identity.User", "User")
+                        .WithMany("BookingPrivateTrips")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PrivateTrip");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TripEntity.BookingPublicTrip", b =>
                 {
                     b.HasOne("Domain.Entity.TripEntity.PublicTrip", "PublicTrip")
-                        .WithMany("BookingTrips")
+                        .WithMany("BookingPublicTrips")
                         .HasForeignKey("PublicTripId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entity.Identity.User", "User")
-                        .WithMany("BookingTrips")
+                        .WithMany("BookingPublicTrips")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1460,13 +1694,13 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.TripEntity.Review", b =>
                 {
-                    b.HasOne("Domain.Entity.TripEntity.PrivateTrip", "PrivateTrip")
+                    b.HasOne("Domain.Entity.TripEntity.PrivateTrip", null)
                         .WithMany("Reviews")
-                        .HasForeignKey("PrivateTripId");
+                        .HasForeignKey("PrivateTripId1");
 
-                    b.HasOne("Domain.Entity.TripEntity.PublicTrip", "PublicTrip")
+                    b.HasOne("Domain.Entity.TripEntity.PublicTrip", null)
                         .WithMany("Reviews")
-                        .HasForeignKey("PublicTripId");
+                        .HasForeignKey("PublicTripId1");
 
                     b.HasOne("Domain.Entity.Identity.User", "Reviewee")
                         .WithMany("ReviewsReceived")
@@ -1477,10 +1711,6 @@ namespace Infrstructure.Data.Migrations
                         .WithMany("ReviewsWritten")
                         .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("PrivateTrip");
-
-                    b.Navigation("PublicTrip");
 
                     b.Navigation("Reviewee");
 
@@ -1520,6 +1750,24 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPrivateTrip", b =>
+                {
+                    b.HasOne("Domain.Entity.TripEntity.PrivateTrip", "PrivateTrip")
+                        .WithMany()
+                        .HasForeignKey("PrivateTripId");
+
+                    b.Navigation("PrivateTrip");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPublicTrip", b =>
+                {
+                    b.HasOne("Domain.Entity.TripEntity.PublicTrip", "PublicTrip")
+                        .WithMany()
+                        .HasForeignKey("PublicTripId");
+
+                    b.Navigation("PublicTrip");
+                });
+
             modelBuilder.Entity("Domain.Entity.TripEntity.PrivateTrip", b =>
                 {
                     b.HasOne("Domain.Entity.Identity.User", "TourGuide")
@@ -1549,13 +1797,13 @@ namespace Infrstructure.Data.Migrations
                 {
                     b.Navigation("AdminProfile");
 
-                    b.Navigation("BookingTrips");
+                    b.Navigation("BookingPrivateTrips");
+
+                    b.Navigation("BookingPublicTrips");
 
                     b.Navigation("CreatedTrips");
 
                     b.Navigation("Languages");
-
-                    b.Navigation("PasswordResetTokens");
 
                     b.Navigation("Posts");
 
@@ -1609,6 +1857,8 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.TripEntity.PrivateTrip", b =>
                 {
+                    b.Navigation("BookingPrivateTrips");
+
                     b.Navigation("PrivateActivities");
 
                     b.Navigation("Reviews");
@@ -1618,7 +1868,7 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.TripEntity.PublicTrip", b =>
                 {
-                    b.Navigation("BookingTrips");
+                    b.Navigation("BookingPublicTrips");
 
                     b.Navigation("PublicActivities");
 
