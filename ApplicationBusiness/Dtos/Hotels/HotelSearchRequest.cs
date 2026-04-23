@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Dtos.Hotels
 {
-    public class HotelSearchRequest:BaseEntity
+    public class HotelSearchRequest
     {
         [Required]
         public string Destination { get; set; } = string.Empty;

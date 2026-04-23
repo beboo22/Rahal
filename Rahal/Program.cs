@@ -158,6 +158,12 @@ namespace Rahal
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
                 client.DefaultRequestHeaders.Add("User-Agent", "TravelModule/1.0");
             });
+            // ── HttpClient + Polly ────────────────────────────────────────────────
+            builder.Services.AddHttpClient<ISerpPhotoApiService, SerpPhotoApiService>(client =>
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("User-Agent", "TravelModule/1.0");
+            });
             //.AddPolicyHandler(retryPolicy)
             //.AddPolicyHandler(timeoutPolicy);
 
@@ -167,38 +173,40 @@ namespace Rahal
             // builder.Services.AddScoped<IHotelSearchHistoryRepository, HotelSearchHistoryRepository>();
 
             // ── Redis Caching (optional) ──────────────────────────────────────────
-            //var redisConn = builder.Configuration.GetRequiredSection("Redis")["ConnectionString"];// .GetConnectionString("Redis");
-            //if (!string.IsNullOrEmpty(redisConn))
-            //{
-            //    builder.Services.AddStackExchangeRedisCache(options =>
-            //    {
-            //        options.Configuration = redisConn;
-            //        options.InstanceName = "Rahal:";
-            //    });
-            //}
-            //else
-            //{
-            //}
-                builder.Services.AddDistributedMemoryCache(); // fallback to in-memory
-
-
-
-            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            var redisConn = builder.Configuration.GetRequiredSection("Redis")["ConnectionString"];// .GetConnectionString("Redis");
+            if (!string.IsNullOrEmpty(redisConn))
             {
-                var configuration = new ConfigurationOptions
-                {
-                    EndPoints =
-                    {
-                        { "redis-19301.c341.af-south-1-1.ec2.redns.redis-cloud.com", 19301 }
-                    },
-                    User = "default",
-                    Password = "uJhzvCJD1pjVz9lBh4gKVc9OrKRL9pTR",
-                    Ssl = true,
-                    AbortOnConnectFail = false
-                };
+                //builder.Services.AddStackExchangeRedisCache(options =>
+                //{
+                //    options.Configuration = redisConn;
+                //    options.InstanceName = "Rahal:";
+                //});
+                builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+                                ConnectionMultiplexer.Connect(redisConn));
+            }
+            else
+            {
+                builder.Services.AddDistributedMemoryCache(); // fallback to in-memory
+            }
 
-                return ConnectionMultiplexer.Connect(configuration);
-            });
+
+
+            //builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            //{
+            //    var configuration = new ConfigurationOptions
+            //    {
+            //        EndPoints =
+            //        {
+            //            { "redis-19301.c341.af-south-1-1.ec2.redns.redis-cloud.com", 19301 }
+            //        },
+            //        User = "default",
+            //        Password = "uJhzvCJD1pjVz9lBh4gKVc9OrKRL9pTR",
+            //        Ssl = true,
+            //        AbortOnConnectFail = false
+            //    };
+
+            //    return ConnectionMultiplexer.Connect(configuration);
+            //});
 
 
 

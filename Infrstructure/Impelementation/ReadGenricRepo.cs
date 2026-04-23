@@ -36,13 +36,13 @@ namespace InfraStructure.Impelementation
             var items =  ApplySpec(spec).AsNoTracking();
             return items;
         }
-        public async Task<T> GetByIDSpec(ISpecification<T> spec)
+        public async Task<T?> GetByIDSpec(ISpecification<T> spec)
         {
             var items = await ApplySpec(spec).FirstOrDefaultAsync();
-            if (items == null)
-            {
-                throw new KeyNotFoundException($"Entity not found.");
-            }
+            //if (items == null)
+            //{
+            //    throw new KeyNotFoundException($"Entity not found.");
+            //}
             return items;
         }
         protected IQueryable<T> ApplySpec(ISpecification<T> spec)

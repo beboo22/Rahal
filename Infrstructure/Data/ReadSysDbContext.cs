@@ -2,6 +2,7 @@
 using Domain.Entity.Amadeus;
 using Domain.Entity.Hotel_flights;
 using Domain.Entity.Identity;
+using Domain.Entity.photo;
 using Domain.Entity.PostEntity;
 using Domain.Entity.TourGuidEntity;
 using Domain.Entity.TravelerCompanyEntity;
@@ -82,7 +83,7 @@ namespace Infrastructure.Data
         public DbSet<Hotel> Hotels { get; set; }
         public DbSet<HotelSearchHistory> HotelSearchHistorys { get; set; }
 
-        public DbSet<PriceInsights> PriceInsightss { get; set; }
+        //public DbSet<PriceInsights> PriceInsightss { get; set; }
         //public DbSet<AirportInfo> AirportInfos { get; set; }
         public DbSet<FlightSegment> FlightSegments { get; set; }
         public DbSet<FlightOffer> FlightOffers { get; set; }
@@ -93,6 +94,8 @@ namespace Infrastructure.Data
         public DbSet<PayFlight> PayFlights { get; set; }
         public DbSet<PayHotel> payHotels { get; set; }
 
+        public DbSet<PhotoResultItem> PhotoResultItems { get; set; }
+        public DbSet<PhotoSearchResponse> PhotoSearchResponses { get; set; }
 
 
     }

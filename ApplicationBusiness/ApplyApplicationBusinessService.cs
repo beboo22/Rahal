@@ -2,6 +2,7 @@
 using Application.Abstraction.spacification;
 using Application.Abstraction.Specification;
 using Application.Features.PaymentService;
+using ApplicationBusiness.Abstraction.CloudinaryService;
 using ApplicationBusiness.Fetures.PaymentService.Strategies;
 using ApplicationBusiness.RealTimeservice.ChatService;
 using ApplicationBusiness.service;
@@ -31,6 +32,7 @@ namespace ApplicationBusiness
             services.AddSingleton<IChatService, ChatService>();
             services.AddScoped(typeof(ISpecification<>), typeof(Specification<>));
             services.AddScoped<IPaymentHandlerStrategy, PublicTripPaymentHandler>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IPaymentHandlerStrategy, PrivateTripPaymentHandler>();
             //services.AddScoped<IPaymentHandlerStrategy, HotelPaymentHandler>();
             //services.AddScoped<IPaymentHandlerStrategy, FlightPaymentHandler>();

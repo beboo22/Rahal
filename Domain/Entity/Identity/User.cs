@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entity.Identity
 {
+
     public class User : BaseEntity
     {
         [Required]
@@ -161,4 +162,5 @@ namespace Domain.Entity.Identity
             OtpExpiry = null;
         }
     }
+
 }

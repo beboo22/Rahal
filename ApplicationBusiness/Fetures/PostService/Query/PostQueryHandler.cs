@@ -16,7 +16,6 @@ namespace ApplicationBusiness.Fetures.PostService.Query
         IQueryHandler<GetHiringSpacificationPost, ApiResponse>
     {
         private IReadGenericRepo<HiringPost> _RPR;
-        private ISpecification<PublicTrip> _spec;
 
         public HiringPostQueryHandler(IReadGenericRepo<HiringPost> rPR)
         {
@@ -145,39 +144,61 @@ namespace ApplicationBusiness.Fetures.PostService.Query
 
         public async Task<ApiResponse> Handle(GetExperiencePostByTitle request, CancellationToken cancellationToken)
         {
-            var posts = await _RPR.GetAll()
-                        .Where(p => p.Title.Contains(request.Title))
-                        .Include(p => p.Comments)
-                            .ThenInclude(c => c.User)
-                        .Include(p => p.CreatedBy)
-                        .OrderByDescending(p => p.CreatedAt)
-                        .Order().Select(p => new ExperiencePostTemplate
-                        {
-                            CreatedAt = p.CreatedAt,
-                            FullName = $"{p.CreatedBy.FName} {p.CreatedBy.LName}",
-                            Description = p.Description,
-                            PhotoUrl = p.PhotoUrl,
-                            Title = p.Title,
-                            City = p.City,
-                            Country = p.Country,
-                            //Budget = p.Budget,
-                            //TipsAndRecommendations = p.TipsAndRecommendations,
-                            Comments = p.Comments.Select(c => new TemplateComment
-                            {
-                                CreatedAt = c.CreatedAt,
-                                FullName = $"{c.User.FName} {c.User.LName}",
-                                IsEdited = c.IsEdited,
-                                Msg = c.Msg,
-                            }).ToList()
-                        }).ToListAsync(); // i need to fetch the last posts before 48h
+            var fromDate = DateTime.UtcNow.AddHours(-48);
 
-            if (posts.Any())
-            {
-                return new ApiResponse(404);
-            }
+            var posts = await _RPR.GetAll()
+                .Where(p =>
+                    p.CreatedAt >= fromDate &&
+                    p.Title.Contains(request.Title))
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new ExperiencePostTemplate
+                {
+                    PrifleUser =
+                        p.CreatedBy.TravelerProfile != null
+                            ? p.CreatedBy.TravelerProfile.PhotoUrl
+                            : p.CreatedBy.TourGuideProfile != null
+                                ? p.CreatedBy.TourGuideProfile.PhotoUrl
+                                : null,
+
+                    //Role =
+                    //    p.CreatedBy.TravelerProfile != null
+                    //        ? "Traveler"
+                    //        : p.CreatedBy.GuideProfile != null
+                    //            ? "Guide"
+                    //            : "Unknown",
+
+                    CreatedAt = p.CreatedAt,
+                    FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
+                    Description = p.Description,
+                    PhotoUrl = p.PhotoUrl,
+                    Title = p.Title,
+                    City = p.City,
+                    Country = p.Country,
+
+                    Comments = p.Comments
+                        .OrderByDescending(c => c.CreatedAt)
+                        .Select(c => new TemplateComment
+                        {
+                            CreatedAt = c.CreatedAt,
+                            FullName = c.User.FName + " " + c.User.LName,
+                            IsEdited = c.IsEdited,
+                            Msg = c.Msg,
+
+                            ProfileUser =
+                                c.User.TravelerProfile != null
+                                    ? c.User.TravelerProfile.PhotoUrl
+                                    : c.User.TourGuideProfile != null
+                                        ? c.User.TourGuideProfile.PhotoUrl
+                                        : null
+                        }).ToList()
+                })
+                .ToListAsync(cancellationToken);
+
+            if (!posts.Any())
+                return new ApiResponse(404, "No posts found");
+
             return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts);
         }
-
         public async Task<ApiResponse> Handle(GetExperiencePost request, CancellationToken cancellationToken)
         {
             var posts = await _RPR.GetAll()
@@ -222,24 +243,45 @@ namespace ApplicationBusiness.Fetures.PostService.Query
 
                 var posts = await _RPR
                     .GetAllSpec(spec)
-                    .Select(x => new ExperiencePostTemplate
+                    .Select(p => new ExperiencePostTemplate
                     {
-                        Id = x.Id,
-                        Title = x.Title,
-                        Description = x.Description,
-                        FullName = $"{x.CreatedBy.FName} {x.CreatedBy.LName}",
-                        PhotoUrl = x.PhotoUrl,
-                        //Budget = x.Budget,
-                        City = x.City,
-                        Country = x.Country,
-                        //TipsAndRecommendations = x.TipsAndRecommendations,
-                        CreatedAt = x.CreatedAt,
-                        Comments = x.Comments.Select(c => new TemplateComment
+                        PrifleUser =
+                        p.CreatedBy.TravelerProfile != null
+                            ? p.CreatedBy.TravelerProfile.PhotoUrl
+                            : p.CreatedBy.TourGuideProfile != null
+                                ? p.CreatedBy.TourGuideProfile.PhotoUrl
+                                : null,
+
+                        //Role =
+                        //    p.CreatedBy.TravelerProfile != null
+                        //        ? "Traveler"
+                        //        : p.CreatedBy.GuideProfile != null
+                        //            ? "Guide"
+                        //            : "Unknown",
+
+                        CreatedAt = p.CreatedAt,
+                        FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
+                        Description = p.Description,
+                        PhotoUrl = p.PhotoUrl,
+                        Title = p.Title,
+                        City = p.City,
+                        Country = p.Country,
+
+                        Comments = p.Comments
+                        .OrderByDescending(c => c.CreatedAt)
+                        .Select(c => new TemplateComment
                         {
                             CreatedAt = c.CreatedAt,
-                            FullName = $"{c.User.FName} {c.User.LName}",
+                            FullName = c.User.FName + " " + c.User.LName,
                             IsEdited = c.IsEdited,
                             Msg = c.Msg,
+
+                            ProfileUser =
+                                c.User.TravelerProfile != null
+                                    ? c.User.TravelerProfile.PhotoUrl
+                                    : c.User.TourGuideProfile != null
+                                        ? c.User.TourGuideProfile.PhotoUrl
+                                        : null
                         }).ToList()
                     })
                     .ToListAsync();

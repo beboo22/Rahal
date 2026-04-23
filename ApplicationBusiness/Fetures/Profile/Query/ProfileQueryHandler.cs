@@ -38,6 +38,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTourGuide
                             {
+                                PhotoUrl = item.PhotoUrl,
+
                                 BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                                 {
                                     BookingDate = x.BookingDate,
@@ -123,6 +125,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTraveler
                             {
+                                PhotoUrl = item.PhotoUrl,
                                 BookedTrip = item.User.BookingPublicTrips.Select(x=>new BookingTripTemplate
                                 {
                                     BookingDate = x.BookingDate,
@@ -199,6 +202,8 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                 .Select(item => new TemplateTravelComapny
                 {
+                    PhotoUrl = item.PhotoUrl,
+
                     BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                     {
                         BookingDate = x.BookingDate,

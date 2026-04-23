@@ -13,6 +13,9 @@ using System.Text.Json.Nodes;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Domain.BaseResponce;
+using Domain.Entity.Hotel_flights;
+using StackExchange.Redis;
+using ApplicationBusiness.Dtos.Photos;
 
 namespace ApplicationBusiness.Abstraction.SerpApiService
 {
@@ -20,25 +23,35 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
     {
         private readonly HttpClient _httpClient;
         private readonly SerpApiSettings _settings;
+        //private readonly IDistributedCache? _cache;
+        private readonly IDatabase _cache;
         private readonly ILogger<SerpApiService> _logger;
-        private readonly IDistributedCache? _cache;
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            PropertyNameCaseInsensitive = true
+
+
+            //PropertyNameCaseInsensitive = true,
+            //PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            // Important: This allows "lowestPrice" to match "lowest_price" or "LowestPrice"
+            //PropertyNameCaseInsensitive = true,
+            //// Important: Allows mapping to the private setters via the constructor
+            //IncludeFields = true
         };
 
         public SerpApiService(
             HttpClient httpClient,
             IOptions<SerpApiSettings> settings,
             ILogger<SerpApiService> logger,
-            IDistributedCache? cache = null)
+            //IDistributedCache? cache = null
+            IConnectionMultiplexer redis
+            )
         {
             _httpClient = httpClient;
             _settings = settings.Value;
             _logger = logger;
-            _cache = cache;
+            _cache = redis.GetDatabase();
         }
 
         // ─────────────────────────── FLIGHTS ────────────────────────────
@@ -47,19 +60,43 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             FlightSearchRequest request,
             CancellationToken cancellationToken = default)
         {
-            var cacheKey = CacheKeys.Flights(request);
+            var exactKey = CacheKeys.FlightsExact(request);
+            var groupKey = CacheKeys.FlightsGroup(request);
 
             if (_settings.EnableCaching && _cache is not null)
             {
-                var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
-                if (cached is not null)
+                // 1. exact redis match
+                //var exactCached = await _cache.GetStringAsync(exactKey, cancellationToken);
+                var exactCached = await _cache.StringGetAsync(exactKey);
+                if (!string.IsNullOrWhiteSpace(exactCached))
                 {
-                    _logger.LogDebug("Flight cache hit: {Key}", cacheKey);
-                    var cachedResult = JsonSerializer.Deserialize<FlightSearchResponse>(cached, _jsonOptions);
-                    return new ApiResultResponse<FlightSearchResponse>(200,cachedResult!, "Flights retrieved from cache.");
+                    _logger.LogDebug("Exact flight cache hit: {Key}", exactKey);
+
+                    var result = JsonSerializer.Deserialize<FlightSearchHistory>(exactCached, _jsonOptions);
+
+                    return new ApiResultResponse<FlightSearchHistory>(
+                        224,
+                        result!,
+                        "Flights retrieved from exact cache.");
+                }
+
+                // 2. grouped redis match
+                //var groupCached = await _cache.GetStringAsync(groupKey, cancellationToken);
+                var groupCached = await _cache.StringGetAsync(groupKey);
+                if (!string.IsNullOrWhiteSpace(groupCached))
+                {
+                    _logger.LogDebug("Grouped flight cache hit: {Key}", groupKey);
+
+                    var result = JsonSerializer.Deserialize<FlightSearchHistory>(groupCached, _jsonOptions);
+
+                    return new ApiResultResponse<FlightSearchHistory>(
+                        224,
+                        result!,
+                        "Flights retrieved from similar cached search.");
                 }
             }
-
+            
+            
             var queryParams = BuildFlightQuery(request);
             var url = BuildUrl(queryParams);
 
@@ -68,7 +105,8 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             try
             {
                 var httpResponse = await _httpClient.GetAsync(url, cancellationToken);
-                return await HandleFlightResponse(httpResponse, cacheKey, cancellationToken);
+                //return await HandleFlightResponse(httpResponse, cacheKey, cancellationToken);
+                return await HandleFlightResponse(httpResponse, cancellationToken);
             }
             catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
@@ -84,7 +122,7 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
         private async Task<ApiResponse> HandleFlightResponse(
             HttpResponseMessage httpResponse,
-            string cacheKey,
+            //string cacheKey,
             CancellationToken cancellationToken)
         {
             var content = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -136,14 +174,14 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
                 return new ApiResultResponse<FlightSearchResponse>(200,response, "No flights found for the given criteria.");
             }
 
-            if (_settings.EnableCaching && _cache is not null)
-            {
-                var serialized = JsonSerializer.Serialize(response, _jsonOptions);
-                await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_settings.CacheDurationMinutes)
-                }, cancellationToken);
-            }
+            //if (_settings.EnableCaching && _cache is not null)
+            //{
+            //    var serialized = JsonSerializer.Serialize(response, _jsonOptions);
+            //    await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
+            //    {
+            //        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_settings.CacheDurationMinutes)
+            //    }, cancellationToken);
+            //}
 
             return new ApiResultResponse<FlightSearchResponse>(200,response, "Flights retrieved successfully.");
             }catch(Exception ex)
@@ -219,10 +257,10 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             return int.TryParse(numberPart, out var result) ? result : null;
         }
 
-        private static PriceInsights? ParsePriceInsights(JsonNode? node)
+        private static Dtos.Flights.PriceInsights? ParsePriceInsights(JsonNode? node)
         {
             if (node is null) return null;
-            return new PriceInsights
+            return new Dtos.Flights.PriceInsights
             {
                 LowestPrice = node["lowest_price"]?.GetValue<int>() ?? 0,
                 PriceLevel = node["price_level"]?.GetValue<string>() ?? string.Empty
@@ -235,18 +273,42 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             HotelSearchRequest request,
             CancellationToken cancellationToken = default)
         {
-            var cacheKey = CacheKeys.Hotels(request);
+            var exactKey = CacheKeys.HotelsExact(request);
+            var groupKey = CacheKeys.HotelsGroup(request);
 
             if (_settings.EnableCaching && _cache is not null)
             {
-                var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
-                if (cached is not null)
+                // 1. exact redis match
+                //var exactCached = await _cache.GetStringAsync(exactKey, cancellationToken);
+                var exactCached = await _cache.StringGetAsync(exactKey);
+                if (!string.IsNullOrWhiteSpace(exactCached))
                 {
-                    _logger.LogDebug("Hotel cache hit: {Key}", cacheKey);
-                    var cachedResult = JsonSerializer.Deserialize<HotelSearchResponse>(cached, _jsonOptions);
-                    return new ApiResultResponse<HotelSearchResponse>(200, cachedResult!, "Hotels retrieved from cache.");
+                    _logger.LogDebug("Exact hotel cache hit: {Key}", exactKey);
+
+                    var result = JsonSerializer.Deserialize<HotelSearchHistory>(exactCached, _jsonOptions);
+
+                    return new ApiResultResponse<HotelSearchHistory>(
+                        224,
+                        result!,
+                        "Hotels retrieved from exact cache.");
+                }
+
+                // 2. grouped redis match
+                //var groupCached = await _cache.GetStringAsync(groupKey, cancellationToken);
+                var groupCached = await _cache.StringGetAsync(groupKey);
+                if (!string.IsNullOrWhiteSpace(groupCached))
+                {
+                    _logger.LogDebug("Grouped hotel cache hit: {Key}", groupKey);
+
+                    var result = JsonSerializer.Deserialize<HotelSearchHistory>(groupCached, _jsonOptions);
+
+                    return new ApiResultResponse<HotelSearchHistory>(
+                        224,
+                        result!,
+                        "Hotels retrieved from similar cached search.");
                 }
             }
+           
 
             var queryParams = BuildHotelQuery(request);
             var url = BuildUrl(queryParams);
@@ -256,7 +318,8 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             try
             {
                 var httpResponse = await _httpClient.GetAsync(url, cancellationToken);
-                return await HandleHotelResponse(httpResponse, cacheKey, cancellationToken);
+                //return await HandleHotelResponse(httpResponse, cacheKey, cancellationToken);
+                return await HandleHotelResponse(httpResponse, cancellationToken);
             }
             catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
@@ -272,7 +335,7 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
         private async Task<ApiResponse> HandleHotelResponse(
             HttpResponseMessage httpResponse,
-            string cacheKey,
+            //string cacheKey,
             CancellationToken cancellationToken)
         {
             var content = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -312,14 +375,14 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
                 return new ApiResultResponse<HotelSearchResponse>(200,response, "No hotels found for the given criteria.");
             }
 
-            if (_settings.EnableCaching && _cache is not null)
-            {
-                var serialized = JsonSerializer.Serialize(response, _jsonOptions);
-                await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_settings.CacheDurationMinutes)
-                }, cancellationToken);
-            }
+            //if (_settings.EnableCaching && _cache is not null)
+            //{
+            //    var serialized = JsonSerializer.Serialize(response, _jsonOptions);
+            //    await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions
+            //    {
+            //        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_settings.CacheDurationMinutes)
+            //    }, cancellationToken);
+            //}
 
             return new ApiResultResponse<HotelSearchResponse>(200,response, "Hotels retrieved successfully.");
         }
@@ -341,7 +404,7 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
                     Reviews = item["reviews"]?.GetValue<int>() ?? 0,
                     PropertyToken = item["property_token"]?.GetValue<string>() ?? string.Empty,
                     SponsoredHotel = item["sponsored"]?.GetValue<bool>() ?? false,
-                    Location = new HotelLocation
+                    Location = new Dtos.Hotels.HotelLocation
                     {
                         Latitude = item["gps_coordinates"]?["latitude"]?.GetValue<double>() ?? 0,
                         Longitude = item["gps_coordinates"]?["longitude"]?.GetValue<double>() ?? 0
@@ -376,6 +439,9 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
         private Dictionary<string, string> BuildFlightQuery(FlightSearchRequest request)
         {
+            if (request.Children > 0)
+                if (request.Children != request.ChildrenAges.Count)
+                    throw new Exception("ChildrenAges len should be == Children number");
             var p = new Dictionary<string, string>
             {
                 ["engine"] = "google_flights",
@@ -401,6 +467,9 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
         private Dictionary<string, string> BuildHotelQuery(HotelSearchRequest request)
         {
+            if (request.Children > 0)
+                if (request.Children != request.ChildrenAges.Count)
+                    throw new Exception("ChildrenAges len should be == Children number");
             var p = new Dictionary<string, string>
             {
                 ["engine"] = "google_hotels",
@@ -444,6 +513,9 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
         private static string MaskApiKey(string url) =>
             System.Text.RegularExpressions.Regex.Replace(url, @"api_key=[^&]+", "api_key=***");
+    
+        
+    
     }
 
     // Extension method for fluent null handling
@@ -454,11 +526,59 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
     public static class CacheKeys
     {
-        public static string Flights(FlightSearchRequest r) =>
-            $"flights:{r.DepartureId}:{r.ArrivalId}:{r.OutboundDate}:{r.ReturnDate}:{r.Adults}:{r.Children}:{r.TravelClass}:{r.TripType}:{r.Currency}";
+        public static string FlightsGroup(FlightSearchRequest r) =>
+            Build("flights",
+                r.DepartureId,
+                r.ArrivalId,
+                r.OutboundDate);
 
-        public static string Hotels(HotelSearchRequest r) =>
-            $"hotels:{Encode(r.Destination)}:{r.CheckInDate}:{r.CheckOutDate}:{r.Adults}:{r.Rooms}:{r.Currency}:{r.MinPrice}:{r.MaxPrice}";
+        public static string FlightsExact(FlightSearchRequest r) =>
+            Build("flights-exact",
+                r.DepartureId,
+                r.ArrivalId,
+                r.OutboundDate,
+                r.ReturnDate,
+                r.Adults,
+                r.Children,
+                r.TravelClass,
+                r.TripType,
+                r.Currency);
+
+        public static string HotelsGroup(HotelSearchRequest r) =>
+            Build("hotels",
+                Encode(r.Destination),
+                r.CheckInDate);
+
+        public static string HotelsExact(HotelSearchRequest r) =>
+            Build("hotels-exact",
+                Encode(r.Destination),
+                r.CheckInDate,
+                r.CheckOutDate,
+                r.Adults,
+                r.Rooms,
+                r.Currency,
+                r.MinPrice,
+                r.MaxPrice);
+
+        public static string PhotoExact(SearchPhotoReq r) =>
+        Build("photos-exact",
+            Encode(r.Title),
+            Encode(r.location),
+            "google_images");
+        public static string PhotoExactOrgin(SearchPhotoReq r) =>
+        Build("photos-exact",
+            r.Title,
+            r.location,
+            "google_images").ToLower();
+        public static string PhotoGroup(SearchPhotoReq r) =>
+        Build("photos-exact",
+            Encode(r.Title),
+            "google_images");
+
+        private static string Build(string prefix, params object?[] values)
+        {
+            return $"{prefix}:{string.Join(":", values.Select(v => v?.ToString()?.Trim() ?? "null"))}";
+        }
 
         private static string Encode(string s) =>
             Convert.ToBase64String(Encoding.UTF8.GetBytes(s)).Replace("=", "");

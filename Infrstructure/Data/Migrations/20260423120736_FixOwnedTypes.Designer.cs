@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrstructure.Data.Migrations
 {
     [DbContext(typeof(WriteSysDbContext))]
-    partial class WriteSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423120736_FixOwnedTypes")]
+    partial class FixOwnedTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1684,82 +1687,6 @@ namespace Infrstructure.Data.Migrations
                     b.UseTpcMappingStrategy();
                 });
 
-            modelBuilder.Entity("Domain.Entity.photo.PhotoResultItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Link")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Original")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OriginalHeight")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OriginalWidth")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PhotoSearchResponseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Position")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Thumbnail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoSearchResponseId");
-
-                    b.ToTable("PhotoResultItems");
-                });
-
-            modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SearchId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PhotoSearchResponses");
-                });
-
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>
                 {
                     b.HasBaseType("Domain.Entity.PostEntity.Post");
@@ -2409,13 +2336,6 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("CreatedBy");
                 });
 
-            modelBuilder.Entity("Domain.Entity.photo.PhotoResultItem", b =>
-                {
-                    b.HasOne("Domain.Entity.photo.PhotoSearchResponse", null)
-                        .WithMany("Images")
-                        .HasForeignKey("PhotoSearchResponseId");
-                });
-
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>
                 {
                     b.HasOne("Domain.Entity.Identity.User", "CreatedBy")
@@ -2553,11 +2473,6 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TravelerEntity.Traveler", b =>
                 {
                     b.Navigation("trvelerAddresses");
-                });
-
-            modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>
-                {
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>

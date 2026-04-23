@@ -17,32 +17,77 @@ namespace Infrstructure.Data.Configuration
         public void Configure(EntityTypeBuilder<FlightSegment> builder)
         {
             builder.ToTable("FlightSegments");
-            builder.HasKey(fs => fs.Id);
+            builder.HasKey(x => x.Id);
 
-            builder.Property(fs => fs.DepartureTime).IsRequired();
-            builder.Property(fs => fs.ArrivalTime).IsRequired();
+            builder.Property(x => x.Duration)
+                   .IsRequired();
 
-            builder.Property(fs => fs.Airline)
-                   .IsRequired()
+            builder.Property(x => x.TravelClass)
                    .HasMaxLength(100);
 
-            builder.Property(fs => fs.FlightNumber)
-                   .IsRequired()
-                   .HasMaxLength(50);
+            builder.Property(x => x.LegRoom);
 
-            builder.OwnsOne(x => x.DepartureAirport, airport =>
+            builder.Property(x => x.Overnight);
+
+            /*
+             * Departure Airport
+             */
+            builder.OwnsOne(x => x.DepartureAirport, dep =>
             {
-                airport.Property(a => a.Name).HasColumnName("DepartureAirportName");
-                airport.Property(a => a.Id).HasColumnName("DepartureAirportCode");
-                airport.Property(a => a.Time).HasColumnName("DepartureAirportTime");
+                dep.Property(x => x.Code)
+                   .HasColumnName("DepartureAirportCode")
+                   .HasMaxLength(20);
+
+                dep.Property(x => x.Name)
+                   .HasColumnName("DepartureAirportName")
+                   .HasMaxLength(250);
+
+                dep.Property(x => x.Time)
+                   .HasColumnName("DepartureAirportTime");
             });
 
-            builder.OwnsOne(x => x.ArrivalAirport, airport =>
+            /*
+             * Arrival Airport
+             */
+            builder.OwnsOne(x => x.ArrivalAirport, arr =>
             {
-                airport.Property(a => a.Name).HasColumnName("ArrivalAirportName");
-                airport.Property(a => a.Id).HasColumnName("ArrivalAirportCode");
-                airport.Property(a => a.Time).HasColumnName("ArrivalAirportTime");
+                arr.Property(x => x.Code)
+                   .HasColumnName("ArrivalAirportCode")
+                   .HasMaxLength(20);
+
+                arr.Property(x => x.Name)
+                   .HasColumnName("ArrivalAirportName")
+                   .HasMaxLength(250);
+
+                arr.Property(x => x.Time)
+                   .HasColumnName("ArrivalAirportTime");
             });
+
+            /*
+             * Airline
+             */
+            //builder.OwnsOne(x => x.Airline, airline =>
+            //{
+            //    airline.Property(x => x.)
+            //           .HasColumnName("AirlineName")
+            //           .HasMaxLength(200);
+
+            //    airline.Property(x => x.Logo)
+            //           .HasColumnName("AirlineLogo")
+            //           .HasMaxLength(500);
+            //});
+
+            /*
+             * Airplane
+             */
+            builder.Property(x => x.Airplane)
+                   .HasMaxLength(int.MaxValue);
+
+            /*
+             * Ignore audit properties if inherited separately
+             */
+            builder.Navigation(x => x.DepartureAirport).IsRequired();
+            builder.Navigation(x => x.ArrivalAirport).IsRequired();
         }
     }
 

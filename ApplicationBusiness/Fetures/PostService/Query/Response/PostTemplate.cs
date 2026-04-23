@@ -29,8 +29,10 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Response
         public DateTime CreatedAt { get; set; }
         public string? Country { get; set; }
         public string? City { get; set; }
-        public string? TipsAndRecommendations { get; set; }
-        public decimal? Budget { get; set; }
+        public string? PrifleUser { get; set; }
+
+        //public string? TipsAndRecommendations { get; set; }
+        //public decimal? Budget { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         public string? PhotoUrl { get; set; }
@@ -43,5 +45,6 @@ namespace ApplicationBusiness.Fetures.PostService.Query.Response
         public bool IsEdited { get; set; } = false;
         public string FullName { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string ProfileUser { get;  set; }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using Application.Abstraction.message;
+using ApplicationBusiness.Abstraction.CloudinaryService;
 using ApplicationBusiness.Fetures.PostService.Command.Models;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.PostEntity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -110,37 +112,46 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         ICommandHandler<IsExperiencePostExistCommand, ApiResponse>
 
     {
+
+
         private IWriteUnitOfWork _uow { get; set; }
 
         private IWriteGenericRepo<ExperiencePost> _WPR;
+        private ICloudinaryService _cloudinaryService;
         private IReadGenericRepo<ExperiencePost> _RPR;
-        public ExperiencePostCommadHandler(IWriteUnitOfWork uow, IWriteGenericRepo<ExperiencePost> wPR, IReadGenericRepo<ExperiencePost> rPR)
+        public ExperiencePostCommadHandler(IWriteUnitOfWork uow, IWriteGenericRepo<ExperiencePost> wPR, IReadGenericRepo<ExperiencePost> rPR, ICloudinaryService cloudinaryService)
         {
             _uow = uow;
             _WPR = wPR;
             _RPR = rPR;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<ApiResponse> Handle(AddExperiencePostCommand request, CancellationToken cancellationToken)
         {
             try
             {
+                var url = await _cloudinaryService.UploadFileAsync(request.dto.Photo);
+
+
+
                 await _uow.BeginTransactionAsync();
-                await _WPR.AddAsync(new ExperiencePost
+                var item = new ExperiencePost
                 {
                     CreatedById = request.CreatedBy,
                     Country = request.dto.Country,
-                    PhotoUrl = request.dto.PhotoUrl,
+                    PhotoUrl = url,
                     Title = request.dto.Title,
                     Description = request.dto.Description,
                     City = request.dto.City,
                     //Budget = request.dto.Budget,
                     //TipsAndRecommendations = request.dto.TipsAndRecommendations,
-                });
+                };
+                await _WPR.AddAsync(item);
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
 
-                return new ApiResponse(200);
+                return new ApiResultResponse<ExperiencePost>(StatusCodes.Status201Created,item);
             }
             catch (Exception ex)
             {

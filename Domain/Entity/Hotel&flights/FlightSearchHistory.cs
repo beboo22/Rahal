@@ -1,61 +1,147 @@
 ﻿using Domain.Entity.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Domain.Entity.Hotel_flights
 {
-    public class FlightSearchHistory:BaseEntity
+    // ─────────────────────────────────────────────────────────────
+    // FlightSearchHistory
+    // ─────────────────────────────────────────────────────────────
+    public class FlightSearchHistory : BaseEntity
     {
+        // STJ needs a public setter (or [JsonInclude]) to populate
+        // after construction when using the parameterless ctor path.
+        // We keep private setters and use [JsonConstructor] so STJ
+        // calls our parameterized ctor directly.
+        [JsonInclude]
         public ICollection<FlightOffer> BestFlights { get; private set; } = new List<FlightOffer>();
-        public ICollection<FlightOffer> OtherFlights { get; private set; } = new List<FlightOffer>();
-        public PriceInsights PriceInsights { get; private set; }
-        public string SearchId { get; private set; } = string.Empty;
-        public string Currency { get; private set; } = string.Empty;
-        private FlightSearchHistory() { }
 
+        [JsonInclude]
+        public ICollection<FlightOffer> OtherFlights { get; private set; } = new List<FlightOffer>();
+
+        [JsonInclude]
+        public PriceInsights PriceInsights { get; private set; } = null!;
+
+        [JsonInclude]
+        public string SearchId { get; private set; } = string.Empty;
+
+        [JsonInclude]
+        public string Currency { get; private set; } = string.Empty;
+
+        // Required by EF Core
+        public FlightSearchHistory() { }
+
+        /// <summary>
+        /// Parameter names MUST match property names (case-insensitive) exactly.
+        /// BestFlights → bestFlights  ✔
+        /// OtherFlights → otherFlights ✔
+        /// PriceInsights → priceInsights ✔
+        /// SearchId → searchId ✔
+        /// Currency → currency ✔
+        /// </summary>
+        //[JsonConstructor]
+        public FlightSearchHistory(
+            ICollection<FlightOffer> bestFlights,
+            ICollection<FlightOffer> otherFlights,
+            PriceInsights priceInsights,
+            string searchId,
+            string currency)
+        {
+            BestFlights = bestFlights ?? new List<FlightOffer>();
+            OtherFlights = otherFlights ?? new List<FlightOffer>();
+            PriceInsights = priceInsights;
+            SearchId = searchId;
+            Currency = currency;
+        }
+
+        // ── Convenience ctor used by the application layer ──────────
+        // (accepts IEnumerable so existing call sites don't break)
         public FlightSearchHistory(
             IEnumerable<FlightOffer> bestFlights,
             IEnumerable<FlightOffer> otherFlights,
             PriceInsights priceInsights,
             string searchId,
             string currency)
-        {
-            BestFlights = bestFlights.ToList();
-            OtherFlights = otherFlights.ToList();
-            PriceInsights = priceInsights;
-            SearchId = searchId;
-            Currency = currency;
-        }
-
+            : this(
+                bestFlights?.ToList() ?? new List<FlightOffer>(),
+                otherFlights?.ToList() ?? new List<FlightOffer>(),
+                priceInsights,
+                searchId,
+                currency)
+        { }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // PayFlight  (no constructor issues – left as-is)
+    // ─────────────────────────────────────────────────────────────
     public class PayFlight : BaseEntity
     {
-        public FlightOffer FlightOffer { get; set; }
+        public FlightOffer FlightOffer { get; set; } = null!;
         public int FlightOfferId { get; set; }
         public bool IsPaid { get; set; } = false;
         public bool Canceled { get; set; }
-        public User User { get; set; }
+        public User User { get; set; } = null!;
         public decimal TotalBookingPrice { get; set; }
     }
 
-
-    public class FlightOffer:BaseEntity
+    // ─────────────────────────────────────────────────────────────
+    // FlightOffer
+    // ─────────────────────────────────────────────────────────────
+    public class FlightOffer : BaseEntity
     {
+        [JsonInclude]
         public ICollection<FlightSegment> Flights { get; private set; } = new List<FlightSegment>();
+
+        [JsonInclude]
         public int TotalDuration { get; private set; }
+
+        [JsonInclude]
         public decimal Price { get; private set; }
+
+        [JsonInclude]
         public string Type { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public int Layovers { get; private set; }
+
+        [JsonInclude]
         public bool CarbonEmissions { get; private set; }
+
+        [JsonInclude]
         public string BookingToken { get; private set; } = string.Empty;
 
-        private FlightOffer() { }
+        // Required by EF Core
+        public FlightOffer() { }
 
+        /// <summary>
+        /// All parameter names match their corresponding property names exactly.
+        /// </summary>
+        //[JsonConstructor]
+        public FlightOffer(
+            ICollection<FlightSegment> flights,
+            int totalDuration,
+            decimal price,
+            string type,
+            int layovers,
+            bool carbonEmissions,
+            string bookingToken)
+        {
+            Flights = flights ?? new List<FlightSegment>();
+            TotalDuration = totalDuration;
+            Price = price;
+            Type = type;
+            Layovers = layovers;
+            CarbonEmissions = carbonEmissions;
+            BookingToken = bookingToken;
+        }
+
+        // Convenience ctor for existing IEnumerable call sites
         public FlightOffer(
             IEnumerable<FlightSegment> flights,
             int totalDuration,
@@ -64,34 +150,57 @@ namespace Domain.Entity.Hotel_flights
             int layovers,
             bool carbonEmissions,
             string bookingToken)
-        {
-            Flights = flights.ToList();
-            TotalDuration = totalDuration;
-            Price = price;
-            Type = type;
-            Layovers = layovers;
-            CarbonEmissions = carbonEmissions;
-            BookingToken = bookingToken;
-        }
+            : this(
+                flights?.ToList() ?? new List<FlightSegment>(),
+                totalDuration, price, type, layovers, carbonEmissions, bookingToken)
+        { }
     }
 
-    public class FlightSegment:BaseEntity
+    // ─────────────────────────────────────────────────────────────
+    // FlightSegment
+    // ─────────────────────────────────────────────────────────────
+    public class FlightSegment : BaseEntity
     {
-        public AirportInfo DepartureAirport { get; private set; }
-        public AirportInfo ArrivalAirport { get; private set; }
+        [JsonInclude]
+        public AirportInfo DepartureAirport { get; private set; } = null!;
+
+        [JsonInclude]
+        public AirportInfo ArrivalAirport { get; private set; } = null!;
+
+        [JsonInclude]
         public DateTime DepartureTime { get; private set; }
+
+        [JsonInclude]
         public DateTime ArrivalTime { get; private set; }
+
+        [JsonInclude]
         public int Duration { get; private set; }
+
+        [JsonInclude]
         public string Airplane { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public string Airline { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public string AirlineLogo { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public string TravelClass { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public string FlightNumber { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public bool Overnight { get; private set; }
+
+        [JsonInclude]
         public int LegRoom { get; private set; }
 
-        private FlightSegment() { }
+        // Required by EF Core
+        public FlightSegment() { }
 
+        //[JsonConstructor]
         public FlightSegment(
             AirportInfo departureAirport,
             AirportInfo arrivalAirport,
@@ -121,46 +230,66 @@ namespace Domain.Entity.Hotel_flights
         }
     }
 
-    public class AirportInfo:BaseEntity
+    // ─────────────────────────────────────────────────────────────
+    // AirportInfo
+    // ─────────────────────────────────────────────────────────────
+    [Owned]
+    public class AirportInfo
     {
+        // NOTE: BaseEntity already has a property called "Id" (the DB key).
+        // We rename the IATA-code property to "Code" to avoid the collision,
+        // and use [JsonPropertyName] so existing serialized JSON (key = "Id")
+        // still deserializes correctly if you had old cache entries.
+        // For NEW entries the JSON will contain "Code".
+        // If you prefer the old key name in JSON, keep [JsonPropertyName("Id")]
+        // on the property and use "code" as the ctor parameter name.
+
+        [JsonInclude]
         public string Name { get; private set; } = string.Empty;
-        public string Id { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// IATA airport code (e.g. "CAI").
+        /// Stored as "Code" in JSON to avoid collision with BaseEntity.Id.
+        /// </summary>
+        [JsonInclude]
+        public string Code { get; private set; } = string.Empty;
+
+        [JsonInclude]
         public DateTime Time { get; private set; }
 
-        private AirportInfo() { }
+        // Required by EF Core
+        public AirportInfo() { }
 
-        public AirportInfo(string name, string id, DateTime time)
+        [JsonConstructor]
+        public AirportInfo(string name, string code, DateTime time)
         {
             Name = name;
-            Id = id;
+            Code = code;
             Time = time;
         }
     }
 
-    public class PriceInsights:BaseEntity
+    // ─────────────────────────────────────────────────────────────
+    // PriceInsights
+    // ─────────────────────────────────────────────────────────────
+    [Owned]
+    public class PriceInsights 
     {
+        [JsonInclude]
         public decimal LowestPrice { get; private set; }
+
+        [JsonInclude]
         public string PriceLevel { get; private set; } = string.Empty;
-       
 
-        private PriceInsights() { }
+        // Parameterless ctor – STJ will use this and then populate
+        // properties via [JsonInclude], or use the [JsonConstructor] below.
+        public PriceInsights() { }
 
-        public PriceInsights(
-            decimal lowestPrice,
-            string priceLevel)
+        [JsonConstructor]
+        public PriceInsights(decimal lowestPrice, string priceLevel)
         {
             LowestPrice = lowestPrice;
             PriceLevel = priceLevel;
         }
     }
-
-
-
-
-
-
-
-
-
-    
 }

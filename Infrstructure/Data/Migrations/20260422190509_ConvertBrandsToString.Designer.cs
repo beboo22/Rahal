@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrstructure.Data.Migrations
 {
     [DbContext(typeof(WriteSysDbContext))]
-    partial class WriteSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422190509_ConvertBrandsToString")]
+    partial class ConvertBrandsToString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,6 +163,9 @@ namespace Infrstructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PriceInsightsId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SearchId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -168,6 +174,8 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PriceInsightsId");
 
                     b.ToTable("FlightSearchHistorys");
                 });
@@ -182,7 +190,8 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<string>("Airline")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("AirlineLogo")
                         .IsRequired()
@@ -190,7 +199,6 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<string>("Airplane")
                         .IsRequired()
-                        .HasMaxLength(2147483647)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ArrivalTime")
@@ -207,7 +215,8 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<string>("FlightNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("FlightOfferId")
                         .HasColumnType("int");
@@ -220,8 +229,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<string>("TravelClass")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -367,6 +375,10 @@ namespace Infrstructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Brands")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -460,6 +472,32 @@ namespace Infrstructure.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("payHotels");
+                });
+
+            modelBuilder.Entity("Domain.Entity.Hotel_flights.PriceInsights", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("LowestPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PriceLevel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PriceInsightss");
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.RatePerNight", b =>
@@ -1684,82 +1722,6 @@ namespace Infrstructure.Data.Migrations
                     b.UseTpcMappingStrategy();
                 });
 
-            modelBuilder.Entity("Domain.Entity.photo.PhotoResultItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Link")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Original")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OriginalHeight")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OriginalWidth")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PhotoSearchResponseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Position")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Thumbnail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoSearchResponseId");
-
-                    b.ToTable("PhotoResultItems");
-                });
-
-            modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SearchId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PhotoSearchResponses");
-                });
-
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>
                 {
                     b.HasBaseType("Domain.Entity.PostEntity.Post");
@@ -1881,28 +1843,13 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.FlightSearchHistory", b =>
                 {
-                    b.OwnsOne("Domain.Entity.Hotel_flights.PriceInsights", "PriceInsights", b1 =>
-                        {
-                            b1.Property<int>("FlightSearchHistoryId")
-                                .HasColumnType("int");
-
-                            b1.Property<decimal>("LowestPrice")
-                                .HasColumnType("decimal(18,2)");
-
-                            b1.Property<string>("PriceLevel")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("FlightSearchHistoryId");
-
-                            b1.ToTable("FlightSearchHistorys");
-
-                            b1.WithOwner()
-                                .HasForeignKey("FlightSearchHistoryId");
-                        });
-
-                    b.Navigation("PriceInsights")
+                    b.HasOne("Domain.Entity.Hotel_flights.PriceInsights", "PriceInsights")
+                        .WithMany()
+                        .HasForeignKey("PriceInsightsId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("PriceInsights");
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.FlightSegment", b =>
@@ -1916,21 +1863,25 @@ namespace Infrstructure.Data.Migrations
                             b1.Property<int>("FlightSegmentId")
                                 .HasColumnType("int");
 
-                            b1.Property<string>("Code")
+                            b1.Property<DateTime>("CreatedAt")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("Id")
                                 .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)")
+                                .HasColumnType("nvarchar(max)")
                                 .HasColumnName("ArrivalAirportCode");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasMaxLength(250)
-                                .HasColumnType("nvarchar(250)")
+                                .HasColumnType("nvarchar(max)")
                                 .HasColumnName("ArrivalAirportName");
 
                             b1.Property<DateTime>("Time")
                                 .HasColumnType("datetime2")
                                 .HasColumnName("ArrivalAirportTime");
+
+                            b1.Property<DateTime?>("UpdatedAt")
+                                .HasColumnType("datetime2");
 
                             b1.HasKey("FlightSegmentId");
 
@@ -1945,21 +1896,25 @@ namespace Infrstructure.Data.Migrations
                             b1.Property<int>("FlightSegmentId")
                                 .HasColumnType("int");
 
-                            b1.Property<string>("Code")
+                            b1.Property<DateTime>("CreatedAt")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("Id")
                                 .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)")
+                                .HasColumnType("nvarchar(max)")
                                 .HasColumnName("DepartureAirportCode");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
-                                .HasMaxLength(250)
-                                .HasColumnType("nvarchar(250)")
+                                .HasColumnType("nvarchar(max)")
                                 .HasColumnName("DepartureAirportName");
 
                             b1.Property<DateTime>("Time")
                                 .HasColumnType("datetime2")
                                 .HasColumnName("DepartureAirportTime");
+
+                            b1.Property<DateTime?>("UpdatedAt")
+                                .HasColumnType("datetime2");
 
                             b1.HasKey("FlightSegmentId");
 
@@ -2409,13 +2364,6 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("CreatedBy");
                 });
 
-            modelBuilder.Entity("Domain.Entity.photo.PhotoResultItem", b =>
-                {
-                    b.HasOne("Domain.Entity.photo.PhotoSearchResponse", null)
-                        .WithMany("Images")
-                        .HasForeignKey("PhotoSearchResponseId");
-                });
-
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>
                 {
                     b.HasOne("Domain.Entity.Identity.User", "CreatedBy")
@@ -2553,11 +2501,6 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TravelerEntity.Traveler", b =>
                 {
                     b.Navigation("trvelerAddresses");
-                });
-
-            modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>
-                {
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>

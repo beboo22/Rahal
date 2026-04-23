@@ -116,16 +116,7 @@ namespace Presentation.Controllers
         [Authorize]
         public async Task<IActionResult> CreatePost([FromForm] AddExperiencePostControllerDto dto)
         {
-            var result = await Sender.Send(new AddExperiencePostCommand(new AddExperiencePostDto
-            {
-                PhotoUrl = "",
-                //Budget = dto.Budget,
-                Description = dto.Description,
-                City = dto.City,
-                Country = dto.Country,
-                //TipsAndRecommendations = dto.TipsAndRecommendations,
-                Title = dto.Title,
-            }, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))));
+            var result = await Sender.Send(new AddExperiencePostCommand(dto, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))));
             return Ok(result);
         }
 

@@ -12,7 +12,7 @@ using System.Windows.Input;
 namespace ApplicationBusiness.Fetures.PostService.Command.Models
 {
     public record AddHiringPostCommand(AddHiringPostDto dto, int CreatedBy) :ICommand<ApiResponse>;
-    public record AddExperiencePostCommand(AddExperiencePostDto dto, int CreatedBy):ICommand<ApiResponse>;
+    public record AddExperiencePostCommand(AddExperiencePostControllerDto dto, int CreatedBy):ICommand<ApiResponse>;
 
 
 }
