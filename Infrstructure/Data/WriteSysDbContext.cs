@@ -1,19 +1,14 @@
 ﻿using Domain.Entity.Identity;
 using Domain.Entity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain.Entity.TourGuidEntity;
 using Domain.Entity.TravelerCompanyEntity;
 using Domain.Entity.TravelerEntity;
 using Domain.Entity.TripEntity;
 using Domain.Entity.PostEntity;
-using Domain.Entity.Amadeus;
 using Domain.Entity.Hotel_flights;
 using Domain.Entity.photo;
+using Domain.Entity.Status;
 
 namespace Infrastructure.Data
 {
@@ -31,7 +26,7 @@ namespace Infrastructure.Data
         }
 
         // DbSets
-        public DbSet<HotelSearchCache> HotelSearchCaches { get; set; }
+        //public DbSet<HotelSearchCache> HotelSearchCaches { get; set; }
         public DbSet<GenericDiscount> GenericDiscounts { get; set; } // ✅ helps querying base type
         public DbSet<SpecificDiscount> SpecificDiscounts { get; set; } // ✅ helps querying base type
         public DbSet<User> Users { get; set; } // ✅ helps querying base type
@@ -88,6 +83,14 @@ namespace Infrastructure.Data
 
         public DbSet<PhotoResultItem> PhotoResultItems { get; set; }
         public DbSet<PhotoSearchResponse> PhotoSearchResponses { get; set; }
+
+
+
+
+        public DbSet<Likes> Likes { get; set; }
+        public DbSet<UserFollow> UserFollows { get; set; }
+        public DbSet<StatusUser> StatusUsers { get; set; }
+        public DbSet<Status> Status { get; set; }
 
 
 

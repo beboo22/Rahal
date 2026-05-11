@@ -36,7 +36,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 if (!checkBooking)
                     return new ApiResponse(404, "User don't have Booking");
                 var checkTrip = _rTr.GetAll().FirstOrDefault(t => t.Id == request.dto.TripId);
-                if (checkTrip?.StartDate.AddDays(checkTrip.Duration) > DateTime.UtcNow)
+                if (checkTrip?.StartDate.Value.AddDays(checkTrip.Duration) > DateTime.UtcNow)
                     return new ApiResponse((int)HttpStatusCode.Forbidden, "should Make review After Finished the Trip");
                 var review = new ReviewPublicTrip()
                 {
@@ -85,7 +85,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 if (check)
                     return new ApiResponse((int)HttpStatusCode.Forbidden, "u can't put review");
 
-                check = Trip.StartDate.AddDays(Trip.Duration) > DateTime.Now;
+                check = Trip.StartDate.Value.AddDays(Trip.Duration) > DateTime.Now;
                 if (check)
                     return new ApiResponse((int)HttpStatusCode.Forbidden, "can't put review now");
 

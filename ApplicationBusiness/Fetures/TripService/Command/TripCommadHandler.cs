@@ -1,10 +1,15 @@
 ﻿using Application.Abstraction.message;
+using Application.Fetures.Authentication.Query.Models;
+using ApplicationBusiness.Abstraction.spacification;
+using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
 using ApplicationBusiness.Fetures.TripService.Command.Models;
+using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
@@ -13,7 +18,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
     public class PublicTripCommadHandler : ICommandHandler<AddPublicTrip, ApiResponse>,
                                     ICommandHandler<DeletePublicTrip, ApiResponse>
-                                    
+
     {
         private IWriteGenericRepo<PublicTrip> _wTRepo;
         private IWriteGenericRepo<BookingPublicTrip> _wBTRepo;
@@ -22,15 +27,28 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
 
         private IReadGenericRepo<BookingPublicTrip> _rBTRepo;
+        private IReadGenericRepo<PublicTrip> _rPTR;
         private IWriteUnitOfWork _uot;
 
-        public PublicTripCommadHandler(IWriteUnitOfWork wUnitOfWork, IWriteGenericRepo<PublicTrip> wTRepo, IReadGenericRepo<BookingPublicTrip> rBTRepo, IWriteGenericRepo<BookingPublicTrip> wBTRepo, IWriteGenericRepo<User> wURepo)
+
+        public ISender Sender { get; set; }
+
+
+        public PublicTripCommadHandler(IWriteUnitOfWork wUnitOfWork,
+            IWriteGenericRepo<PublicTrip> wTRepo, 
+            IReadGenericRepo<BookingPublicTrip> rBTRepo, 
+            IWriteGenericRepo<BookingPublicTrip> wBTRepo, 
+            IWriteGenericRepo<User> wURepo, 
+            ISender sender, 
+            IReadGenericRepo<PublicTrip> rPTR)
         {
             _uot = wUnitOfWork;
             _wTRepo = wTRepo;
             _rBTRepo = rBTRepo;
             _wBTRepo = wBTRepo;
             _wURepo = wURepo;
+            Sender = sender;
+            _rPTR = rPTR;
         }
 
         public async Task<ApiResponse> Handle(AddPublicTrip request, CancellationToken cancellationToken)
@@ -82,7 +100,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     Duration = trip.Duration,
                     Price = trip.Price,
                     TripCategory = trip.TripCategory,
-                    IncludedPackages = trip.IncludedPackages,
+                    IncludedPackages = Enum.GetValues(typeof(Package)).Cast<Package>().Where(p => p != Package.None && trip.IncludedPackages.HasFlag(p)).Select(p => (int)p).ToList(),
                     NumberOfMember = trip.MaxNumberOfMember,
                     StartDate = trip.StartDate,
                     Activities = trip.PublicActivities.Select(a => new TemplateActivity
@@ -110,35 +128,35 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         public async Task<ApiResponse> Handle(DeletePublicTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransactionAsync();
             try
             {
-                var bookings = _rBTRepo.GetAll()
-                    .Include(b => b.User)
-                    .Where(b => b.PublicTrip.Id == request.Id && b.IsPaid)
-                    .ToList();
+                //ensure user is the creator
+                var item = await _rPTR.GetAll().Include(x => x.BookingPublicTrips).FirstOrDefaultAsync(x => x.Id == request.Id);
 
-                foreach (var item in bookings)
+                if (item.CreatedById != request.createdBy)
+                    return new ApiResponse(403);
+
+
+
+                //var role = await Sender.Send(new GetRoleofUser(item.CreatedById)) as ApiResultResponse<List<RoleEnum>>;
+
+
+
+
+                if (request.roles.Contains(RoleEnum.TourGuide))
                 {
-                    if(item.User.FinancialBalance.HasValue)
-                        item.User.FinancialBalance += item.TotalBookingPrice;
-                    else item.User.FinancialBalance = item.TotalBookingPrice;
+
+                    if (item.StartDate != null)
+                        if (item.StartDate < DateTime.UtcNow)
+                            if (_rBTRepo.GetAll().Any(x => x.PublicTripId == request.Id))
+                                return new ApiResponse(403, "can't delete trip bec. there's booking and start date gone");
+                            else
+                                //return money
+                                await Sender.Send(new ReturnMonyToUser(request.Id));
                 }
-
-                // Build tasks dynamically
-                var tasks = new List<Task>
-                {
-                    _wTRepo.DeleteAsync(request.Id) // always delete trip
-                };
-
-                if (bookings != null && bookings.Any())
-                {
-                    var users = bookings.Select(b => b.User).ToList();
-                    tasks.Add(_wURepo.UpdateRangeAsync(users));
-                }
-
-                await Task.WhenAll(tasks);
-
+                //delete trip
+                await _uot.BeginTransactionAsync();
+                await _wTRepo.DeleteAsync(request.Id); // always delete trip
                 await _uot.SaveChangesAsync();
                 await _uot.CommitAsync();
 
@@ -161,11 +179,16 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         private IWriteGenericRepo<User> _wURepo;
         private IWriteUnitOfWork _uot;
-        public PrivateTripCommadHandler(IWriteGenericRepo<PrivateTrip> wTRepo, IWriteUnitOfWork uot, IWriteGenericRepo<User> wURepo)
+
+        public ISender Sender { get; set; }
+
+
+        public PrivateTripCommadHandler(IWriteGenericRepo<PrivateTrip> wTRepo, IWriteUnitOfWork uot, IWriteGenericRepo<User> wURepo, ISender sender)
         {
             _wTRepo = wTRepo;
             _uot = uot;
             _wURepo = wURepo;
+            Sender = sender;
         }
         public async Task<ApiResponse> Handle(AddPrivateTrip request, CancellationToken cancellationToken)
         {
@@ -213,7 +236,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     Duration = trip.Duration,
                     Price = trip.Price,
                     TripCategory = trip.TripCategory,
-                    StartDate = trip.StartDate,
+                    //StartDate = trip.StartDate,
                     Activities = trip.PrivateActivities.Select(a => new TemplateActivity
                     {
                         Id = a.Id,
@@ -239,15 +262,21 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         public async Task<ApiResponse> Handle(DeletePrivateTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransactionAsync();
             try
             {
+                var item = await Sender.Send(new GetPrivTripSpecQuery(new TripFilter
+                {
+                    Id = request.Id,
+                })) as ApiResultResponse<Trip>;
+                if (item?.Data == null)
+                    return new ApiResponse(404);
+
+                if (item?.Data.CreatedById != request.createdBy)
+                    return new ApiResponse(403);
+                await _uot.BeginTransactionAsync();
                 await _wTRepo.DeleteAsync(request.Id);
-
-
                 await _uot.SaveChangesAsync();
                 await _uot.CommitAsync();
-
                 return new ApiResponse(200, "Trip deleted successfully");
             }
             catch (Exception ex)
@@ -255,6 +284,12 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 await _uot.RollbackAsync();
                 return new ApiResponse(500, ex.Message);
             }
+
+
+
+
+
+
         }
 
     }

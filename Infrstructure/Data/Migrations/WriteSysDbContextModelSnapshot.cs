@@ -26,33 +26,6 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.HasSequence("TripSequence");
 
-            modelBuilder.Entity("Domain.Entity.Amadeus.HotelSearchCache", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ResponseJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RouteKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HotelSearchCaches");
-                });
-
             modelBuilder.Entity("Domain.Entity.GenericDiscount", b =>
                 {
                     b.Property<int>("Id")
@@ -93,7 +66,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("GenericDiscounts");
+                    b.ToTable("GenericDiscounts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.FlightOffer", b =>
@@ -142,7 +115,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("FlightSearchHistoryId1");
 
-                    b.ToTable("FlightOffers");
+                    b.ToTable("FlightOffers", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.FlightSearchHistory", b =>
@@ -169,7 +142,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FlightSearchHistorys");
+                    b.ToTable("FlightSearchHistorys", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.FlightSegment", b =>
@@ -308,7 +281,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Hotels");
+                    b.ToTable("Hotels", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.HotelBrands", b =>
@@ -331,7 +304,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HotelBrandss");
+                    b.ToTable("HotelBrandss", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.HotelLocation", b =>
@@ -356,7 +329,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HotelLocations");
+                    b.ToTable("HotelLocations", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.HotelSearchHistory", b =>
@@ -383,7 +356,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HotelSearchHistorys");
+                    b.ToTable("HotelSearchHistorys", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.PayFlight", b =>
@@ -421,7 +394,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PayFlights");
+                    b.ToTable("PayFlights", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.PayHotel", b =>
@@ -459,7 +432,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("payHotels");
+                    b.ToTable("payHotels", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.RatePerNight", b =>
@@ -489,7 +462,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("RatePerNights");
+                    b.ToTable("RatePerNights", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.Admin", b =>
@@ -514,7 +487,7 @@ namespace Infrstructure.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.Languages", b =>
@@ -542,7 +515,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Languages");
+                    b.ToTable("Languages", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.PasswordResetToken", b =>
@@ -573,7 +546,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetTokens");
+                    b.ToTable("PasswordResetTokens", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.PhoneNumber", b =>
@@ -608,7 +581,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PhoneNumber");
+                    b.ToTable("PhoneNumber", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.RefreshToken", b =>
@@ -642,7 +615,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.Role", b =>
@@ -664,7 +637,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.Identity.User", b =>
@@ -751,6 +724,35 @@ namespace Infrstructure.Data.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entity.Identity.UserFollow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FollowerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FollowingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FollowerId");
+
+                    b.HasIndex("FollowingId");
+
+                    b.ToTable("UserFollows", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entity.Identity.UserRole", b =>
                 {
                     b.Property<int>("Id")
@@ -777,7 +779,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("userRoles");
+                    b.ToTable("userRoles", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePostComment", b =>
@@ -791,7 +793,7 @@ namespace Infrstructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ExperiencePostId")
+                    b.Property<int>("ExperiencePostId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsEdited")
@@ -813,7 +815,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ExperiencePostComments");
+                    b.ToTable("ExperiencePostComments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.HiringPostComment", b =>
@@ -827,7 +829,7 @@ namespace Infrstructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("HiringPostId")
+                    b.Property<int>("HiringPostId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsEdited")
@@ -849,7 +851,39 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HiringPostComments");
+                    b.ToTable("HiringPostComments", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entity.PostEntity.Likes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LikeType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("postId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("postId");
+
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.Post", b =>
@@ -934,7 +968,74 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("SpecificDiscounts");
+                    b.ToTable("SpecificDiscounts", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entity.Status.Status", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ItemUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("Status", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entity.Status.StatusUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Isloved")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("viewById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("viewById");
+
+                    b.ToTable("StatusUsers", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>
@@ -1193,7 +1294,6 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhotoUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Ssn")
@@ -1413,7 +1513,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BookingPrivateTrips");
+                    b.ToTable("BookingPrivateTrips", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.BookingPublicTrip", b =>
@@ -1470,7 +1570,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BookingPublicTrips");
+                    b.ToTable("BookingPublicTrips", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.PaymentRequest", b =>
@@ -1502,7 +1602,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentRequests");
+                    b.ToTable("PaymentRequests", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.RequestTourGuidePrivateTrip", b =>
@@ -1537,7 +1637,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TourGuideId");
 
-                    b.ToTable("RequestTourGuidePrivateTrips");
+                    b.ToTable("RequestTourGuidePrivateTrips", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.RequestTourGuidePulicTrip", b =>
@@ -1572,7 +1672,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TourGuideId");
 
-                    b.ToTable("RequestTourGuidePulicTrips");
+                    b.ToTable("RequestTourGuidePulicTrips", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.Review", b =>
@@ -1623,7 +1723,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("Review");
+                    b.ToTable("Review", (string)null);
 
                     b.HasDiscriminator().HasValue("Review");
 
@@ -1661,7 +1761,8 @@ namespace Infrstructure.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime?>("StartDate")
+                        .IsRequired()
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
@@ -1734,7 +1835,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("PhotoSearchResponseId");
 
-                    b.ToTable("PhotoResultItems");
+                    b.ToTable("PhotoResultItems", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>
@@ -1757,7 +1858,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PhotoSearchResponses");
+                    b.ToTable("PhotoSearchResponses", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>
@@ -1769,7 +1870,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("ExperiencePosts");
+                    b.ToTable("ExperiencePosts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.HiringPost", b =>
@@ -1787,7 +1888,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("HiringPosts");
+                    b.ToTable("HiringPosts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPrivateTrip", b =>
@@ -1827,7 +1928,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TourGuideId");
 
-                    b.ToTable("PrivateTrips");
+                    b.ToTable("PrivateTrips", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.PublicTrip", b =>
@@ -1854,7 +1955,7 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasIndex("TourGuideId");
 
-                    b.ToTable("PublicTrips");
+                    b.ToTable("PublicTrips", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entity.GenericDiscount", b =>
@@ -1881,7 +1982,7 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.Hotel_flights.FlightSearchHistory", b =>
                 {
-                    b.OwnsOne("Domain.Entity.Hotel_flights.PriceInsights", "PriceInsights", b1 =>
+                    b.OwnsOne("Domain.Entity.Hotel_flights.FlightSearchHistory.PriceInsights#Domain.Entity.Hotel_flights.PriceInsights", "PriceInsights", b1 =>
                         {
                             b1.Property<int>("FlightSearchHistoryId")
                                 .HasColumnType("int");
@@ -1895,7 +1996,7 @@ namespace Infrstructure.Data.Migrations
 
                             b1.HasKey("FlightSearchHistoryId");
 
-                            b1.ToTable("FlightSearchHistorys");
+                            b1.ToTable("FlightSearchHistorys", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("FlightSearchHistoryId");
@@ -1911,7 +2012,7 @@ namespace Infrstructure.Data.Migrations
                         .WithMany("Flights")
                         .HasForeignKey("FlightOfferId");
 
-                    b.OwnsOne("Domain.Entity.Hotel_flights.AirportInfo", "ArrivalAirport", b1 =>
+                    b.OwnsOne("Domain.Entity.Hotel_flights.FlightSegment.ArrivalAirport#Domain.Entity.Hotel_flights.AirportInfo", "ArrivalAirport", b1 =>
                         {
                             b1.Property<int>("FlightSegmentId")
                                 .HasColumnType("int");
@@ -1934,13 +2035,13 @@ namespace Infrstructure.Data.Migrations
 
                             b1.HasKey("FlightSegmentId");
 
-                            b1.ToTable("FlightSegments");
+                            b1.ToTable("FlightSegments", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("FlightSegmentId");
                         });
 
-                    b.OwnsOne("Domain.Entity.Hotel_flights.AirportInfo", "DepartureAirport", b1 =>
+                    b.OwnsOne("Domain.Entity.Hotel_flights.FlightSegment.DepartureAirport#Domain.Entity.Hotel_flights.AirportInfo", "DepartureAirport", b1 =>
                         {
                             b1.Property<int>("FlightSegmentId")
                                 .HasColumnType("int");
@@ -1963,7 +2064,7 @@ namespace Infrstructure.Data.Migrations
 
                             b1.HasKey("FlightSegmentId");
 
-                            b1.ToTable("FlightSegments");
+                            b1.ToTable("FlightSegments", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("FlightSegmentId");
@@ -2091,6 +2192,25 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entity.Identity.UserFollow", b =>
+                {
+                    b.HasOne("Domain.Entity.Identity.User", "Follower")
+                        .WithMany("Following")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entity.Identity.User", "Following")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowingId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Follower");
+
+                    b.Navigation("Following");
+                });
+
             modelBuilder.Entity("Domain.Entity.Identity.UserRole", b =>
                 {
                     b.HasOne("Domain.Entity.Identity.Role", "Role")
@@ -2114,7 +2234,9 @@ namespace Infrstructure.Data.Migrations
                 {
                     b.HasOne("Domain.Entity.PostEntity.ExperiencePost", "ExperiencePost")
                         .WithMany("Comments")
-                        .HasForeignKey("ExperiencePostId");
+                        .HasForeignKey("ExperiencePostId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("Domain.Entity.Identity.User", "User")
                         .WithMany()
@@ -2131,7 +2253,9 @@ namespace Infrstructure.Data.Migrations
                 {
                     b.HasOne("Domain.Entity.PostEntity.HiringPost", "HiringPost")
                         .WithMany("Comments")
-                        .HasForeignKey("HiringPostId");
+                        .HasForeignKey("HiringPostId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("Domain.Entity.Identity.User", "User")
                         .WithMany()
@@ -2142,6 +2266,25 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("HiringPost");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entity.PostEntity.Likes", b =>
+                {
+                    b.HasOne("Domain.Entity.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entity.PostEntity.Post", "post")
+                        .WithMany("Likes")
+                        .HasForeignKey("postId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("post");
                 });
 
             modelBuilder.Entity("Domain.Entity.SpecificDiscount", b =>
@@ -2161,6 +2304,36 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("Trip");
+                });
+
+            modelBuilder.Entity("Domain.Entity.Status.Status", b =>
+                {
+                    b.HasOne("Domain.Entity.Identity.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("Domain.Entity.Status.StatusUser", b =>
+                {
+                    b.HasOne("Domain.Entity.Status.Status", "Status")
+                        .WithMany("StatusUsers")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entity.Identity.User", "viewBy")
+                        .WithMany("StatusUsers")
+                        .HasForeignKey("viewById")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Status");
+
+                    b.Navigation("viewBy");
                 });
 
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>
@@ -2513,6 +2686,10 @@ namespace Infrstructure.Data.Migrations
 
                     b.Navigation("CreatedTrips");
 
+                    b.Navigation("Followers");
+
+                    b.Navigation("Following");
+
                     b.Navigation("Languages");
 
                     b.Navigation("Posts");
@@ -2525,6 +2702,8 @@ namespace Infrstructure.Data.Migrations
 
                     b.Navigation("Roles");
 
+                    b.Navigation("StatusUsers");
+
                     b.Navigation("TourGuideProfile");
 
                     b.Navigation("TravelerCompanyProfile");
@@ -2532,6 +2711,16 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("TravelerProfile");
 
                     b.Navigation("phoneNumbers");
+                });
+
+            modelBuilder.Entity("Domain.Entity.PostEntity.Post", b =>
+                {
+                    b.Navigation("Likes");
+                });
+
+            modelBuilder.Entity("Domain.Entity.Status.Status", b =>
+                {
+                    b.Navigation("StatusUsers");
                 });
 
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>

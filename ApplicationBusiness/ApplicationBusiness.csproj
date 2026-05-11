@@ -12,19 +12,24 @@
 
   <ItemGroup>
     <Folder Include="Fetures\CommentService\Query\model\" />
-    <Folder Include="Fetures\CommentService\Query\Responce\" />
     <Folder Include="Fetures\FlightService\Query\Temp\" />
     <Folder Include="Fetures\HotelService\Query\Temp\" />
     <Folder Include="Fetures\Profile\Query\Response\" />
+    <Folder Include="Fetures\likesSerive\Query\Response\" />
+    <Folder Include="Fetures\Follow\Query\Response\" />
+    <Folder Include="Fetures\StatusService\Qurey\models\" />
+    <Folder Include="Fetures\BookingFlight\Command\Models\" />
+    <Folder Include="Fetures\BookingFlight\Query\Models\" />
+    <Folder Include="Fetures\BookingFlight\Query\Response\" />
     <Folder Include="Fetures\TEST\Command\Models\" />
     <Folder Include="Fetures\TEST\Query\Models\" />
     <Folder Include="Fetures\TEST\Query\Response\" />
-    <Folder Include="Fetures\Authentication\Query\Response\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="CloudinaryDotNet" Version="1.27.8" />
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="MediatR" Version="13.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.3.0" />

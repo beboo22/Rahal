@@ -29,7 +29,7 @@ namespace ApplicationBusiness.Dtos.Trip
         public TripCategory TripCategory { get; set; }
         public int NumberOfMember { get; set; }
         public int Duration { get; set; }
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public int? TourGuideId { get; set; }
         public ICollection<ActivityDto> Activities { get; set; } = new List<ActivityDto>();
 

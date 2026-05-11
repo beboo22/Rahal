@@ -19,7 +19,6 @@ namespace Application.Fetures.Authentication.Command
 {
     public class AuthenticationCommandHandler : ICommandHandler<VerifyOtpCommand, ApiResponse>,
                                                 ICommandHandler<signUpCommand, ApiResponse>,
-                                                ICommandHandler<IsUserExist, ApiResponse>,
                                                 ICommandHandler<LogOutCommand, ApiResponse>,
                                                 ICommandHandler<VerifiedUser, ApiResponse>
 
@@ -184,14 +183,7 @@ namespace Application.Fetures.Authentication.Command
             return new ApiResponse((int)HttpStatusCode.OK, "Logged out successfully.");
         }
 
-        public Task<ApiResponse> Handle(IsUserExist request, CancellationToken cancellationToken)
-        {
-            var exists = _rur.GetAll().Any(u => u.Id == request.UserId);
-            if (exists)
-                return Task.FromResult(new ApiResponse((int)HttpStatusCode.OK, "User exists."));
-            else
-                return Task.FromResult(new ApiResponse((int)HttpStatusCode.NotFound, "User does not exist."));
-        }
+        
 
         public async Task<ApiResponse> Handle(VerifiedUser request, CancellationToken cancellationToken)
         {
@@ -200,13 +192,40 @@ namespace Application.Fetures.Authentication.Command
                 return new ApiResponse(404);
             try
             {
-                //await _uow.BeginTransactionAsync();
+                await _uow.BeginTransactionAsync();
 
                 user.Isverified = true;
                 await _wur.UpdateAsync(user, request.Id);
+                await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
 
-                //await _uow.CommitAsync();
-                return new ApiResponse(200, "update sucuss");
+
+                var token =
+                    await authServ.CreateTokenAsync(user);
+
+                return new ApiResultResponse<UserDto>(
+                200,
+                new UserDto
+                {
+                    FName = user.FName,
+                    LName = user.LName,
+                    Email = user.Email,
+                    Age = user.Age,
+                    BlockedEndDate = user.BlockedEndDate,
+                    BlockedStartDate = user.BlockedStartDate,
+                    FinancialBalance = user.FinancialBalance,
+                    IsActive = user.IsActive,
+                    IsBlocked = user.IsBlocked,
+                    Isverified = user.Isverified,
+
+                    Token = new Token
+                    {
+                        AccessToken = token.AccessToken,
+                        ExpiryDate = token.Expiration,
+                        RefreshToken = token.RefreshToken
+                    }
+                },
+                "OTP verified successfully");
 
             }
             catch (Exception ex)

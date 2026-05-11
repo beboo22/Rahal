@@ -11,7 +11,7 @@ namespace Domain.Entity.TravelerEntity
     {
         public int UserId { get; set; }
         public User User { get; set; }
-        public string PhotoUrl { get; set; }
+        public string? PhotoUrl { get; set; }
 
         #region verification
         public string? FrontIdentityPhotoUrl { get; set; } = null!;

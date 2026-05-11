@@ -1,10 +1,17 @@
 ﻿using Application.Abstraction.message;
+using Application.Fetures.Authentication.Command.Models;
+using Application.Fetures.Authentication.Query.Models;
+using ApplicationBusiness.Fetures.Authentication.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
+using ApplicationBusiness.Fetures.TripService.Query.Models;
+using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,91 +21,129 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.BookingTripService.Command
 {
-    internal class BookingTripCommandHandler : ICommandHandler<BookTrip, ApiResponse>,ICommandHandler<DeleteBookTrip, ApiResponse>
+    internal class BookingTripCommandHandler :
+        ICommandHandler<BookTrip, ApiResponse>,
+        ICommandHandler<DeleteBookTrip, ApiResponse>
     {
         public IWriteGenericRepo<BookingPublicTrip> _WBTR { get; set; }
-        public IWriteGenericRepo<User> _WUR { get; set; }
-        public IReadGenericRepo<User> _RUR { get; set; }
-        public IWriteGenericRepo<PublicTrip> _WTR { get; set; }
+
+        //public IWriteGenericRepo<User> _WUR { get; set; }
+        //public IReadGenericRepo<User> _RUR { get; set; }
+
+
         public IReadGenericRepo<BookingPublicTrip> _RBTR { get; set; }
-        public IReadGenericRepo<PublicTrip> _RTR { get; set; }
-
         public IWriteUnitOfWork _uof { get; set; }
+        public ISender Sender { get; set; }
 
-        public BookingTripCommandHandler(IWriteGenericRepo<BookingPublicTrip> wBTR, IReadGenericRepo<BookingPublicTrip> rBTR, IWriteUnitOfWork uof, IWriteGenericRepo<User> wUR, IWriteGenericRepo<PublicTrip> wTR, IReadGenericRepo<PublicTrip> rTR, IReadGenericRepo<User> rUR)
+        public BookingTripCommandHandler(IWriteGenericRepo<BookingPublicTrip> wBTR,
+            //IWriteGenericRepo<User> wUR, IReadGenericRepo<User> rUR,
+            IReadGenericRepo<BookingPublicTrip> rBTR, IWriteUnitOfWork uof, ISender sender)
         {
             _WBTR = wBTR;
+            //_WUR = wUR;
+            //_RUR = rUR;
             _RBTR = rBTR;
             _uof = uof;
-            _WUR = wUR;
-            _WTR = wTR;
-            _RTR = rTR;
-            _RUR = rUR;
+            Sender = sender;
         }
+
+
 
         public async Task<ApiResponse> Handle(BookTrip request, CancellationToken cancellationToken)
         {
             await _uof.BeginTransactionAsync();
             try
             {
-                var Check = await _RTR.GetByIdAsync(request.TripId);
-                if (Check is null)
+
+                var Trip = await Sender.Send(new GetPubTripSpecQuery(new Abstraction.spacification.TripFilter
+                {
+                    Id = request.TripId,
+                })) as ApiResultResponse<PublicTrip>;
+
+
+
+                if (Trip?.Data is null)
                 {
                     return new ApiResponse((int)HttpStatusCode.NotFound, "Trip not found");
                 }
-                var CheckUser = await _WUR.ExistsAsync(request.UserId);
-                if (!CheckUser)
+                var CheckUser = await Sender.Send(new IsUserExist(request.UserId));
+                //await _WUR.ExistsAsync(request.UserId);
+                if (CheckUser.statusCode != 200)
                 {
                     return new ApiResponse((int)HttpStatusCode.NotFound, "User not found");
                 }
-                if (Check.CreatedById == request.UserId)
+                if (Trip.Data.CreatedById == request.UserId)
                     return new ApiResponse((int)HttpStatusCode.Conflict, "User who create trip can't book it");
-                var Trip = await _RTR.GetByIdAsync(request.TripId);
+                //var Trip = await _RTR.GetByIdAsync(request.TripId);
                 var entity = new BookingPublicTrip()
                 {
                     PublicTripId = request.TripId,
                     UserId = request.UserId,
                 };
-                entity.TotalBookingPrice = Trip.Price + Trip.TravelerFee;
+                entity.TotalBookingPrice = Trip.Data.Price + Trip.Data.TravelerFee;
                 await _WBTR.AddAsync(entity);
                 await _uof.SaveChangesAsync();
                 await _uof.CommitAsync();
 
                 var item = new BookingTripTemplate()
                 {
-                    TripTilte = Trip.Title,
+                    TripTilte = Trip.Data.Title,
                     BookingDate = entity.BookingDate,
                     TotalBookingPrice = entity.TotalBookingPrice,
                     IsPaid = false
                 };
-                return new ApiResultResponse<BookingTripTemplate>((int)HttpStatusCode.Created,item,"Booking trip created successfully");
+                return new ApiResultResponse<BookingTripTemplate>((int)HttpStatusCode.Created, item, "Booking trip created successfully");
             }
             catch (Exception ex)
             {
                 await _uof.RollbackAsync();
-                return new ApiResponse(500,ex.Message);
+                return new ApiResponse(500, ex.Message);
 
             }
         }
 
         public async Task<ApiResponse> Handle(DeleteBookTrip request, CancellationToken cancellationToken)
         {
-            await _uof.BeginTransactionAsync();
             try
             {
                 //get userid from book
                 var book = await _RBTR.GetByIdAsync(request.BookingId);
                 if (book == null)
                     return new ApiResponse((int)HttpStatusCode.NotFound);
-                var user = await _RUR.GetByIdAsync(book.UserId);
-                if(book.CreatedAt.AddDays(1) <  DateTime.UtcNow)
-                    user.FinancialBalance += book.TotalBookingPrice - (book.TotalBookingPrice * 0.05m);// get 5% fee for cancle booking
+                //var user = await _RUR.GetByIdAsync(book.UserId);
+                var checkUserExitance = await Sender.Send(new GetUserById(book.UserId));
+                if (checkUserExitance.statusCode != 200)
+                {
+                    return checkUserExitance;
+                }
+                var user = checkUserExitance as ApiResultResponse<User>;
+
+                if (user.Data == null)
+                {
+                    return new ApiResponse(500, "Invalid user response");
+                }
+
+
+                if (book.CreatedAt.AddDays(1) < DateTime.UtcNow)
+                    user.Data.FinancialBalance += book.TotalBookingPrice - (book.TotalBookingPrice * 0.05m);// get 5% fee for cancle booking
                 else
-                    user.FinancialBalance = book.TotalBookingPrice;
+                    user.Data.FinancialBalance = book.TotalBookingPrice;
                 /**
                  * we should send the money of fee to our app cridit bank in future             
                  */
-                await Task.WhenAll(_WUR.UpdateAsync(user, user.Id), _WBTR.DeleteAsync(request.BookingId));
+                //await Task.WhenAll(_WUR.UpdateAsync(user, user.Id),
+
+
+                
+                var updateuser = await Sender.Send(new UpdateUsers(new List<User>() { user.Data }));
+                if (updateuser.statusCode != 200) 
+                    return updateuser;
+
+
+                await _uof.BeginTransactionAsync();
+
+                await _WBTR.DeleteAsync(request.BookingId);
+
                 await _uof.SaveChangesAsync();
                 await _uof.CommitAsync();
                 return new ApiResponse((int)HttpStatusCode.OK);
@@ -106,8 +151,10 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
             catch (Exception ex)
             {
                 await _uof.RollbackAsync();
-                return new ApiResponse(500,ex.Message);
+                return new ApiResponse(500, ex.Message);
             }
         }
+
+
     }
 }

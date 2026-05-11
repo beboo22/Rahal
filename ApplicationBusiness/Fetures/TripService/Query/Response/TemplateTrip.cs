@@ -11,6 +11,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
 {
     public class TemplateTrip
     {
+        public List<int>? IncludedPackages { get;  set; }
         public int Id { get;  set; }
         public string Title { get;  set; }
         public string From { get;  set; }
@@ -19,9 +20,8 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
         public decimal Price { get;  set; }
         public TripCategory TripCategory { get;  set; }
 
-        public Package? IncludedPackages { get;  set; }
         public int? NumberOfMember { get;  set; }
-        public DateTime StartDate { get;  set; }
+        public DateTime? StartDate { get;  set; }
         public List<TemplateActivity> Activities { get;  set; }
     }
     public class PrivateTemplateTrip
@@ -33,7 +33,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
         public int Duration { get;  set; }
         public decimal Price { get;  set; }
         public TripCategory TripCategory { get;  set; }
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
         //public ICollection<Review> Reviews { get; set; }
         public int? TourGuideId { get; set; }

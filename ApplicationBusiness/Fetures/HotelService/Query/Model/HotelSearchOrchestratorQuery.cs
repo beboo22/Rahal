@@ -1,4 +1,5 @@
 ﻿using Application.Abstraction.message;
+using ApplicationBusiness.Abstraction.spacification;
 using ApplicationBusiness.Dtos.Hotels;
 using Domain.BaseResponce;
 using System;
@@ -16,4 +17,15 @@ namespace ApplicationBusiness.Fetures.HotelService.Query.Model
     public record GetHotelsQuery(
     HotelSearchRequest Request
 ) : IQuery<ApiResponse>;
+    public record GetHotelsspecQuery(
+    HotelHistoryFilter Request
+) : IQuery<ApiResponse>;
+
+    public record HotelSpec
+    {
+        public int? Id { get; set; }
+        
+        public string? Name { get; private set; } 
+    }
+
 }

@@ -10,24 +10,8 @@ using System.Text;
 using Domain.Abstraction;
 using ApplicationBusiness.Abstraction.SerpApiService;
 using ApplicationBusiness.Configuration;
-using ApplicationBusiness.Dtos.Flights;
-using ApplicationBusiness.Dtos.Hotels;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Polly.Extensions.Http;
 using Polly;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
 using StackExchange.Redis;
-
-
-
-
-
-
-
-
 
 namespace Rahal
 {

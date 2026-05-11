@@ -16,7 +16,7 @@ namespace Domain.Entity.TripEntity
         public string Title { get; set; } = null!;
         public decimal Price { get; set; }
         public int Duration { get; set; }
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public TripCategory TripCategory { get; set; }
         public int CreatedById { get; set; }
         [ForeignKey("CreatedById")]

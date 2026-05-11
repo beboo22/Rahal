@@ -22,7 +22,10 @@ namespace Domain.Entity.TripEntity
         public decimal AppProfit { get; set; }
         public bool IsPaid { get; set; } = false;
         public bool Canceled { get; set; } = false;
+
+        public int? HotelsId { get; set; }
         public Hotel? Hotels { get; set; }
+        public int? FlightOffersId { get; set; }
         public FlightOffer? FlightOffers { get; set; }
     }
 

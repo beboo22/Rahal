@@ -1,8 +1,10 @@
-﻿using ApplicationBusiness.Dtos.Trip;
+﻿using ApplicationBusiness.Abstraction.spacification;
+using ApplicationBusiness.Dtos.Trip;
 using ApplicationBusiness.Fetures.TripService.Command.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.BaseResponce;
+using Domain.Entity.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -44,36 +46,49 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePublicTrip(int id)
         {
-            var result = await Sender.Send(new DeletePublicTrip(id));
+            var roleClaims = User.FindAll(ClaimTypes.Role).Select(c => c.Value);
+
+            // 2. Parse the strings into a List<RoleEnum>
+            var roles = new List<RoleEnum>();
+            foreach (var roleValue in roleClaims)
+            {
+                if (Enum.TryParse<RoleEnum>(roleValue, out var role))
+                {
+                    roles.Add(role);
+                }
+            }
+
+            // 3. Send the command
+            var result = await Sender.Send(new DeletePublicTrip(id,GetUserId().Value,roles));
             return Ok(result);
         }
 
         /// <summary>
         /// Get all public trips.
         /// </summary>
-        [ProducesResponseType(typeof(ApiResultResponse<List<TemplateTrip>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
-        [HttpGet("All")]
-        public async Task<IActionResult> GetAllTrips()
-        {
-            var result = await Sender.Send(new GetAllTrip());
-            return Ok(result);
-        }
+        //[ProducesResponseType(typeof(ApiResultResponse<List<TemplateTrip>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
+        //[HttpGet("All")]
+        //public async Task<IActionResult> GetAllTrips()
+        //{
+        //    var result = await Sender.Send(new GetAllTrip());
+        //    return Ok(result);
+        //}
 
         /// <summary>
         /// Search for public trips.
         /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<List<TemplateTrip>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [HttpPost("Search")]
-        public async Task<IActionResult> SearchForTrip([FromBody] SearchForTripDto dto)
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchForTrip([FromQuery] TripFilter dto)
         {
-            var result = await Sender.Send(new SearchForTrip(dto));
+            var result = await Sender.Send(new GetPubTripSpecQuery(dto));
             return Ok(result);
         }
     }
@@ -110,11 +125,11 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany,TourGuide,Traveler")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePrivateTrip(int id)
         {
-            var result = await Sender.Send(new DeletePrivateTrip(id));
+            var result = await Sender.Send(new DeletePrivateTrip(id,GetUserId().Value));
             return Ok(result);
         }
 
@@ -130,6 +145,15 @@ namespace Presentation.Controllers
             var userId = GetUserId();
 
             var result = await Sender.Send(new GetPrivateTripforUserId(userId.Value));
+            return Ok(result);
+        }
+
+        [ProducesResponseType(typeof(ApiResultResponse<List<TemplateTrip>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchForTrip([FromQuery] TripFilter dto)
+        {
+            var result = await Sender.Send(new GetPrivTripSpecQuery(dto));
             return Ok(result);
         }
     }

@@ -109,9 +109,47 @@ namespace Infrstructure.Data.Configuration
                    .WithOne(u => u.CreatedBy)
                    .HasForeignKey(r => r.CreatedById)
                    .OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.HasMany(x=>x.StatusUsers)
+                .WithOne(x=>x.viewBy)
+                .HasForeignKey(x=>x.viewById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+
+            //builder.HasMany(x => x.Following)
+            //    .WithOne(x => x.Follower)
+            //    .HasForeignKey(x => x.FollowerId)
+            //    .OnDelete(DeleteBehavior.NoAction);
+
+            //builder.HasMany(x => x.Followers)
+            //    .WithOne(x => x.Following)
+            //    .HasForeignKey(x => x.FollowingId)
+            //    .OnDelete(DeleteBehavior.NoAction);
+
+
+
+
         }
     }
+    public class UserFollowConfiguration
+    : IEntityTypeConfiguration<UserFollow>
+    {
+        public void Configure(EntityTypeBuilder<UserFollow> builder)
+        {
+            builder.ToTable("UserFollows");
 
+            builder.HasOne(x => x.Follower)
+                .WithMany(x => x.Following)
+                .HasForeignKey(x => x.FollowerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(x => x.Following)
+                .WithMany(x => x.Followers)
+                .HasForeignKey(x => x.FollowingId)
+                .OnDelete(DeleteBehavior.NoAction);
+        }
+    }
 
     public class RoleConfiguration : IEntityTypeConfiguration<Role>
     {

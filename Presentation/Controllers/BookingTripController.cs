@@ -54,9 +54,9 @@ namespace Presentation.Controllers
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TourGuide,Traveler")]
 
-        public async Task<IActionResult> Post(int UserId, int TripId)
+        public async Task<IActionResult> Post(int UserId, int TripId, int? HotelId, int? flightId)
         {
-            var result = await Sender.Send(new BookTrip(UserId, TripId));
+            var result = await Sender.Send(new BookTrip(UserId, TripId,HotelId,flightId));
             return Ok(result);
         }
         [ProducesResponseType(typeof(ApiResultResponse<BookingTripTemplate>), StatusCodes.Status201Created)]

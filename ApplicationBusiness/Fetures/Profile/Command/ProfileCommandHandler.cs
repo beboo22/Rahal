@@ -1,5 +1,7 @@
 ﻿using Application.Abstraction.message;
 using Application.Fetures.Authentication.Command.Models;
+using ApplicationBusiness.Abstraction.CloudinaryService;
+using ApplicationBusiness.Dtos.Auth;
 using ApplicationBusiness.Fetures.Profile.Command.Models;
 using Domain.Abstraction;
 using Domain.BaseResponce;
@@ -28,17 +30,19 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         private IWriteGenericRepo<TravelCompany> _WTR;
         private IReadGenericRepo<TravelCompany> _RTR;
 
+        private ICloudinaryService _cloudinaryService;
 
         public ISender Sender { get; set; }
 
 
 
-        public ProfileTravelCompanyCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TravelCompany> wTR, IReadGenericRepo<TravelCompany> rTR, ISender sender)
+        public ProfileTravelCompanyCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TravelCompany> wTR, IReadGenericRepo<TravelCompany> rTR, ISender sender, ICloudinaryService cloudinaryService)
         {
             _writeUnitOfWork = writeUnitOfWork;
             _WTR = wTR;
             _RTR = rTR;
             Sender = sender;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<ApiResponse> Handle(CreateTravelerCompanyProfileCommand request, CancellationToken cancellationToken)
@@ -46,26 +50,9 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             try
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
-                if (!Directory.Exists(uploadPath))
-                    Directory.CreateDirectory(uploadPath);
-                var baseUrl = $"http://rahalbk.runasp.net";
+               
 
-                string SaveFile(IFormFile file, string prefix)
-                {
-                    var extension = Path.GetExtension(file.FileName); // keep original extension
-                    var fileName = $"{prefix}{extension}";
-                    var fullPath = Path.Combine(uploadPath, fileName);
-
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        file.CopyTo(stream);
-                    }
-
-                    // Return public URL
-                    return $"{baseUrl}/profile/{fileName}";
-                }
-
+                var TravelCompanyBusinessGalaryPhoto = await _cloudinaryService.UploadFileAsync(request.dto.BusinessGalaries.Photo);
                 var entity = new TravelCompany
                 {
                     PhotoUrl = request.dto.Photo,
@@ -84,7 +71,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     travelCompanyBusinessGalaries = new List<TravelCompanyBusinessGalary>{
                         new TravelCompanyBusinessGalary
                         {
-                        PhotoUrl = SaveFile(request.dto.BusinessGalaries.Photo,$"{request.dto.Ssn.TakeLast(4)}-{DateTime.UtcNow:yyyyMMddHHmmss}"),
+                        PhotoUrl =TravelCompanyBusinessGalaryPhoto,
                         Date = request.dto.BusinessGalaries.Date,
                         Description = request.dto.BusinessGalaries.Description,
                         Location = request.dto.BusinessGalaries.Location,
@@ -143,11 +130,15 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             try
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
-                var tComp = await _RTR.GetAll().Include(x=>x.travelCompanyBusinessGalaries).Include(x=>x.traveleCompanyAddresses).FirstOrDefaultAsync(x=>x.Id== request.Id);
+                var tComp = await _RTR.GetAll().Include(x => x.travelCompanyBusinessGalaries).Include(x => x.traveleCompanyAddresses).FirstOrDefaultAsync(x => x.Id == request.Id);
                 if (tComp != null)
                     return new ApiResponse(404, "There's no profile to User");
-                tComp.Ssn = request.dto.Ssn;
-                tComp.Bio = request.dto.Bio;
+                if (!string.IsNullOrEmpty(request.dto.Ssn))
+                    tComp.Ssn = request.dto.Ssn;
+                if (!string.IsNullOrEmpty(request.dto.Bio))
+                    tComp.Bio = request.dto.Bio;
+                if (!string.IsNullOrEmpty(request.dto.photo))
+                    tComp.PhotoUrl = request.dto.photo;
 
 
                 //tComp.travelCompanyBusinessGalaries = new List<TravelCompanyBusinessGalary>{
@@ -205,13 +196,15 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         IReadGenericRepo<TourGuide> _RTR;
         public ISender Sender { get; set; }
 
+        private ICloudinaryService _cloudinaryService;
 
-        public ProfileTourGiudeCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TourGuide> wTR, IReadGenericRepo<TourGuide> rTR, ISender sender)
+        public ProfileTourGiudeCommandHandler(IWriteUnitOfWork writeUnitOfWork, IWriteGenericRepo<TourGuide> wTR, IReadGenericRepo<TourGuide> rTR, ISender sender, ICloudinaryService cloudinaryService)
         {
             _writeUnitOfWork = writeUnitOfWork;
             _WTR = wTR;
             _RTR = rTR;
             Sender = sender;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<ApiResponse> Handle(UpdateTourGuideProfileCommand request, CancellationToken cancellationToken)
@@ -220,9 +213,16 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
                 var tComp = await _RTR.GetByIdAsync(request.Id);
-                tComp.SalaryPerDay = request.dto.SalaryPerDay;
-                tComp.Ssn = request.dto.Ssn;
-                tComp.Bio = request.dto.Bio;
+                //tComp.SalaryPerDay = request.dto.SalaryPerDay;
+                if (!string.IsNullOrEmpty(request.dto.Ssn))
+                    tComp.Ssn = request.dto.Ssn;
+                if (!string.IsNullOrEmpty(request.dto.Bio))
+                    tComp.Bio = request.dto.Bio;
+                if (!string.IsNullOrEmpty(request.dto.photo))
+                    tComp.PhotoUrl = request.dto.photo;
+
+
+
                 tComp.tourGuidAddresses = request.dto.Adresses.Select(s => new TourGuideAddress
                 {
                     BuildingNumber = s.BuildingNumber,
@@ -269,25 +269,26 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
 
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
-                if (!Directory.Exists(uploadPath))
-                    Directory.CreateDirectory(uploadPath);
-                var baseUrl = $"http://rahalbk.runasp.net";
+                //var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
+                //if (!Directory.Exists(uploadPath))
+                //    Directory.CreateDirectory(uploadPath);
+                //var baseUrl = $"http://rahalbk.runasp.net";
 
-                string SaveFile(IFormFile file, string prefix)
-                {
-                    var extension = Path.GetExtension(file.FileName); // keep original extension
-                    var fileName = $"{prefix}{extension}";
-                    var fullPath = Path.Combine(uploadPath, fileName);
+                //string SaveFile(IFormFile file, string prefix)
+                //{
+                //    var extension = Path.GetExtension(file.FileName); // keep original extension
+                //    var fileName = $"{prefix}{extension}";
+                //    var fullPath = Path.Combine(uploadPath, fileName);
 
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        file.CopyTo(stream);
-                    }
+                //    using (var stream = new FileStream(fullPath, FileMode.Create))
+                //    {
+                //        file.CopyTo(stream);
+                //    }
 
-                    // Return public URL
-                    return $"{baseUrl}/profile/{fileName}";
-                }
+                //    // Return public URL
+                //    return $"{baseUrl}/profile/{fileName}";
+                //}
+                var TourBusinessGalaryPhoto = await _cloudinaryService.UploadFileAsync(request.dto.BusinessGalaries.Photo);
 
                 var entity = new TourGuide
                 {
@@ -301,7 +302,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     tourGuidBusinessGalaries = new List<TourGuideBusinessGalary>{
                         new TourGuideBusinessGalary
                     {
-                        PhotoUrl = SaveFile(request.dto.BusinessGalaries.Photo,$"{request.dto.Ssn.TakeLast(4)}-{DateTime.UtcNow:yyyyMMddHHmmss}"),
+                        PhotoUrl = TourBusinessGalaryPhoto,
                         Date = request.dto.BusinessGalaries.Date,
                         Description = request.dto.BusinessGalaries.Description,
                         Location = request.dto.BusinessGalaries.Location,
@@ -322,7 +323,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                 await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTourGuide
                 {
-                 PhotoUrl=entity.PhotoUrl,   
+                    PhotoUrl = entity.PhotoUrl,
                     Id = entity.Id,
                     SalaryPerDay = entity.SalaryPerDay,
                     Ssn = entity.Ssn,
@@ -373,8 +374,15 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
                 var tComp = await _RTR.GetByIdAsync(request.Id);
-                tComp.Ssn = request.dto.Ssn;
-                tComp.Bio = request.dto.Bio;
+
+                if (!string.IsNullOrEmpty(request.dto.Ssn))
+                    tComp.Ssn = request.dto.Ssn;
+                if (!string.IsNullOrEmpty(request.dto.Bio))
+                    tComp.Bio = request.dto.Bio;
+                if (!string.IsNullOrEmpty(request.dto.photo))
+                    tComp.PhotoUrl = request.dto.photo;
+
+
 
                 tComp.trvelerAddresses = request.dto.Adresses.Select(s => new TrvelerAddress
                 {
@@ -412,24 +420,24 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             try
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
-                if (!Directory.Exists(uploadPath))
-                    Directory.CreateDirectory(uploadPath);
-                var baseUrl = $"http://rahalbk.runasp.net";
-                string SaveFile(IFormFile file, string prefix)
-                {
-                    var extension = Path.GetExtension(file.FileName); // keep original extension
-                    var fileName = $"{prefix}{extension}";
-                    var fullPath = Path.Combine(uploadPath, fileName);
+                //var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
+                //if (!Directory.Exists(uploadPath))
+                //    Directory.CreateDirectory(uploadPath);
+                //var baseUrl = $"http://rahalbk.runasp.net";
+                //string SaveFile(IFormFile file, string prefix)
+                //{
+                //    var extension = Path.GetExtension(file.FileName); // keep original extension
+                //    var fileName = $"{prefix}{extension}";
+                //    var fullPath = Path.Combine(uploadPath, fileName);
 
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        file.CopyTo(stream);
-                    }
+                //    using (var stream = new FileStream(fullPath, FileMode.Create))
+                //    {
+                //        file.CopyTo(stream);
+                //    }
 
-                    // Return public URL
-                    return $"{baseUrl}/profile/{fileName}";
-                }
+                //    // Return public URL
+                //    return $"{baseUrl}/profile/{fileName}";
+                //}
                 var entity = new Traveler
                 {
                     PhotoUrl = request.dto.Photo,
@@ -447,11 +455,11 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
                 };
                 await _WTR.AddAsync(entity);
-                var newtoken = await Sender.Send(new VerifiedUser(request.Id));
                 await _writeUnitOfWork.SaveChangesAsync();
-
                 await _writeUnitOfWork.CommitAsync();
-                var temp = new TemplateTraveler
+
+                var newtoken = await Sender.Send(new VerifiedUser(request.Id)) as  ApiResultResponse<UserDto>;
+                var temp = new TemplateTokenTraveler
                 {
                     PhotoUrl = entity.PhotoUrl,
                     Id = entity.Id,
@@ -465,7 +473,14 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                         Country = s.Country,
                     }).ToList()
                 };
-                return new ApiResultResponse<TemplateTraveler>((int)HttpStatusCode.Created, temp, "Profile created successfully");
+                if (newtoken?.Data?.Token != null)
+                    temp.Token = new Token
+                    {
+                        AccessToken = newtoken.Data.Token.AccessToken,
+                        ExpiryDate = newtoken.Data.Token.ExpiryDate,
+                        RefreshToken = newtoken.Data.Token.RefreshToken
+                    };
+                return new ApiResultResponse<TemplateTokenTraveler>((int)HttpStatusCode.Created, temp, "Profile created successfully");
             }
             catch (Exception ex)
             {

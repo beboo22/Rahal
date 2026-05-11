@@ -39,6 +39,11 @@ namespace Infrstructure.Impelementation
             var exists = await _context.Set<User>().AsNoTracking().AnyAsync(e => e.Email == Email);
             return exists;
         }
+        public async Task<bool> ExistsAsync(int UserId)
+        {
+            var exists = await _context.Set<User>().AsNoTracking().AnyAsync(e => e.Id == UserId);
+            return exists;
+        }
 
 
     }

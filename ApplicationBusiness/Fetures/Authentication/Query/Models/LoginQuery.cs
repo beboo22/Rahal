@@ -11,4 +11,6 @@ using System.Threading.Tasks;
 namespace Application.Fetures.Authentication.Query.Models
 {
     public record LoginQuery(LoginDto loginDto) : IQuery<ApiResponse>;
+    public record GetRoleofUser(int UserId) : IQuery<ApiResponse>;
+    public record GetUserById(int UserId) : IQuery<ApiResponse>;
 }

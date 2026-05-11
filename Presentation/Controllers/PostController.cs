@@ -64,35 +64,35 @@ namespace Presentation.Controllers
         }
 
 
-        [ProducesResponseType(typeof(ApiResultResponse<List<HiringPostTemplate>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpGet]
-        //[Authorize]
-        public async Task<IActionResult> GetPost([FromQuery] string title)
-        {
-            var result = await Sender.Send(new GetExperiencePostByTitle(title));
-            return Ok(result);
-        }
-        [ProducesResponseType(typeof(ApiResultResponse<List<HiringPostTemplate>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpGet("Bydate")]
-        //[Authorize]
-        public async Task<IActionResult> GetPost([FromQuery] DateTime date)
-        {
-            var result = await Sender.Send(new GetHiringPost(date));
-            return Ok(result);
-        }
-        
+        //[ProducesResponseType(typeof(ApiResultResponse<List<HiringPostTemplate>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        //[HttpGet]
+        ////[Authorize]
+        //public async Task<IActionResult> GetPost([FromQuery] string title)
+        //{
+        //    var result = await Sender.Send(new GetExperiencePostByTitle(title));
+        //    return Ok(result);
+        //}
+        //[ProducesResponseType(typeof(ApiResultResponse<List<HiringPostTemplate>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        //[HttpGet("Bydate")]
+        ////[Authorize]
+        //public async Task<IActionResult> GetPost([FromQuery] DateTime date)
+        //{
+        //    var result = await Sender.Send(new GetHiringPost(date));
+        //    return Ok(result);
+        //}
+
         [ProducesResponseType(typeof(ApiResultResponse<List<HiringPostTemplate>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet("By")]
         //[Authorize]
-        public async Task<IActionResult> GetPost([FromQuery] DateTime? Date, string? Title, int? page, int capacity = 5)
+        public async Task<IActionResult> GetPost([FromQuery] DateTime? Date,int? Id, string? Title,  int? page, bool OrderDesBytimeCreated = false, int capacity = 5)
         {
-            var result = await Sender.Send(new GetHiringSpacificationPost(Date,Title,page,capacity));
+            var result = await Sender.Send(new GetHiringSpacificationPost(Date,Id,Title,page,OrderDesBytimeCreated,capacity));
             return Ok(result);
         }
 
@@ -142,26 +142,26 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        [ProducesResponseType(typeof(ApiResultResponse<List<ExperiencePostTemplate>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpGet]
-        //[Authorize]
-        public async Task<IActionResult> GetPost([FromQuery]string title)
-        {
-            var result = await Sender.Send(new GetExperiencePostByTitle(title));
-            return Ok(result);
-        }
-        [ProducesResponseType(typeof(ApiResultResponse<List<ExperiencePostTemplate>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpGet("Bydate")]
-        //[Authorize]
-        public async Task<IActionResult> GetPost([FromQuery]DateTime date)
-        {
-            var result = await Sender.Send(new GetExperiencePost(date));
-            return Ok(result);
-        }
+        //[ProducesResponseType(typeof(ApiResultResponse<List<ExperiencePostTemplate>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        //[HttpGet]
+        ////[Authorize]
+        //public async Task<IActionResult> GetPost([FromQuery]string title)
+        //{
+        //    var result = await Sender.Send(new GetExperiencePostByTitle(title));
+        //    return Ok(result);
+        //}
+        //[ProducesResponseType(typeof(ApiResultResponse<List<ExperiencePostTemplate>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        //[HttpGet("Bydate")]
+        ////[Authorize]
+        //public async Task<IActionResult> GetPost([FromQuery]DateTime date)
+        //{
+        //    var result = await Sender.Send(new GetExperiencePost(date));
+        //    return Ok(result);
+        //}
        
         [ProducesResponseType(typeof(ApiResultResponse<List<ExperiencePostTemplate>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
@@ -169,13 +169,15 @@ namespace Presentation.Controllers
         [HttpGet("By")]
         //[Authorize]
         public async Task<IActionResult> GetPost([FromQuery] DateTime? date,
+            int? id,
             string? title,
             string? country,
             string? city,
-            string? tipsAndRecommendations,
-            decimal? budget, int? pageIndex, int pageSize = 5)
+            decimal? budget, int? pageIndex, int pageSize = 5,
+            bool OrderDesBytimeCreated = false
+            )
         {
-            var result = await Sender.Send(new GetExperienceSpacificationPost(date, title, country, city,tipsAndRecommendations,budget, pageIndex, pageSize));
+            var result = await Sender.Send(new GetExperienceSpacificationPost(date, id,title, country, city,OrderDesBytimeCreated,budget, pageIndex, pageSize));
             return Ok(result);
         }
     }

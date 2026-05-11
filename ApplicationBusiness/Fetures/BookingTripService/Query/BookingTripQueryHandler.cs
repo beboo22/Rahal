@@ -1,9 +1,11 @@
 ﻿using Application.Abstraction.message;
+using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.TripEntity;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -11,12 +13,17 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using ApplicationBusiness.Fetures.Authentication.Command.Models;
 
 namespace ApplicationBusiness.Fetures.BookingTripService.Query
 {
-    internal class BookingTripQueryHandler : IQueryHandler<GetBookingById, ApiResponse>, IQueryHandler<GetAllBooking, ApiResponse>
+    internal class BookingTripQueryHandler : IQueryHandler<GetBookingById, ApiResponse>,
+        IQueryHandler<GetAllBooking, ApiResponse>,
+        IQueryHandler<ReturnMonyToUser, ApiResponse>
+
     {
         IReadGenericRepo<BookingPublicTrip> _RBTR { get; set; }
+        public ISender Sender { get; set; }
 
         public BookingTripQueryHandler(IReadGenericRepo<BookingPublicTrip> rBTR)
         {
@@ -54,6 +61,35 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Query
             if (template != null)
                 return new ApiResultResponse<BookingTripTemplate>((int)HttpStatusCode.Accepted, template);
             return new ApiResponse((int)HttpStatusCode.NotFound);
+
+        }
+
+        public async Task<ApiResponse> Handle(ReturnMonyToUser request, CancellationToken cancellationToken)
+        {
+            try
+            {
+
+                var bookings = _RBTR.GetAll()
+                        .Include(b => b.User)
+                        .Where(b => b.PublicTripId == request.TripId && b.IsPaid)
+                        .ToList();
+
+                foreach (var item in bookings)
+                {
+                    if (item.User.FinancialBalance.HasValue)
+                        item.User.FinancialBalance += item.TotalBookingPrice;
+                    else item.User.FinancialBalance = item.TotalBookingPrice;
+                }
+
+                var users = bookings.Select(b => b.User).ToList();
+                //await _WUR.UpdateRangeAsync(users);
+                return await Sender.Send(new UpdateUsers(users));
+                
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
 
         }
     }

@@ -9,8 +9,12 @@ namespace ApplicationBusiness.Fetures.Profile.Command
     {
         public string PhotoUrl { get; internal set; }
 
+        public int NumberFollowing { get; set; }
+        public int NumberFollowers { get; set; }
+
         public int? Id { get; set; }
         public string Ssn { get; set; }
+        public string Email { get; set; }
         public string Bio { get; set; }
         public List<BusinessGalaryDto> BusinessGalaries { get; set; }
         public List<Adress> Adresses { get; set; }

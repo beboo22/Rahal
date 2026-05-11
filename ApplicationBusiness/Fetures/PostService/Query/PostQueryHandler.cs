@@ -8,11 +8,11 @@ using Domain.BaseResponce;
 using Domain.Entity.PostEntity;
 using Domain.Entity.TripEntity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace ApplicationBusiness.Fetures.PostService.Query
 {
-    internal class HiringPostQueryHandler : IQueryHandler<GetHiringPostByTitle, ApiResponse>,
-        IQueryHandler<GetHiringPost, ApiResponse>,
+    internal class HiringPostQueryHandler :
         IQueryHandler<GetHiringSpacificationPost, ApiResponse>
     {
         private IReadGenericRepo<HiringPost> _RPR;
@@ -23,79 +23,11 @@ namespace ApplicationBusiness.Fetures.PostService.Query
         }
 
 
-        public async Task<ApiResponse> Handle(GetHiringPostByTitle request, CancellationToken cancellationToken)
-        {
-            var posts = await _RPR.GetAll()
-                 .Where(p => p.Title.Contains(request.Title))
-                 .Include(p => p.Comments)
-                     .ThenInclude(c => c.User)
-                 .Include(p => p.CreatedBy)
-                     .ThenInclude(p => p.User)
-                 .OrderByDescending(p => p.CreatedAt)
-                 .Select(p => new HiringPostTemplate
-                 {
-                     CreatedAt = p.CreatedAt,
-                     FullName = $"{p.CreatedBy.User.FName} {p.CreatedBy.User.LName}",
-                     Description = p.Description,
-                     PhotoUrl = p.PhotoUrl,
-                     Requirements = p.Requirements,
-                     Status = p.Status,
-                     Title = p.Title,
-                     Comments = p.Comments.Select(c => new TemplateComment
-                     {
-                         CreatedAt = c.CreatedAt,
-                         FullName = $"{c.User.FName} {c.User.LName}",
-                         IsEdited = c.IsEdited,
-                         Msg = c.Msg,
-                     }).ToList()
-                 }).ToListAsync(); // i need to fetch the last posts before 48h
-
-            if (posts.Any())
-            {
-                return new ApiResponse(404);
-            }
-            return new ApiResultResponse<List<HiringPostTemplate>>(200, posts);
-        }
-
-        public async Task<ApiResponse> Handle(GetHiringPost request, CancellationToken cancellationToken)
-        {
-            var posts = await _RPR.GetAll()
-                        .Where(p => p.CreatedAt >= request.Date)
-                        .Include(p => p.Comments)
-                            .ThenInclude(c => c.User)
-                        .Include(p => p.CreatedBy)
-                            .ThenInclude(p => p.User)
-                        .OrderByDescending(p => p.CreatedAt)
-                        .Select(p => new HiringPostTemplate
-                        {
-                            CreatedAt = p.CreatedAt,
-                            FullName = $"{p.CreatedBy.User.FName} {p.CreatedBy.User.LName}",
-                            Description = p.Description,
-                            PhotoUrl = p.PhotoUrl,
-                            Requirements = p.Requirements,
-                            Status = p.Status,
-                            Title = p.Title,
-                            Comments = p.Comments.Select(c => new TemplateComment
-                            {
-                                CreatedAt = c.CreatedAt,
-                                FullName = $"{c.User.FName} {c.User.LName}",
-                                IsEdited = c.IsEdited,
-                                Msg = c.Msg,
-                            }).ToList()
-                        }).ToListAsync(); // i need to fetch the last posts before 48h
-
-            if (posts.Any())
-            {
-                return new ApiResponse(404);
-            }
-            return new ApiResultResponse<List<HiringPostTemplate>>(200, posts);
-        }
-
         public async Task<ApiResponse> Handle(GetHiringSpacificationPost request, CancellationToken cancellationToken)
         {
             try
             {
-                var spec = new HiringPostSearchSpecification(request.Date, request.Title,request.page,request.capacity);
+                var spec = new HiringPostSearchSpecification(request.Date, request.Title, request.OrderDesBytimeCreated, request.page, request.capacity);
 
                 var posts = await _RPR
                     .GetAllSpec(spec)
@@ -104,15 +36,47 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                         Id = x.Id,
                         Title = x.Title,
                         Description = x.Description,
-                        FullName = $"{x.CreatedBy.User.FName} {x.CreatedBy.User.LName}",
+                        UserPost = new TemplateUserPost
+                        {
+                            Id = x.CreatedBy.Id,
+                            PrifleUser = x.CreatedBy.PhotoUrl,
+                            FullName = x.CreatedBy.User.FName + " " + x.CreatedBy.User.LName,
+                        },
                         PhotoUrl = x.PhotoUrl,
                         Requirements = x.Requirements,
                         Status = x.Status,
                         CreatedAt = x.CreatedAt,
+                        Likes = x.Likes.Select(x => new likesSerive.Query.TemplateuserLikePost
+                        {
+                            LikeType = x.LikeType,
+                            UserLike = new TemplateUserPost
+                            {
+                                Id = x.User.Id,
+                                FullName = $"{x.User.FName} {x.User.LName}",
+
+                                PrifleUser =
+                                x.User.TravelerProfile != null
+                                    ? x.User.TravelerProfile.PhotoUrl
+                                    : x.User.TourGuideProfile != null
+                                        ? x.User.TourGuideProfile.PhotoUrl
+                                        : null,
+                            }
+                        }).ToList(),
+                        numLikes = x.Likes.Count,
                         Comments = x.Comments.Select(c => new TemplateComment
                         {
                             CreatedAt = c.CreatedAt,
-                            FullName = $"{c.User.FName} {c.User.LName}",
+                            UserComment = new TemplateUserPost
+                            {
+                                Id = c.User.Id,
+                                FullName = c.User.FName + " " + c.User.LName,
+                                PrifleUser =
+                                    c.User.TravelerProfile != null
+                                        ? c.User.TravelerProfile.PhotoUrl
+                                        : c.User.TourGuideProfile != null
+                                            ? c.User.TourGuideProfile.PhotoUrl
+                                            : null
+                            },
                             IsEdited = c.IsEdited,
                             Msg = c.Msg,
                         }).ToList()
@@ -130,10 +94,9 @@ namespace ApplicationBusiness.Fetures.PostService.Query
             }
         }
     }
-    
-    internal class ExperiencePostQueryHandler : IQueryHandler<GetExperiencePostByTitle, ApiResponse>,
-        IQueryHandler<GetExperienceSpacificationPost, ApiResponse>,
-        IQueryHandler<GetExperiencePost, ApiResponse>
+
+    internal class ExperiencePostQueryHandler :
+        IQueryHandler<GetExperienceSpacificationPost, ApiResponse>
     {
         IReadGenericRepo<ExperiencePost> _RPR;
 
@@ -142,125 +105,56 @@ namespace ApplicationBusiness.Fetures.PostService.Query
             _RPR = rPR;
         }
 
-        public async Task<ApiResponse> Handle(GetExperiencePostByTitle request, CancellationToken cancellationToken)
-        {
-            var fromDate = DateTime.UtcNow.AddHours(-48);
-
-            var posts = await _RPR.GetAll()
-                .Where(p =>
-                    p.CreatedAt >= fromDate &&
-                    p.Title.Contains(request.Title))
-                .OrderByDescending(p => p.CreatedAt)
-                .Select(p => new ExperiencePostTemplate
-                {
-                    PrifleUser =
-                        p.CreatedBy.TravelerProfile != null
-                            ? p.CreatedBy.TravelerProfile.PhotoUrl
-                            : p.CreatedBy.TourGuideProfile != null
-                                ? p.CreatedBy.TourGuideProfile.PhotoUrl
-                                : null,
-
-                    //Role =
-                    //    p.CreatedBy.TravelerProfile != null
-                    //        ? "Traveler"
-                    //        : p.CreatedBy.GuideProfile != null
-                    //            ? "Guide"
-                    //            : "Unknown",
-
-                    CreatedAt = p.CreatedAt,
-                    FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
-                    Description = p.Description,
-                    PhotoUrl = p.PhotoUrl,
-                    Title = p.Title,
-                    City = p.City,
-                    Country = p.Country,
-
-                    Comments = p.Comments
-                        .OrderByDescending(c => c.CreatedAt)
-                        .Select(c => new TemplateComment
-                        {
-                            CreatedAt = c.CreatedAt,
-                            FullName = c.User.FName + " " + c.User.LName,
-                            IsEdited = c.IsEdited,
-                            Msg = c.Msg,
-
-                            ProfileUser =
-                                c.User.TravelerProfile != null
-                                    ? c.User.TravelerProfile.PhotoUrl
-                                    : c.User.TourGuideProfile != null
-                                        ? c.User.TourGuideProfile.PhotoUrl
-                                        : null
-                        }).ToList()
-                })
-                .ToListAsync(cancellationToken);
-
-            if (!posts.Any())
-                return new ApiResponse(404, "No posts found");
-
-            return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts);
-        }
-        public async Task<ApiResponse> Handle(GetExperiencePost request, CancellationToken cancellationToken)
-        {
-            var posts = await _RPR.GetAll()
-                        .Where(p => p.CreatedAt >= request.Date)
-                        .Include(p => p.Comments)
-                            .ThenInclude(c => c.User)
-                        .Include(p => p.CreatedBy)
-                        .OrderByDescending(p => p.CreatedAt)
-                        .Select(p => new ExperiencePostTemplate
-                        {
-                            CreatedAt = p.CreatedAt,
-                            FullName = $"{p.CreatedBy.FName} {p.CreatedBy.LName}",
-                            Description = p.Description,
-                            PhotoUrl = p.PhotoUrl,
-                            Title = p.Title,
-                            City = p.City,
-                            Country = p.Country,
-                            //Budget = p.Budget,
-                            //TipsAndRecommendations = p.TipsAndRecommendations,
-                            Comments = p.Comments.Select(c => new TemplateComment
-                            {
-                                CreatedAt = c.CreatedAt,
-                                FullName = $"{c.User.FName} {c.User.LName}",
-                                IsEdited = c.IsEdited,
-                                Msg = c.Msg,
-                            }).ToList()
-                        }).ToListAsync(); // i need to fetch the last posts before 48h
-
-            if (posts.Any())
-            {
-                return new ApiResponse(404);
-            }
-            return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts);
-        }
 
         public async Task<ApiResponse> Handle(GetExperienceSpacificationPost request, CancellationToken cancellationToken)
         {
             try
             {
-                var spec = new ExperiencePostSearchSpecification(request.date, request.title, request.country,
-                    request.city,request.page,request.capacity);
+                var spec = new ExperiencePostSearchSpecification(request.date, request.id, request.title, request.country,
+                    request.city,
+                    request.OrderDesBytimeCreated,
+                    request.page, request.capacity);
 
                 var posts = await _RPR
                     .GetAllSpec(spec)
                     .Select(p => new ExperiencePostTemplate
                     {
-                        PrifleUser =
-                        p.CreatedBy.TravelerProfile != null
-                            ? p.CreatedBy.TravelerProfile.PhotoUrl
-                            : p.CreatedBy.TourGuideProfile != null
-                                ? p.CreatedBy.TourGuideProfile.PhotoUrl
-                                : null,
+                        Id = p.Id,
 
-                        //Role =
-                        //    p.CreatedBy.TravelerProfile != null
-                        //        ? "Traveler"
-                        //        : p.CreatedBy.GuideProfile != null
-                        //            ? "Guide"
-                        //            : "Unknown",
+                        UserPost = new TemplateUserPost
+                        {
+                            Id = p.CreatedBy.Id,
+                            PrifleUser =
+                            p.CreatedBy.TravelerProfile != null
+                                ? p.CreatedBy.TravelerProfile.PhotoUrl
+                                : p.CreatedBy.TourGuideProfile != null
+                                    ? p.CreatedBy.TourGuideProfile.PhotoUrl
+                                    : p.CreatedBy.TravelerCompanyProfile != null
+                                        ? p.CreatedBy.TravelerCompanyProfile.PhotoUrl
+                                        : null,
+
+                            FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
+                        },
+                        Likes = p.Likes.Select(x => new likesSerive.Query.TemplateuserLikePost
+                        {
+                            LikeType = x.LikeType,
+                            UserLike = new TemplateUserPost
+                            {
+                                Id = x.User.Id,
+                                FullName = $"{x.User.FName} {x.User.LName}",
+
+                                PrifleUser =
+                                x.User.TravelerProfile != null
+                                    ? x.User.TravelerProfile.PhotoUrl
+                                    : x.User.TourGuideProfile != null
+                                        ? x.User.TourGuideProfile.PhotoUrl
+                                        : null,
+                            }
+                        }).ToList(),
+
+                        numLikes = p.Likes.Count,
 
                         CreatedAt = p.CreatedAt,
-                        FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
                         Description = p.Description,
                         PhotoUrl = p.PhotoUrl,
                         Title = p.Title,
@@ -268,26 +162,32 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                         Country = p.Country,
 
                         Comments = p.Comments
-                        .OrderByDescending(c => c.CreatedAt)
-                        .Select(c => new TemplateComment
-                        {
-                            CreatedAt = c.CreatedAt,
-                            FullName = c.User.FName + " " + c.User.LName,
-                            IsEdited = c.IsEdited,
-                            Msg = c.Msg,
+                            .OrderByDescending(c => c.CreatedAt)
+                            .Select(c => new TemplateComment
+                            {
+                                CreatedAt = c.CreatedAt,
+                                IsEdited = c.IsEdited,
+                                Msg = c.Msg,
+                                UserComment = new TemplateUserPost
+                                {
+                                    Id = c.User.Id,
+                                    FullName = c.User.FName + " " + c.User.LName,
+                                    PrifleUser =
+                                    c.User.TravelerProfile != null
+                                        ? c.User.TravelerProfile.PhotoUrl
+                                        : c.User.TourGuideProfile != null
+                                            ? c.User.TourGuideProfile.PhotoUrl
+                                            : null
+                                }
 
-                            ProfileUser =
-                                c.User.TravelerProfile != null
-                                    ? c.User.TravelerProfile.PhotoUrl
-                                    : c.User.TourGuideProfile != null
-                                        ? c.User.TourGuideProfile.PhotoUrl
-                                        : null
-                        }).ToList()
+                            }).ToList()
                     })
                     .ToListAsync();
-
                 if (posts.Any())
-                    return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts, "Hiring posts retrieved successfully");
+                    if (request.id.HasValue)
+                        return new ApiResultResponse<ExperiencePostTemplate>(200, posts.First(), "Hiring posts retrieved successfully");
+                    else
+                        return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts, "Hiring posts retrieved successfully");
 
                 return new ApiResponse(404, "No posts found");
             }

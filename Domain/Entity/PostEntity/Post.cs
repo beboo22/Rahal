@@ -17,6 +17,7 @@ namespace Domain.Entity.PostEntity
         public string? PhotoUrl { get; set; }
         public string? Country { get; set; }
         public string? City { get; set; }
+        public ICollection<Likes> Likes { get; set; }
     }
     public class ExperiencePost : Post
     {

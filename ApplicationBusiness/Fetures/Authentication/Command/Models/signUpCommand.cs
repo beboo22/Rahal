@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Application.Fetures.Authentication.Command.Models
 {
     public  record signUpCommand(RegisterDto signUpData) :ICommand<ApiResponse>;
-    public  record IsUserExist(int? UserId) :ICommand<ApiResponse>;
+    public  record IsUserExist(int UserId) :ICommand<ApiResponse>;
     public record VerifiedUser(int Id):ICommand<ApiResponse>;
     public record VerifyOtpCommand : ICommand<ApiResponse>
     {

@@ -4,6 +4,7 @@ using ApplicationBusiness.Dtos.Flights;
 using ApplicationBusiness.Dtos.Hotels;
 using ApplicationBusiness.Dtos.Photos;
 using ApplicationBusiness.Dtos.Profile;
+using ApplicationBusiness.Fetures.FlightService.Query;
 using ApplicationBusiness.Fetures.FlightService.Query.Model;
 using ApplicationBusiness.Fetures.HotelService.Query.Model;
 using ApplicationBusiness.Fetures.PhotoService.Query.Model;
@@ -60,6 +61,43 @@ namespace Presentation.Controllers
 
             return StatusCode(result.statusCode, result);
         }
+        /// <summary>Search for available hotels.</summary>
+        [HttpGet("hotels/search")]
+        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), 200)]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        public async Task<IActionResult> GetHotels(
+            [FromQuery] HotelHistoryFilter request,
+            CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(
+            new GetHotelsspecQuery(request),
+            cancellationToken);
+
+            return StatusCode(result.statusCode, result);
+        }
+        /// <summary>Search for available hotels.</summary>
+        [HttpGet("flight/search")]
+        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), 200)]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        public async Task<IActionResult> GetFlights(
+            [FromQuery] FlightHistoryFilter request,
+            CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(
+            new GetFlightOffer(request),
+            cancellationToken);
+
+
+
+
+            return StatusCode(result.statusCode, result);
+        }
+        
+        
+        
+        
+        
+        
         /// <summary>Search for available hotels.</summary>
         [HttpPost("Photo/search")]
         [ProducesResponseType(typeof(ApiResultResponse<PhotoSearchResponse>), 200)]

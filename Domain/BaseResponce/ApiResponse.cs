@@ -25,6 +25,7 @@ namespace Domain.BaseResponce
                 200 => "Successful Operation",
                 400 => "BadRequest",
                 401 => "UnAuthrize",
+                403=> "Forbidden",
                 404 => "notfound",
                 500 => "server Error",
                 _ => null

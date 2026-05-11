@@ -21,6 +21,12 @@ namespace Infrstructure.Data.Configuration
             builder.Property(x=>x.PhotoUrl).IsRequired(false);
             builder.Property(x=>x.City).IsRequired(false);
             builder.Property(x=>x.Country).IsRequired(false);
+
+            builder.HasMany(x=>x.Likes)
+                .WithOne(x=>x.post)
+                .HasForeignKey(x=>x.postId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
     internal class PostExConfig : IEntityTypeConfiguration<ExperiencePost>
@@ -30,6 +36,29 @@ namespace Infrstructure.Data.Configuration
             //builder.Property(x=>x.Budget).IsRequired(false);
             //builder.Property(x=>x.TipsAndRecommendations).IsRequired(false);
             //builder.Property(ex => ex.Budget).HasColumnType("decimal(18,2)");
+
+            builder.HasMany(x=>x.Comments)
+                .WithOne(x=>x.ExperiencePost)
+                .HasForeignKey(x=>x.ExperiencePostId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+
+        }
+    }
+    internal class PostHirConfig : IEntityTypeConfiguration<HiringPost>
+    {
+        public void Configure(EntityTypeBuilder<HiringPost> builder)
+        {
+            //builder.Property(x=>x.Budget).IsRequired(false);
+            //builder.Property(x=>x.TipsAndRecommendations).IsRequired(false);
+            //builder.Property(ex => ex.Budget).HasColumnType("decimal(18,2)");
+
+            builder.HasMany(x=>x.Comments)
+                .WithOne(x=>x.HiringPost)
+                .HasForeignKey(x=>x.HiringPostId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+
         }
     }
 }

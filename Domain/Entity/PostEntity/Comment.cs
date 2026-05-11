@@ -16,12 +16,12 @@ namespace Domain.Entity.PostEntity
     }
     public class ExperiencePostComment : Comment
     {
-        public int? ExperiencePostId { get; set; }
-        public ExperiencePost? ExperiencePost { get; set; }
+        public int ExperiencePostId { get; set; }
+        public ExperiencePost ExperiencePost { get; set; }
     }
     public class HiringPostComment : Comment
     {
-        public int? HiringPostId { get; set; }
-        public HiringPost? HiringPost { get; set; }
+        public int HiringPostId { get; set; }
+        public HiringPost HiringPost { get; set; }
     }
 }

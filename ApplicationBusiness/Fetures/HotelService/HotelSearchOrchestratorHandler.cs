@@ -42,9 +42,6 @@ namespace ApplicationBusiness.Fetures.HotelService
             if (response.statusCode == 224)
                 return response;
 
-
-
-
             // 2. Save to DB
             var groupKey = CacheKeys.HotelsGroup(request.Request);
             var exactKey = CacheKeys.HotelsExact(request.Request);
@@ -53,15 +50,6 @@ namespace ApplicationBusiness.Fetures.HotelService
                 new SaveHotelCommand(response.Data, exactKey, groupKey),
                 cancellationToken);
             return saveResult;
-            //if (saveResult.statusCode != 200)
-            //    return saveResult;
-
-            //// 3. Return combined response
-            //return new ApiResultResponse<object>(200, new
-            //{
-            //    Hotels = response.Data,
-            //    Saved = true
-            //}, "Hotels retrieved successfully");
         }
     }
 

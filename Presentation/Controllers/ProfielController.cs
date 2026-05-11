@@ -93,6 +93,9 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
             var result = await Sender.Send(new GetTravelerCompanyProfileQuery(userId.Value));
+
+            if (result.statusCode == 404)
+                return NotFound(result);
             return Ok(result);
         }
 
@@ -101,6 +104,7 @@ namespace Presentation.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
         }
+    
     }
     [Route("api/[controller]")]
     [ApiController]
@@ -179,7 +183,10 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
             var result = await Sender.Send(new GetTourGuideProfileQuery(userId.Value));
+            if (result.statusCode == 404)
+                return NotFound(result);
             return Ok(result);
+
         }
 
         private int? GetUserId()
@@ -234,7 +241,7 @@ namespace Presentation.Controllers
                 200,
                 new
                 {
-                    Profile = result is ApiResultResponse<TemplateTraveler> typereuslt ? typereuslt.Data:null,
+                    Profile = result is ApiResultResponse<TemplateTraveler> typereuslt ? typereuslt.Data : null,
                     AccessToken = jwtResponse.Token.AccessToken,
                     refreshToken = jwtResponse.Token.RefreshToken
                 },
@@ -265,7 +272,11 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
             var result = await Sender.Send(new GetTravelerProfileQuery(userId.Value));
+
+            if (result.statusCode == 404)
+                return NotFound(result);
             return Ok(result);
+
         }
 
         private int? GetUserId()

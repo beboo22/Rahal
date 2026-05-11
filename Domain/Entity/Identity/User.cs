@@ -1,4 +1,5 @@
 ﻿using Domain.Entity.PostEntity;
+using Domain.Entity.Status;
 using Domain.Entity.TourGuidEntity;
 using Domain.Entity.TravelerCompanyEntity;
 using Domain.Entity.TravelerEntity;
@@ -10,6 +11,7 @@ namespace Domain.Entity.Identity
 
     public class User : BaseEntity
     {
+        public ICollection<StatusUser> StatusUsers { get; set; }
         [Required]
         public string FName { get; set; } = null!;
 
@@ -62,6 +64,15 @@ namespace Domain.Entity.Identity
         public TourGuide? TourGuideProfile { get; set; }
         public TravelCompany? TravelerCompanyProfile { get; set; }
         public Admin? AdminProfile { get; set; }
+
+
+
+
+
+
+        public ICollection<UserFollow> Followers { get; set; } = new List<UserFollow>();
+        public ICollection<UserFollow> Following { get; set; } = new List<UserFollow>();
+
 
 
         // OTP Fields

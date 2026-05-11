@@ -19,6 +19,9 @@ namespace Application.Abstraction.Specification
         //.Include(p=>p.productBrand).Include(p=>p.productCategory)
         public List<Expression<Func<T,object>>> includes { get; set; }
 
+        public List<Func<IQueryable<T>, IQueryable<T>>> IncludeChains { get; set; }
+
+
         public Expression<Func<T,object>> Orderby { get; set; }
         public Expression<Func<T,object>> OrderbyDecs { get; set; }
 

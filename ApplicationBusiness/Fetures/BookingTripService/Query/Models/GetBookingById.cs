@@ -9,4 +9,5 @@ using System.Threading.Tasks;
 namespace ApplicationBusiness.Fetures.BookingTripService.Query.Models
 {
     public record GetBookingById(int Id):IQuery<ApiResponse>;
+
 }

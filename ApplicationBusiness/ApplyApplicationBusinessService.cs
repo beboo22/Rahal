@@ -31,11 +31,11 @@ namespace ApplicationBusiness
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IChatService, ChatService>();
             services.AddScoped(typeof(ISpecification<>), typeof(Specification<>));
-            services.AddScoped<IPaymentHandlerStrategy, PublicTripPaymentHandler>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddScoped<IPaymentHandlerStrategy, PublicTripPaymentHandler>();
             services.AddScoped<IPaymentHandlerStrategy, PrivateTripPaymentHandler>();
-            //services.AddScoped<IPaymentHandlerStrategy, HotelPaymentHandler>();
-            //services.AddScoped<IPaymentHandlerStrategy, FlightPaymentHandler>();
+            services.AddScoped<IPaymentHandlerStrategy, HotelPaymentHandler>();
+            services.AddScoped<IPaymentHandlerStrategy, FlightPaymentHandler>();
 
             services.AddScoped<PaymentHandlerFactory>();
             services.AddSignalR(options =>

@@ -291,6 +291,7 @@ namespace Domain.Entity.Hotel_flights
         public int HotelId { get; set; }
         public bool IsPaid { get; set; } = false;
         public bool Canceled { get; set; }
+        public int UserId { get; set; }
         public User User { get; set; } = null!;
         public decimal TotalBookingPrice { get; set; }
     }

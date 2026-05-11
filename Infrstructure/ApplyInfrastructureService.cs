@@ -32,6 +32,7 @@ namespace Infrastructure
             services.AddScoped(typeof(IReadGenericRepo<>), typeof(ReadGenericRepo<>));
             services.AddScoped(typeof(IReadUserRepo<>), typeof(ReadUserRepo<>));
             services.AddScoped(typeof(IWriteUserRepo), typeof(WriteUserRepo));
+            services.AddScoped(typeof(IWriteStatusUserRepo), typeof(WriteStatusUserRepo));
             services.AddScoped(typeof(IGoogleDriveRepo), typeof(GoogleDrvieRepository));
             services.AddScoped(typeof(IPhotoService), typeof(PhotoService));
 
@@ -43,7 +44,7 @@ namespace Infrastructure
             services.AddScoped<IWriteFlightSearchHistoryRepository, WriteFlightSearchHistoryRepository>();
 
 
-
+            services.AddHostedService<StoryCleanupService>();
         }
     }
 }

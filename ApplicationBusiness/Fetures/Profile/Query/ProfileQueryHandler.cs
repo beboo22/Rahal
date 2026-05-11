@@ -40,6 +40,11 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             {
                                 PhotoUrl = item.PhotoUrl,
 
+                                NumberFollowers = item.User.Followers.Count,
+                                NumberFollowing = item.User.Following.Count,
+                                Email = item.User.Email,
+
+
                                 BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                                 {
                                     BookingDate = x.BookingDate,
@@ -63,9 +68,18 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                             }).ToList(),
                                 ExperiencePostTemplates = item.User.Posts.Select(p => new ExperiencePostTemplate
                                 {
-                                    Id=p.Id,
+                                    Id = p.Id,
                                     CreatedAt = p.CreatedAt,
-                                    FullName = $"{item.User.FName} {item.User.LName}",
+
+                                    UserPost = new TemplateUserPost
+                                    {
+                                        Id = p.CreatedBy.Id,
+                                        PrifleUser = item.PhotoUrl,
+
+                                        FullName = item.User.FName + " " + item.User.LName,
+                                    },
+
+
                                     Description = p.Description,
                                     PhotoUrl = p.PhotoUrl,
                                     Title = p.Title,
@@ -76,7 +90,19 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     Comments = p.Comments.Select(c => new TemplateComment
                                     {
                                         CreatedAt = c.CreatedAt,
-                                        FullName = $"{c.User.FName} {c.User.LName}",
+
+                                        UserComment = new TemplateUserPost
+                                        {
+                                            Id = c.User.Id,
+                                            FullName = c.User.FName + " " + c.User.LName,
+                                            PrifleUser =
+                                            c.User.TravelerProfile != null
+                                                ? c.User.TravelerProfile.PhotoUrl
+                                                : c.User.TourGuideProfile != null
+                                                    ? c.User.TourGuideProfile.PhotoUrl
+                                                    : null
+                                        },
+
                                         IsEdited = c.IsEdited,
                                         Msg = c.Msg,
                                     }).ToList()
@@ -120,19 +146,27 @@ namespace ApplicationBusiness.Fetures.Profile.Query
         public async Task<ApiResponse> Handle(GetTravelerProfileQuery request, CancellationToken cancellationToken)
         {
             var temp = await _RTR.GetAll()
+                .Include(x=>x.User.Followers)
+                .Include(x=>x.User.Following)
                             .AsNoTracking()
                             .AsSplitQuery()//'IQueryable<Traveler>' does not contain a definition for 'AsSplitQuery' and no accessible extension method 'AsSplitQuery' accepting a first argument of type 'IQueryable<Traveler>' could be found (are you missing a using directive or an assembly reference?)
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTraveler
                             {
+
+                                Id = item.Id,
+
+                                NumberFollowers = item.User.Followers.Count,
+                                NumberFollowing = item.User.Following.Count,
+                                Email = item.User.Email,
                                 PhotoUrl = item.PhotoUrl,
-                                BookedTrip = item.User.BookingPublicTrips.Select(x=>new BookingTripTemplate
+                                BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                                 {
                                     BookingDate = x.BookingDate,
                                     Id = x.Id,
                                     IsPaid = x.IsPaid,
                                     TotalBookingPrice = x.TotalBookingPrice,
-                                    TripTilte= x.PublicTrip.Title
+                                    TripTilte = x.PublicTrip.Title
                                 }).ToList(),
                                 PrivateTrips = item.User.CreatedTrips.OfType<PrivateTrip>() // get only private trips
                                             .Select(t => new PrivateTemplateTrip
@@ -152,7 +186,13 @@ namespace ApplicationBusiness.Fetures.Profile.Query
 
                                     Id = p.Id,
                                     CreatedAt = p.CreatedAt,
-                                    FullName = $"{item.User.FName} {item.User.LName}",
+                                    UserPost = new TemplateUserPost
+                                    {
+                                        Id = p.CreatedBy.Id,
+                                        PrifleUser = p.PhotoUrl,
+
+                                        FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
+                                    },
                                     Description = p.Description,
                                     PhotoUrl = p.PhotoUrl,
                                     Title = p.Title,
@@ -163,7 +203,12 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     Comments = p.Comments.Select(c => new TemplateComment
                                     {
                                         CreatedAt = c.CreatedAt,
-                                        FullName = $"{c.User.FName} {c.User.LName}",
+                                        UserComment = new TemplateUserPost
+                                        {
+                                            Id = c.User.Id,
+                                            FullName = c.User.FName + " " + c.User.LName,
+                                            PrifleUser = p.PhotoUrl,
+                                        },
                                         IsEdited = c.IsEdited,
                                         Msg = c.Msg,
                                     }).ToList()
@@ -185,6 +230,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
 
             return new ApiResultResponse<TemplateTraveler>((int)HttpStatusCode.OK, temp);
         }
+    
     }
     internal class TravelerCompanyProfileQueryHandler : IQueryHandler<GetTravelerCompanyProfileQuery, ApiResponse>
     {
@@ -203,6 +249,9 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                 .Select(item => new TemplateTravelComapny
                 {
                     PhotoUrl = item.PhotoUrl,
+                    NumberFollowers = item.User.Followers.Count,
+                    NumberFollowing = item.User.Following.Count,
+                    Email = item.User.Email,
 
                     BookedTrip = item.User.BookingPublicTrips.Select(x => new BookingTripTemplate
                     {
@@ -230,7 +279,14 @@ namespace ApplicationBusiness.Fetures.Profile.Query
 
                         Id = p.Id,
                         CreatedAt = p.CreatedAt,
-                        FullName = $"{item.User.FName} {item.User.LName}",
+                        UserPost = new TemplateUserPost
+                        {
+                            Id = p.CreatedBy.Id,
+                            PrifleUser =
+                            p.PhotoUrl,
+
+                            FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
+                        },
                         Description = p.Description,
                         PhotoUrl = p.PhotoUrl,
                         Title = p.Title,
@@ -241,7 +297,12 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                         Comments = p.Comments.Select(c => new TemplateComment
                         {
                             CreatedAt = c.CreatedAt,
-                            FullName = $"{c.User.FName} {c.User.LName}",
+                            UserComment = new TemplateUserPost
+                            {
+                                Id = c.User.Id,
+                                FullName = c.User.FName + " " + c.User.LName,
+                                PrifleUser = p.PhotoUrl,
+                            },
                             IsEdited = c.IsEdited,
                             Msg = c.Msg,
                         }).ToList()
@@ -272,5 +333,6 @@ namespace ApplicationBusiness.Fetures.Profile.Query
             return new ApiResultResponse<TemplateTravelComapny>((int)HttpStatusCode.OK, temp);
         }
     }
-
 }
+
+

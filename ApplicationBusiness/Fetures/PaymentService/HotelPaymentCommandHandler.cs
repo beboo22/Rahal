@@ -65,7 +65,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
             {
                 ProviderRef = order.ProviderRef,
                 EntityId = request.BookId,
-                EntityType = PaymentEntityType.Flight,
+                EntityType = PaymentEntityType.Hotel,
                 IsPaid = false
             });
 

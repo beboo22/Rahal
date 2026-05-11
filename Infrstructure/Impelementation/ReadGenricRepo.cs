@@ -20,13 +20,13 @@ namespace InfraStructure.Impelementation
             return _context.Set<T>();
         }
 
-        public virtual async Task<T> GetByIdAsync(int id)
+        public virtual async Task<T?> GetByIdAsync(int id)
         {
             var entity = await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(t=>t.Id == id);
-            if (entity == null)
-            {
-                throw new KeyNotFoundException($"Entity with Id {id} not found.");
-            }
+            //if (entity == null)
+            //{
+            //    throw new KeyNotFoundException($"Entity with Id {id} not found.");
+            //}
             return entity;
         }
 

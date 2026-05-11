@@ -567,8 +567,12 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
             "google_images");
         public static string PhotoExactOrgin(SearchPhotoReq r) =>
         Build("photos-exact",
-            r.Title,
-            r.location,
+            r.Title.Trim()
+                .ToLower()
+                .Replace(" ", ""),
+            r.location.Trim()
+                .ToLower()
+                .Replace(" ", ""),
             "google_images").ToLower();
         public static string PhotoGroup(SearchPhotoReq r) =>
         Build("photos-exact",

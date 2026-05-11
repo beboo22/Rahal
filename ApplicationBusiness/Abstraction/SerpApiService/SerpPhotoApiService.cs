@@ -20,9 +20,34 @@ using Domain.Entity.photo;
 using Domain.Abstraction;
 using ApplicationBusiness.Abstraction.spacification;
 using Microsoft.Extensions.Options;
+using FuzzySharp;
+using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace ApplicationBusiness.Abstraction.SerpApiService
 {
+
+    public static class SearchMatcher
+    {
+        public static string? FindBestMatch(string input, IEnumerable<string> existingKeys)
+        {
+            var normalizedInput = Normalize(input);
+
+            var best = FuzzySharp.Process.ExtractOne(
+                normalizedInput,
+                existingKeys.Select(Normalize));
+
+            if (best != null && best.Score >= 85)
+                return existingKeys.ElementAt(best.Index);
+
+            return null;
+        }
+
+        public static string Normalize(string text)
+        {
+            return text.Trim().ToLower();
+        }
+    }
     public class SerpPhotoApiService : ISerpPhotoApiService
     {
         private readonly HttpClient _httpClient;
@@ -89,10 +114,18 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
 
 
 
-            var photo = await _readGenericRepo.GetByIDSpec(new PhotoSpec(new PhotoFilter { SearchId = CacheKeys.PhotoExactOrgin(request), PageIndex = request.PageIndex, PageSize = request.PageSize }));
+            //var photo = await _readGenericRepo.GetByIDSpec(new PhotoSpec(new PhotoFilter { SearchId = CacheKeys.PhotoExactOrgin(request), PageIndex = request.PageIndex, PageSize = request.PageSize }));
 
-            if (photo != null)
-                return new ApiResultResponse<PhotoSearchResponse>(200, photo, "Photo retrieved from similar DB search.");
+            //if (photo != null)
+            //    return new ApiResultResponse<PhotoSearchResponse>(200, photo, "Photo retrieved from similar DB search.");
+
+            var similar = await FindSimilarSearchAsync(CacheKeys.PhotoExactOrgin(request));
+
+            if (similar != null)
+            {
+                return new ApiResultResponse<PhotoSearchResponse>(224,similar,"from mathed func");
+            }
+
 
             // 2. Build Query & Call API
             var queryParams = BuildPhotoQuery(request);
@@ -109,7 +142,45 @@ namespace ApplicationBusiness.Abstraction.SerpApiService
                 return new ApiResponse(500, $"Internal search error. {ex}");
             }
         }
+        public async Task<PhotoSearchResponse?> FindSimilarSearchAsync(string searchKey)
+        {
+            var records = await _readGenericRepo.GetAll()
+                .Include(x => x.Images)
+                .ToListAsync();
 
+            // Helper to extract "Subject + Country" from the ID string
+            string GetCoreIdentity(string rawId)
+            {
+                var parts = rawId.Split(':');
+                // Based on "photos-exact:pyramid:egypt:google_images"
+                // parts[1] is 'pyramid', parts[2] is 'egypt'
+                if (parts.Length >= 3)
+                {
+                    return Normalize($"{parts[1]} {parts[2]}");
+                }
+                return Normalize(rawId);
+            }
+
+            var normalizedKey = GetCoreIdentity(searchKey);
+
+            var best = records
+                .Select(x => new
+                {
+                    Record = x,
+                    Score = Fuzz.Ratio(normalizedKey, GetCoreIdentity(x.SearchId))
+                })
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault();
+
+            if (best != null && best.Score >= 85)
+                return best.Record;
+
+            return null;
+        }
+        public static string Normalize(string text)
+        {
+            return Regex.Replace(text.ToLower().Trim(), @"\s+", "");
+        }
         private async Task<ApiResponse> HandlePhotoResponse(HttpResponseMessage httpResponse, CancellationToken cancellationToken)
         {
             var content = await httpResponse.Content.ReadAsStringAsync(cancellationToken);

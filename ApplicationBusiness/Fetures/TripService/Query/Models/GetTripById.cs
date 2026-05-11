@@ -1,4 +1,5 @@
 ﻿using Application.Abstraction.message;
+using ApplicationBusiness.Abstraction.spacification;
 using ApplicationBusiness.Dtos.Trip;
 using Domain.BaseResponce;
 using System;
@@ -10,5 +11,6 @@ using System.Threading.Tasks;
 namespace ApplicationBusiness.Fetures.TripService.Query.Models
 {
     public record GetPrivateTripforUserId(int id):IQuery<ApiResponse>;
+    public record GetPrivTripSpecQuery(TripFilter req) :IQuery<ApiResponse>;
     public record SearchForTrip(SearchForTripDto dto):IQuery<ApiResponse>;
 }
