@@ -35,11 +35,11 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
 
         public PublicTripCommadHandler(IWriteUnitOfWork wUnitOfWork,
-            IWriteGenericRepo<PublicTrip> wTRepo, 
-            IReadGenericRepo<BookingPublicTrip> rBTRepo, 
-            IWriteGenericRepo<BookingPublicTrip> wBTRepo, 
-            IWriteGenericRepo<User> wURepo, 
-            ISender sender, 
+            IWriteGenericRepo<PublicTrip> wTRepo,
+            IReadGenericRepo<BookingPublicTrip> rBTRepo,
+            IWriteGenericRepo<BookingPublicTrip> wBTRepo,
+            IWriteGenericRepo<User> wURepo,
+            ISender sender,
             IReadGenericRepo<PublicTrip> rPTR)
         {
             _uot = wUnitOfWork;
@@ -53,14 +53,12 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         public async Task<ApiResponse> Handle(AddPublicTrip request, CancellationToken cancellationToken)
         {
-            await _uot.BeginTransactionAsync();
             try
             {
                 var checkUser = await _wURepo.ExistsAsync(request.CreatedById);
                 if (!checkUser)
-                {
                     return new ApiResponse((int)HttpStatusCode.NotFound, "User not found");
-                }
+
                 var trip = new PublicTrip()
                 {
                     From = request.dto.From,
@@ -71,26 +69,53 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     IncludedPackages = (Package)request.dto.IncludedPackages,
                     TripCategory = request.dto.TripCategory,
                     MaxNumberOfMember = request.dto.NumberOfMember,
+                    Duration = request.dto.Duration, // تأكد من إضافة الـ Duration
+
+                    // تحويل الـ Activities الـ DTO لـ Entity مع البيانات الجديدة
                     PublicActivities = request.dto.Activities.Select(a => new ActivityPublicTrip
                     {
+                        Title = a.Title,
                         Destination = a.Destination,
                         FullPrice = a.FullPrice,
                         SelectedDay = a.SelectedDay,
-                        CreatedAt = DateTime.UtcNow,
-                        EndAt = a.EndAt,
-                        Image = a.Image,
                         StartAt = a.StartAt,
-                        Title = a.Title,
+                        EndAt = a.EndAt,
+                        Image = a.Thumbnail ?? a.Image,
                         TripCategory = a.TripCategory,
+                        CreatedAt = DateTime.UtcNow,
+
+                        // ربط بيانات الـ Option المختار
+                        PlaceId = a.PlaceId,
+                        DataId = a.DataId,
+                        ActivityType = a.ActivityType,
+                        Latitude = a.Latitude,
+                        Longitude = a.Longitude,
+                        Address = a.Address,
+                        Thumbnail = a.Thumbnail, // الصورة اللي جاية من جوجل
+                        Website = a.Website,
+                        Phone = a.Phone,
+                        Rating = a.Rating,
+                        Reviews = a.Reviews,
+                        PriceRange = a.PriceRange,
+                        Description = a.Description,
+                        serviceOption = string.Join(",", a.serviceOption)
                     }).ToList(),
                 };
+
+                // حساب الأسعار والعمولات
                 var totalPrice = trip.PublicActivities.Sum(a => a.FullPrice);
                 trip.Price = totalPrice;
-                trip.TravelerFee = totalPrice * 0.01m; // 1 % fee for traveler
-                trip.OwnerTripFee = totalPrice * 0.05m; // 5 % fee for trip owner
+                trip.TravelerFee = totalPrice * 0.01m;
+                trip.OwnerTripFee = totalPrice * 0.05m;
+
+                await _uot.BeginTransactionAsync();
                 await _wTRepo.AddAsync(trip);
                 await _uot.SaveChangesAsync();
                 await _uot.CommitAsync();
+
+                // الـ Mapping للـ Template (Response)
+                // ... (نفس الكود القديم مع التأكد من نقل الـ Id الجديد)
+                // 5. تجهيز الـ Template Trip للـ Response (لإرجاع الداتا للـ UI)
                 var temp = new TemplateTrip
                 {
                     Id = trip.Id,
@@ -100,32 +125,49 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     Duration = trip.Duration,
                     Price = trip.Price,
                     TripCategory = trip.TripCategory,
-                    IncludedPackages = Enum.GetValues(typeof(Package)).Cast<Package>().Where(p => p != Package.None && trip.IncludedPackages.HasFlag(p)).Select(p => (int)p).ToList(),
-                    NumberOfMember = trip.MaxNumberOfMember,
                     StartDate = trip.StartDate,
+                    IncludedPackages = Enum.GetValues(typeof(Package)).Cast<Package>()
+                                        .Where(p => p != Package.None && trip.IncludedPackages.HasFlag(p))
+                                        .Select(p => (int)p)
+                                        .ToList(),
                     Activities = trip.PublicActivities.Select(a => new TemplateActivity
                     {
                         Id = a.Id,
+                        Title = a.Title,
                         Destination = a.Destination,
                         FullPrice = a.FullPrice,
                         SelectedDay = a.SelectedDay,
-                        EndAt = a.EndAt,
-                        Image = a.Image,
                         StartAt = a.StartAt,
-                        Title = a.Title,
+                        EndAt = a.EndAt,
+                        Image = a.Thumbnail ?? a.Image, // الأولوية لصورة جوجل في العرض
                         TripCategory = a.TripCategory,
+                        // يمكنك إضافة الـ Latitude والـ Longitude هنا لو الـ Front-end محتاج يرسم الخريطة فوراً
+                        Latitude = a.Latitude,
+                        Longitude = a.Longitude,
+                        Description = a.Description,
+                        ActivityType = a.ActivityType,
+                        serviceOption = a.serviceOption.Split(",").ToList(),
+                        Address = a.Address,
+                        Phone = a.Phone,
+                        PlaceId = a.PlaceId,
+                        DataId = a.DataId,
+                        PriceRange = a.PriceRange,
+                        Rating = a.Rating,
+                        Reviews = a.Reviews,
+                        Website = a.Website,
+
                     }).ToList()
                 };
-                return new ApiResultResponse<TemplateTrip>((int)HttpStatusCode.Created, temp, "Trip Added Successfully");
+
+                return new ApiResultResponse<TemplateTrip>((int)HttpStatusCode.Created, temp, "Trip Added Successfully with all activities details.");
             }
             catch (Exception ex)
             {
+                // تراجع عن العملية في حالة حدوث أي خطأ
                 await _uot.RollbackAsync();
-                return new ApiResponse(500, ex.Message);
+                return new ApiResponse(500, $"Internal Server Error: {ex.Message}");
             }
-
         }
-
         public async Task<ApiResponse> Handle(DeletePublicTrip request, CancellationToken cancellationToken)
         {
             try
@@ -195,11 +237,14 @@ namespace ApplicationBusiness.Fetures.TripService.Command
             await _uot.BeginTransactionAsync();
             try
             {
+                // 1. التاكد من وجود المستخدم
                 var checkUser = await _wURepo.ExistsAsync(request.CreatedById);
                 if (!checkUser)
                 {
                     return new ApiResponse((int)HttpStatusCode.NotFound, "User not found");
                 }
+
+                // 2. إنشاء الكيان (Trip Entity) مع الـ Activities الملحقة بكل تفاصيلها
                 var trip = new PrivateTrip()
                 {
                     From = request.dto.From,
@@ -208,25 +253,49 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     CreatedById = request.CreatedById,
                     StartDate = request.dto.StartDate,
                     TripCategory = request.dto.TripCategory,
+                    Duration = request.dto.Duration, // تأكد من وجودها في الـ DTO
+                    
+                    // Mapping الـ Activities مع كل بيانات SerpApi
                     PrivateActivities = request.dto.Activities.Select(a => new ActivityPrivateTrip
                     {
+                        Title = a.Title,
                         Destination = a.Destination,
                         FullPrice = a.FullPrice,
                         SelectedDay = a.SelectedDay,
-                        CreatedAt = DateTime.UtcNow,
-                        EndAt = a.EndAt,
-                        Image = a.Image,
                         StartAt = a.StartAt,
-                        Title = a.Title,
+                        EndAt = a.EndAt,
+                        Image = a.Image, // الصورة اليدوية إن وجدت
                         TripCategory = a.TripCategory,
+                        CreatedAt = DateTime.UtcNow,
+
+                        // --- بيانات Google Maps/SerpApi المضافة ---
+                        PlaceId = a.PlaceId,
+                        DataId = a.DataId,
+                        ActivityType = a.ActivityType, // (Breakfast, Lunch, Mall, etc.)
+                        Latitude = a.Latitude,
+                        Longitude = a.Longitude,
+                        Address = a.Address,
+                        Thumbnail = a.Thumbnail, // صورة المكان من جوجل
+                        Website = a.Website,
+                        Phone = a.Phone,
+                        Rating = a.Rating,
+                        Reviews = a.Reviews,
+                        PriceRange = a.PriceRange,
+                        Description = a.Description
                     }).ToList(),
                 };
+
+                // 3. حساب السعر الإجمالي والعمولة
                 var totalPrice = trip.PrivateActivities.Sum(a => a.FullPrice);
                 trip.Price = totalPrice;
-                trip.CustomizationFee = totalPrice * 0.05m;
+                trip.CustomizationFee = totalPrice * 0.05m; // 5% عمولة تخصيص
+
+                // 4. الحفظ في قاعدة البيانات
                 await _wTRepo.AddAsync(trip);
                 await _uot.SaveChangesAsync();
                 await _uot.CommitAsync();
+
+                // 5. تجهيز الـ Template Trip للـ Response (لإرجاع الداتا للـ UI)
                 var temp = new PrivateTemplateTrip
                 {
                     Id = trip.Id,
@@ -236,30 +305,45 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     Duration = trip.Duration,
                     Price = trip.Price,
                     TripCategory = trip.TripCategory,
-                    //StartDate = trip.StartDate,
+                    
                     Activities = trip.PrivateActivities.Select(a => new TemplateActivity
                     {
                         Id = a.Id,
+                        Title = a.Title,
                         Destination = a.Destination,
                         FullPrice = a.FullPrice,
                         SelectedDay = a.SelectedDay,
-                        EndAt = a.EndAt,
-                        Image = a.Image,
                         StartAt = a.StartAt,
-                        Title = a.Title,
+                        EndAt = a.EndAt,
+                        Image = a.Thumbnail ?? a.Image, // الأولوية لصورة جوجل في العرض
                         TripCategory = a.TripCategory,
+                        // يمكنك إضافة الـ Latitude والـ Longitude هنا لو الـ Front-end محتاج يرسم الخريطة فوراً
+                        Latitude = a.Latitude,
+                        Longitude = a.Longitude,
+                        Description = a.Description,
+                        ActivityType = a.ActivityType,
+                        serviceOption = a.serviceOption.Split(",").ToList(),
+                        Address = a.Address,
+                        Phone = a.Phone,
+                        PlaceId = a.PlaceId,
+                        DataId = a.DataId,
+                        PriceRange = a.PriceRange,
+                        Rating = a.Rating,
+                        Reviews = a.Reviews,
+                        Website = a.Website,
+
                     }).ToList()
                 };
-                return new ApiResultResponse<PrivateTemplateTrip>((int)HttpStatusCode.Created, temp, "Trip Added Successfully");
 
+                return new ApiResultResponse<PrivateTemplateTrip>((int)HttpStatusCode.Created, temp, "Trip Added Successfully with all activities details.");
             }
             catch (Exception ex)
             {
+                // تراجع عن العملية في حالة حدوث أي خطأ
                 await _uot.RollbackAsync();
-                return new ApiResponse(500, ex.Message);
+                return new ApiResponse(500, $"Internal Server Error: {ex.Message}");
             }
         }
-
         public async Task<ApiResponse> Handle(DeletePrivateTrip request, CancellationToken cancellationToken)
         {
             try

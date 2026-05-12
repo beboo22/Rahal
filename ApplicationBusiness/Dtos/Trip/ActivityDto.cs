@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Entity.TripEntity;
 
-namespace Domain.Entity.TripEntity
+namespace ApplicationBusiness.Dtos.Trip
 {
-    public abstract class Activity : BaseEntity
+    public class ActivityDto
     {
         public string Destination { get; set; } = null!;
         public string Title { get; set; } = null!;
@@ -19,9 +13,7 @@ namespace Domain.Entity.TripEntity
         public TimeOnly StartAt { get; set; }
         public TimeOnly EndAt { get; set; }
 
-
-
-
+        // البيانات اللي جاية من الـ Front-end بعد اختيار الـ Option
         public string? PlaceId { get; set; }
         public string? DataId { get; set; }
         public string? ActivityType { get; set; }
@@ -35,22 +27,7 @@ namespace Domain.Entity.TripEntity
         public int? Reviews { get; set; }
         public string? PriceRange { get; set; }
         public string? Description { get; set; }
-        public string? serviceOption { get; set; }
-
-
-    }
-    public class ActivityPublicTrip : Activity
-    {
-        public int PublicTripId { get; set; }
-        [ForeignKey(nameof(PublicTripId))]
-        public PublicTrip PublicTrip { get; set; } = null!;
-
-    }
-    public class ActivityPrivateTrip : Activity
-    {
-        public int PrivateTripId { get; set; }
-        [ForeignKey("PrivateTripId")]
-        public PrivateTrip PrivateTrip { get; set; }
+        public List<string> serviceOption { get; set; }
 
     }
 }

@@ -3,6 +3,8 @@ using Application.Abstraction.spacification;
 using Application.Abstraction.Specification;
 using Application.Features.PaymentService;
 using ApplicationBusiness.Abstraction.CloudinaryService;
+using ApplicationBusiness.Abstraction.SerpApiService.Activity;
+using ApplicationBusiness.Configuration;
 using ApplicationBusiness.Fetures.PaymentService.Strategies;
 using ApplicationBusiness.RealTimeservice.ChatService;
 using ApplicationBusiness.service;
@@ -36,6 +38,30 @@ namespace ApplicationBusiness
             services.AddScoped<IPaymentHandlerStrategy, PrivateTripPaymentHandler>();
             services.AddScoped<IPaymentHandlerStrategy, HotelPaymentHandler>();
             services.AddScoped<IPaymentHandlerStrategy, FlightPaymentHandler>();
+
+            //services.Configure<SerpApiSettings>(
+            //  configuration.GetSection(SerpApiSettings.SectionName));
+
+            // 2. Named HttpClient — shared with existing SerpApiService
+            //services.AddHttpClient("SerpApi", client =>
+            //{
+            //    client.BaseAddress = new Uri(builder.Configuration["SerpApi:BaseUrl"]
+            //                                 ?? "https://serpapi.com/search.json");
+            //    client.Timeout = TimeSpan.FromSeconds(
+            //        builder.Configuration.GetValue<int>("SerpApi:TimeoutSeconds", 30));
+            //    client.DefaultRequestHeaders.Add("Accept", "application/json");
+            //});
+
+            // 3. Redis (already registered for SerpApiService — skip if already present)
+            // builder.Services.AddSingleton<IConnectionMultiplexer>(
+            //     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+            // 4. Register ActivityService
+            //services.AddScoped<IActivityService, ActivityService>();
+
+
+
+
 
             services.AddScoped<PaymentHandlerFactory>();
             services.AddSignalR(options =>

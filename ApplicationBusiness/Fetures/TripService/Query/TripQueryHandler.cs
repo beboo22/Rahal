@@ -164,11 +164,24 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                     FullPrice = a.FullPrice,
                     Destination = a.Destination,
                     EndAt = a.EndAt,
-                    Image = a.Image,
+                    Image = a.Thumbnail ?? a.Image,
                     SelectedDay = a.SelectedDay,
                     StartAt = a.StartAt,
                     TripCategory= a.TripCategory,
-                    // ... rest of your mapping
+                    // ربط بيانات الـ Option المختار
+                    PlaceId = a.PlaceId,
+                    DataId = a.DataId,
+                    ActivityType = a.ActivityType,
+                    Latitude = a.Latitude,
+                    Longitude = a.Longitude,
+                    Address = a.Address, // الصورة اللي جاية من جوجل
+                    Website = a.Website,
+                    Phone = a.Phone,
+                    Rating = a.Rating,
+                    Reviews = a.Reviews,
+                    PriceRange = a.PriceRange,
+                    Description = a.Description,
+                    serviceOption = a.serviceOption.Split(",").ToList(),
                 }).ToList() ?? new List<TemplateActivity>()
             }).ToList();
 
@@ -286,7 +299,20 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                     Image = a.Image,
                     SelectedDay = a.SelectedDay,
                     StartAt = a.StartAt,
-                    Title = a.Title
+                    Title = a.Title,
+                    PlaceId = a.PlaceId,
+                    DataId = a.DataId,
+                    ActivityType = a.ActivityType,
+                    Latitude = a.Latitude,
+                    Longitude = a.Longitude,
+                    Address = a.Address, // الصورة اللي جاية من جوجل
+                    Website = a.Website,
+                    Phone = a.Phone,
+                    Rating = a.Rating,
+                    Reviews = a.Reviews,
+                    PriceRange = a.PriceRange,
+                    Description = a.Description,
+                    serviceOption = a.serviceOption.Split(",").ToList(),
                 }).ToList() ?? new List<TemplateActivity>()
             };
         }

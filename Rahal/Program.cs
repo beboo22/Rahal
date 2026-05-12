@@ -12,6 +12,7 @@ using ApplicationBusiness.Abstraction.SerpApiService;
 using ApplicationBusiness.Configuration;
 using Polly;
 using StackExchange.Redis;
+using ApplicationBusiness.Abstraction.SerpApiService.Activity;
 
 namespace Rahal
 {
@@ -144,6 +145,11 @@ namespace Rahal
             });
             // ── HttpClient + Polly ────────────────────────────────────────────────
             builder.Services.AddHttpClient<ISerpPhotoApiService, SerpPhotoApiService>(client =>
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("User-Agent", "TravelModule/1.0");
+            });
+            builder.Services.AddHttpClient<IActivityService, ActivityService>(client =>
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
                 client.DefaultRequestHeaders.Add("User-Agent", "TravelModule/1.0");
