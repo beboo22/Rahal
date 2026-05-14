@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entity.TripEntity
 {
-    [NotMapped]
+    //[NotMapped]
     public abstract class Trip : BaseEntity
     {
         public string From { get; set; } = null!;
@@ -18,14 +18,14 @@ namespace Domain.Entity.TripEntity
         public int Duration { get; set; }
         public DateTime? StartDate { get; set; }
         public TripCategory TripCategory { get; set; }
-        public int CreatedById { get; set; }
-        [ForeignKey("CreatedById")]
-        public User CreatedBy { get; set; }
 
     }
     public class PrivateTrip : Trip
     {
-        public ICollection<Review> Reviews { get; set; }
+        public int CreatedById { get; set; }
+        [ForeignKey("CreatedById")]
+        public User CreatedBy { get; set; }
+        public ICollection<ReviewPrivateTrip> Reviews { get; set; }
         public int? TourGuideId { get; set; }
         [ForeignKey("TourGuideId")]
         public User? TourGuide { get; set; }
@@ -38,7 +38,10 @@ namespace Domain.Entity.TripEntity
     }
     public class PublicTrip : Trip
     {
-        public ICollection<Review> Reviews { get; set; }
+        public int CreatedById { get; set; }
+        [ForeignKey("CreatedById")]
+        public User CreatedBy { get; set; }
+        public ICollection<ReviewPublicTrip> Reviews { get; set; }
         public ICollection<RequestTourGuidePulicTrip> requestTourGuides { get; set; }= new List<RequestTourGuidePulicTrip>();
         public ICollection<ActivityPublicTrip> PublicActivities { get; set; } = new List<ActivityPublicTrip>();
         public Package IncludedPackages { get; set; }

@@ -14,7 +14,7 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Enabled Authorize as these methods rely on User context
+    //[Authorize] // Enabled Authorize as these methods rely on User context
     public class UserController : ApiController
     {
         public UserController(ISender sender) : base(sender) { }

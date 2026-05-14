@@ -46,6 +46,9 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
             {
                 Fname = user.FName,
                 Lname = user.LName,
+                Email = user.Email,
+                Followers = user.Followers.Count(),
+                Following = user.Following.Count(),
                 Traveler = UserTemplateMapper.MapTraveler(user),
                 TourGuide = UserTemplateMapper.MapTourGuide(user),
                 TravelCompany = UserTemplateMapper.MapTravelCompany(user)

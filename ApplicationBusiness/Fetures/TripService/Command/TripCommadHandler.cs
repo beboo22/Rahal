@@ -351,7 +351,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 var item = await Sender.Send(new GetPrivTripSpecQuery(new TripFilter
                 {
                     Id = request.Id,
-                })) as ApiResultResponse<Trip>;
+                })) as ApiResultResponse<PrivateTemplateTrip>;
                 if (item?.Data == null)
                     return new ApiResponse(404);
 

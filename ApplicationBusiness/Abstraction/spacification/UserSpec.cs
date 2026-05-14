@@ -2,6 +2,7 @@
 using ApplicationBusiness.Fetures.TripService.Query;
 using Domain.Entity.Identity;
 using Domain.Entity.PostEntity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,56 +18,61 @@ namespace ApplicationBusiness.Abstraction.spacification
             int? id,
             string? name,
             string? email,
-        int? pageIndex,
-        int? pageSize = 5,
-            bool OrderDesBytimeCreated=false
-            )
+            int? pageIndex,
+            int? pageSize = 5,
+            bool orderDesByTimeCreated = false)
         {
-            Expression<Func<User, bool>> _criteria = u => true;
-
-
-
+            // 1. Base Filter Logic
             if (id.HasValue)
             {
+                // If searching by ID, we usually only want that specific record
                 crateria = x => x.Id == id.Value;
-
-                // --------------------
-                // Includes (IMPORTANT)
-                // --------------------
-                includes.Add(x => x.TravelerCompanyProfile);
-                includes.Add(x => x.TravelerProfile);
-                includes.Add(x => x.TourGuideProfile);
-
-
-                return;
             }
-
-            if (!string.IsNullOrWhiteSpace(name))
-                _criteria = _criteria.AndAlso(u => u.FName.Contains(name));
-
-
-            if (!string.IsNullOrWhiteSpace(email))
-                _criteria = _criteria.AndAlso(u => u.Email.Contains(email));
-
-
-
-            crateria = _criteria;
-
-            includes.Add(x => x.TravelerCompanyProfile);
-            includes.Add(x => x.TravelerProfile);
-            includes.Add(x => x.TourGuideProfile);
-            // Pagination
-            if (pageIndex.HasValue && pageIndex > 0)
+            else
             {
-                int skip = (pageIndex.Value - 1) * (pageSize.HasValue ? pageSize.Value : 1);
-                ApplyPagination(skip, (pageSize.HasValue ? pageSize.Value : 1));
+                Expression<Func<User, bool>> filter = u => true;
+
+                if (!string.IsNullOrWhiteSpace(name))
+                    filter = filter.AndAlso(u => u.FName.Contains(name));
+
+                if (!string.IsNullOrWhiteSpace(email))
+                    filter = filter.AndAlso(u => u.Email.Contains(email));
+
+                crateria = filter;
             }
 
-            if (OrderDesBytimeCreated)
+            // 2. Common Includes (Apply to both single and list results)
+            AddStandardIncludes();
+
+            // 3. Pagination (Only if not fetching a single ID)
+            if (!id.HasValue && pageIndex.HasValue && pageIndex > 0)
+            {
+                int size = pageSize ?? 5;
+                ApplyPagination((pageIndex.Value - 1) * size, size);
+            }
+
+            // 4. Ordering
+            if (orderDesByTimeCreated)
                 AddOrderByDecs(x => x.CreatedAt);
             else
                 AddOrderBy(x => x.CreatedAt);
         }
 
+        private void AddStandardIncludes()
+        {
+            includes.Add(x => x.TravelerCompanyProfile);
+            includes.Add(x => x.TravelerProfile);
+            includes.Add(x => x.TourGuideProfile);
+            includes.Add(x => x.Followers);
+            includes.Add(x => x.Following);
+
+            // Use your specialized chain method for collections
+            AddIncludeChain(x => x.Include(u => u.Posts)
+                                    .ThenInclude(x=>x.Likes)
+                                .Include(u => u.Posts)
+                                    .ThenInclude(x=>x.Comments));
+            //AddIncludeChain(x => x.Include(u => u.BookingPublicTrips));
+            AddIncludeChain(x => x.Include(u => u.PublicTrips).ThenInclude(x=>x.PublicActivities));
+        }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using ApplicationBusiness.Fetures.Authentication.Query.Response;
 using ApplicationBusiness.Fetures.Authentication.Query.Models;
 using Microsoft.AspNetCore.Http;
+using ApplicationBusiness.Fetures.StatusService.Qurey;
 
 namespace Presentation.Controllers
 {
@@ -58,7 +59,7 @@ namespace Presentation.Controllers
         /// <summary>
         /// Retrieves the status of the users that the current user is following.
         /// </summary>
-        [HttpGet]
+        [HttpGet("GetFollowingStatus")]
         [ProducesResponseType(typeof(ApiResultResponse<List<TemplateStatusOfFollowing>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetFollowingStatus()
@@ -67,6 +68,22 @@ namespace Presentation.Controllers
             if (userId == null) return Unauthorized();
 
             var result = await Sender.Send(new GetStatusForFollowing(userId.Value));
+
+            return ProcessResult(result);
+        }
+
+        /// <summary>
+        /// Retrieves the status of the users that the current user is following.
+        /// </summary>
+        [HttpGet("GetMyStatus")]
+        [ProducesResponseType(typeof(ApiResultResponse<List<TemplateStatus>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMyStatus()
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await Sender.Send(new getStatusForUser(userId.Value));
 
             return ProcessResult(result);
         }

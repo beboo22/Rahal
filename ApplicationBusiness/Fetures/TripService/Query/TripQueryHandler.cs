@@ -81,14 +81,29 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                     Activities = x.PublicActivities.Select(x=>new TemplateActivity
                     {
                         Id = x.Id,
-                        TripCategory = x.TripCategory,
+                        Title = x.Title,
+                        DataId = x.DataId,
+                        Description = x.Description,
                         Destination = x.Destination,
+                        ActivityType = x.ActivityType,
+                        SelectedDay = x.SelectedDay,
+                        Address = x.Address,
                         EndAt = x.EndAt,
                         FullPrice = x.FullPrice,
                         Image = x.Image,
-                        SelectedDay = x.SelectedDay,
+                        Latitude = x.Latitude,
+                        Longitude = x.Longitude,
+                        Phone = x.Phone,
+                        PlaceId = x.PlaceId,
+                        PriceRange = x.PriceRange,
+                        Rating = x.Rating,
+                        Reviews = x.Reviews,
                         StartAt = x.StartAt,
-                        Title = x.Title
+                        TripCategory = x.TripCategory,
+                        Website = x.Website,
+                        serviceOption = !string.IsNullOrEmpty(x.serviceOption)
+                        ? x.serviceOption.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                        : new List<string>()
                     }).ToList()
                 }).ToListAsync();
                 if (trips.Any())
@@ -118,14 +133,29 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                 Activities = x.PublicActivities.Select(x => new TemplateActivity
                 {
                     Id = x.Id,
-                    TripCategory = x.TripCategory,
+                    Title = x.Title,
+                    DataId = x.DataId,
+                    Description = x.Description,
                     Destination = x.Destination,
+                    ActivityType = x.ActivityType,
+                    SelectedDay = x.SelectedDay,
+                    Address = x.Address,
                     EndAt = x.EndAt,
                     FullPrice = x.FullPrice,
                     Image = x.Image,
-                    SelectedDay = x.SelectedDay,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    Phone = x.Phone,
+                    PlaceId = x.PlaceId,
+                    PriceRange = x.PriceRange,
+                    Rating = x.Rating,
+                    Reviews = x.Reviews,
                     StartAt = x.StartAt,
-                    Title = x.Title
+                    TripCategory = x.TripCategory,
+                    Website = x.Website,
+                    serviceOption = !string.IsNullOrEmpty(x.serviceOption)
+                        ? x.serviceOption.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                        : new List<string>()
                 }).ToList()
             }).ToListAsync();
             if (trips.Any())
@@ -165,6 +195,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                 NumberOfMember = x.CurrentNumberOfMember,
                 TripCategory = x.TripCategory,
                 Price = x.Price,
+                TravelerFee = x.TravelerFee, 
                 Activities = x.PublicActivities?.Select(a => new TemplateActivity
                 {
                     Id = a.Id,
@@ -290,6 +321,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query
         {
             return new PrivateTemplateTrip
             {
+                CreatedById = x.CreatedById,
                 Id = x.Id,
                 Title = x.Title,
                 Destination = x.Destination,

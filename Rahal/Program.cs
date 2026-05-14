@@ -15,6 +15,7 @@ using StackExchange.Redis;
 using ApplicationBusiness.Abstraction.SerpApiService.Activity;
 using Domain.BaseResponce;
 using ApplicationBusiness.RealTimeservice;
+using Scalar.AspNetCore;
 
 namespace Rahal
 {
@@ -269,6 +270,12 @@ namespace Rahal
             }
             app.UseSwagger();
             app.UseSwaggerUI();
+
+            // Explicitly point Scalar to the Swagger JSON endpoint
+            app.MapScalarApiReference("", options =>
+            {
+                options.WithOpenApiRoutePattern("/swagger/v1/swagger.json");
+            });
             app.UseStaticFiles();
 
             app.UseHttpsRedirection();

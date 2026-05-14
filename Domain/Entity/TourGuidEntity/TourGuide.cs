@@ -29,7 +29,7 @@ namespace Domain.Entity.TourGuidEntity
         public string Street { get; set; }
         public string BuildingNumber { get; set; }
 
-        public ICollection<TourGuideBusinessGalary>? tourGuidBusinessGalaries { get; set; }
+
     
         
     }

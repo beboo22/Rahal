@@ -12,6 +12,8 @@ namespace ApplicationBusiness.Dtos.Profile
         public IFormFile? photo { get; set; }
         public string? Bio { get; set; }
         public string? Ssn { get; set; }
+        public decimal? SalaryPerDay { get; set; }
+
         public string? Country { get; set; }
         public string? City { get; set; }
         public string? Street { get; set; }

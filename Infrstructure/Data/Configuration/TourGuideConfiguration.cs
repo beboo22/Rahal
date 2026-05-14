@@ -39,10 +39,10 @@ namespace Infrstructure.Data.Configuration
             //       .HasForeignKey(a => a.TourGuideId)
             //       .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(tg => tg.tourGuidBusinessGalaries)
-                   .WithOne(bg => bg.TourGuid)
-                   .HasForeignKey(bg => bg.TourGuidId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(tg => tg.tourGuidBusinessGalaries)
+            //       .WithOne(bg => bg.TourGuid)
+            //       .HasForeignKey(bg => bg.TourGuidId)
+            //       .OnDelete(DeleteBehavior.Cascade);
         }
     }
 

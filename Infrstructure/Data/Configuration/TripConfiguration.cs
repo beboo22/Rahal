@@ -37,10 +37,6 @@ namespace Infrstructure.Data.Configuration
 
             builder.Property(t => t.StartDate)
                    .IsRequired();
-            builder.HasOne(t => t.CreatedBy)
-                   .WithMany(u => u.CreatedTrips)
-                   .HasForeignKey(t => t.CreatedById)
-                   .OnDelete(DeleteBehavior.Restrict); // When a User is deleted, do not delete their created Trips.
        
         }
     }
@@ -49,6 +45,21 @@ namespace Infrstructure.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<PublicTrip> builder)
         {
+            //builder.HasOne(t => t.CreatedBy)
+            //       .WithMany(u => u.PublicTrips)
+            //       .HasForeignKey(t => t.CreatedById)
+            //       .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.CreatedBy)
+                   .WithMany(u => u.PublicTrips)
+                   .HasForeignKey(t => t.CreatedById)
+                   .OnDelete(DeleteBehavior.Restrict); // When a User is deleted, do not delete their created Trips.
+
+            builder.HasMany(x=>x.Reviews)
+                .WithOne(x=>x.PublicTrip)
+                .HasForeignKey(x=>x.PublicTripId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasMany(t=>t.requestTourGuides)
                    .WithOne(r => r.PublicTrip)
                    .HasForeignKey(r => r.PublicTripId)
@@ -73,6 +84,11 @@ namespace Infrstructure.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<PrivateTrip> builder)
         {
+
+            builder.HasOne(t => t.CreatedBy)
+                   .WithMany(u => u.PrivateTrips)
+                   .HasForeignKey(t => t.CreatedById)
+                   .OnDelete(DeleteBehavior.Restrict); // When a User is deleted, do not delete their created Trips.
             builder.Property(b => b.CustomizationFee)
                 .HasColumnType("decimal(18,2)")
                    .IsRequired();

@@ -1,4 +1,5 @@
-﻿using ApplicationBusiness.Dtos.Profile;
+﻿using ApplicationBusiness.Dtos.Auth;
+using ApplicationBusiness.Dtos.Profile;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
 using ApplicationBusiness.Fetures.PostService.Query.Response;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
@@ -25,6 +26,15 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public List<PrivateTemplateTrip> PrivateTrips { get; set; }
         public List<BookingTripTemplate> BookedTrip { get; set; }
         public decimal SalaryPerDay { get; internal set; }
+
+    }
+    public class TemplateTokenTour
+    {
+        public Token Token { get; set; }
+
+        public TemplateTourGuide profile { get; internal set; }
+
+
 
     }
 }

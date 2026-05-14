@@ -53,7 +53,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     TotalBookingPrice = x.TotalBookingPrice,
                                     TripTilte = x.PublicTrip.Title
                                 }).ToList(),
-                                PrivateTrips = item.User.CreatedTrips.OfType<PrivateTrip>() // get only private trips
+                                PrivateTrips = item.User.PrivateTrips // get only private trips
                                             .Select(t => new PrivateTemplateTrip
                                             {
                                                 Id = t.Id,
@@ -115,14 +115,14 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     Country = item.Country,
                                     BuildingNumber = item.BuildingNumber,
                                     Street = item.Street,
-                                BusinessGalaries = item.tourGuidBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
-                                {
-                                    Date = s.Date,
-                                    Description = s.Description,
-                                    Location = s.Location,
-                                    PhotoUrl = s.PhotoUrl,
+                                //BusinessGalaries = item.tourGuidBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
+                                //{
+                                //    Date = s.Date,
+                                //    Description = s.Description,
+                                //    Location = s.Location,
+                                //    PhotoUrl = s.PhotoUrl,
 
-                                }).ToList()
+                                //}).ToList()
                             })
                             .FirstOrDefaultAsync();
             if (temp == null)
@@ -165,7 +165,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     TotalBookingPrice = x.TotalBookingPrice,
                                     TripTilte = x.PublicTrip.Title
                                 }).ToList(),
-                                PrivateTrips = item.User.CreatedTrips.OfType<PrivateTrip>() // get only private trips
+                                PrivateTrips = item.User.PrivateTrips // get only private trips
                                             .Select(t => new PrivateTemplateTrip
                                             {
                                                 Id = t.Id,
@@ -255,7 +255,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                         TotalBookingPrice = x.TotalBookingPrice,
                         TripTilte = x.PublicTrip.Title
                     }).ToList(),
-                    PrivateTrips = item.User.CreatedTrips.OfType<PrivateTrip>() // get only private trips
+                    PrivateTrips = item.User.PrivateTrips // get only private trips
                                             .Select(t => new PrivateTemplateTrip
                                             {
                                                 Id = t.Id,
@@ -308,14 +308,14 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                     Street = item.Street,
                     Country = item.Country,
                     Bio = item.Bio,
-                    BusinessGalaries = item.travelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
-                    {
-                        Date = s.Date,
-                        Description = s.Description,
-                        Location = s.Location,
-                        PhotoUrl = s.PhotoUrl,
+                    //BusinessGalaries = item.travelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
+                    //{
+                    //    Date = s.Date,
+                    //    Description = s.Description,
+                    //    Location = s.Location,
+                    //    PhotoUrl = s.PhotoUrl,
 
-                    }).ToList()
+                    //}).ToList()
                 })
                 .FirstOrDefaultAsync();
             if (temp == null)

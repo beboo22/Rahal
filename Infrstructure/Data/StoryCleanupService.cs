@@ -56,7 +56,7 @@ namespace Infrastructure.Data
                 }
 
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
-            }
+             }
 
             _logger.LogInformation("Story cleanup service stopped.");
         }

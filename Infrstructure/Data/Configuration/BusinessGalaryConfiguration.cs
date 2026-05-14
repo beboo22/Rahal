@@ -24,9 +24,9 @@ namespace Infrstructure.Data.Configuration
             builder.Property(bg => bg.Location).HasMaxLength(200);
             builder.Property(bg => bg.Description).HasMaxLength(500);
 
-            builder.HasOne(bg => bg.TourGuid)
-                   .WithMany(tg => tg.tourGuidBusinessGalaries)
-                   .HasForeignKey(bg => bg.TourGuidId).OnDelete(DeleteBehavior.Cascade);
+            //builder.HasOne(bg => bg.TourGuid)
+            //       .WithMany(tg => tg.tourGuidBusinessGalaries)
+            //       .HasForeignKey(bg => bg.TourGuidId).OnDelete(DeleteBehavior.Cascade);
         }
     }
     public class TravelCompanyBusinessGalaryConfiguration : IEntityTypeConfiguration<TravelCompanyBusinessGalary>
@@ -42,9 +42,9 @@ namespace Infrstructure.Data.Configuration
             builder.Property(bg => bg.Location).HasMaxLength(200);
             builder.Property(bg => bg.Description).HasMaxLength(500);
 
-            builder.HasOne(bg => bg.TravelCompany)
-                   .WithMany(tg => tg.travelCompanyBusinessGalaries)
-                   .HasForeignKey(bg => bg.TravelCompanyId).OnDelete(DeleteBehavior.Cascade);
+            //builder.HasOne(bg => bg.TravelCompany)
+            //       .WithMany(tg => tg.travelCompanyBusinessGalaries)
+            //       .HasForeignKey(bg => bg.TravelCompanyId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 

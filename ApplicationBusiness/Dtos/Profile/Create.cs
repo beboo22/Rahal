@@ -16,6 +16,11 @@ namespace ApplicationBusiness.Dtos.Profile
 
         public decimal SalaryPerDay { get; set; }
 
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
+
         #region verification
         // Incoming files from client
         //public IFormFile FrontIdentityPhoto { get; set; } = null!;
@@ -60,17 +65,14 @@ namespace ApplicationBusiness.Dtos.Profile
 
         #region verification
         //// Incoming files from client
-        //public IFormFile FrontIdentityPhoto { get; set; } = null!;
-        //public IFormFile BackIdentityPhoto { get; set; } = null!;
-
-        //// URLs after upload (you'll fill these later in your service)
-        //public string FrontIdentityPhotoUrl { get; internal set; }
-        //public string BackIdentityPhotoUrl { get; internal set; }
+        
 
         public string Bio { get; set; }
         public string Ssn { get; set; }
-        //public List<Adress> Adresses { get; set; }
-        //public BusinessGalary BusinessGalaries { get; set; }
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
         #endregion
     }
     

@@ -14,6 +14,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public string Email { get; internal set; }
 
         public List<ExperiencePostTemplate> ExperiencePostTemplates { get; set; }
+        public List<TemplateTrip> PublicTrips { get; set; }
         public List<PrivateTemplateTrip> PrivateTrips { get; set; }
         public List<BookingTripTemplate> BookedTrip { get; set; }
         public string Ssn { get; internal set; }
@@ -33,6 +34,14 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public Token Token { get; set; }
 
         public TemplateTraveler profile { get; internal set; }
+
+
+        
+    } public class TemplateTokencompany
+    {
+        public Token Token { get; set; }
+
+        public TemplateTravelComapny profile { get; internal set; }
 
 
         

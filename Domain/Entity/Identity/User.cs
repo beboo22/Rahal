@@ -51,9 +51,11 @@ namespace Domain.Entity.Identity
         public ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
 
         public ICollection<BookingPublicTrip> BookingPublicTrips { get; set; }
+        public ICollection<PublicTrip> PublicTrips { get; set; }
+        public ICollection<PrivateTrip> PrivateTrips { get; set; }
         public ICollection<BookingPrivateTrip> BookingPrivateTrips { get; set; }
 
-        public ICollection<Trip> CreatedTrips { get; set; }
+        //public ICollection<Trip> CreatedTrips { get; set; }
 
         public ICollection<Review> ReviewsWritten { get; set; }
 

@@ -31,15 +31,15 @@ namespace Infrstructure.Data.Configuration
                    .WithOne(u => u.TravelerCompanyProfile)
                    .HasForeignKey<TravelCompany>(tc => tc.UserId).OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(tc => tc.travelCompanyBusinessGalaries)
-                   .WithOne(a => a.TravelCompany)
-                   .HasForeignKey(a => a.TravelCompanyId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(tc => tc.travelCompanyBusinessGalaries)
+            //       .WithOne(a => a.TravelCompany)
+            //       .HasForeignKey(a => a.TravelCompanyId)
+            //       .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(tc => tc.travelCompanyBusinessGalaries)
-                   .WithOne(bg => bg.TravelCompany)
-                   .HasForeignKey(bg => bg.TravelCompanyId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(tc => tc.travelCompanyBusinessGalaries)
+            //       .WithOne(bg => bg.TravelCompany)
+            //       .HasForeignKey(bg => bg.TravelCompanyId)
+            //       .OnDelete(DeleteBehavior.Cascade);
             builder.HasMany(tc => tc.HiringPosts)
                    .WithOne(bg => bg.CreatedBy)
                    .HasForeignKey(bg => bg.CreatedById)

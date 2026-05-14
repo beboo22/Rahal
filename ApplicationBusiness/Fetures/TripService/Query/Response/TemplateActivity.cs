@@ -25,6 +25,6 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
         public int? Reviews { get; set; }
         public string? PriceRange { get; set; }
         public string? Description { get; set; }
-        public List<string> serviceOption { get; set; }
+        public List<string>? serviceOption { get; set; }
     }
 }

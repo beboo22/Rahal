@@ -25,7 +25,6 @@ namespace Domain.Entity.TravelerCompanyEntity
         public string City { get; set; }
         public string Street { get; set; }
         public string BuildingNumber { get; set; }
-        public ICollection<TravelCompanyBusinessGalary> travelCompanyBusinessGalaries { get; set; } = new List<TravelCompanyBusinessGalary>();
         public ICollection<HiringPost> HiringPosts { get; set; } = new List<HiringPost>();
        
     }

@@ -58,7 +58,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 var Trip = await Sender.Send(new GetPubTripSpecQuery(new Abstraction.spacification.TripFilter
                 {
                     Id = request.TripId,
-                })) as ApiResultResponse<PublicTrip>;
+                })) as ApiResultResponse<TemplateTrip>;
 
 
 
@@ -87,6 +87,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
 
                 var item = new BookingTripTemplate()
                 {
+                    Id = entity.Id,
                     TripTilte = Trip.Data.Title,
                     BookingDate = entity.BookingDate,
                     TotalBookingPrice = entity.TotalBookingPrice,

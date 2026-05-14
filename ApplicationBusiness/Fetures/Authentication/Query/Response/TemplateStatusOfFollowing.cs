@@ -37,15 +37,15 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 Bio = user.TourGuideProfile.Bio,
                 Ssn = user.TourGuideProfile.Ssn,
 
-                BusinessGalaries = user.TourGuideProfile
-                    .tourGuidBusinessGalaries?
-                    .Select(x => new BusinessGalaryDto
-                    {
-                        Date = x.Date,
-                        Description = x.Description,
-                        Location = x.Location,
-                        PhotoUrl = x.PhotoUrl
-                    }).ToList(),
+                //BusinessGalaries = user.TourGuideProfile
+                //    .tourGuidBusinessGalaries?
+                //    .Select(x => new BusinessGalaryDto
+                //    {
+                //        Date = x.Date,
+                //        Description = x.Description,
+                //        Location = x.Location,
+                //        PhotoUrl = x.PhotoUrl
+                //    }).ToList(),
 
                 
                         City = user.TourGuideProfile.City,
@@ -82,13 +82,13 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                     .Select(MapExperiencePost)
                     .ToList(),
 
-                //PrivateTrips = user.CreatedTrips?
-                //    .Select(MapPrivateTrip)
-                //    .ToList(),
+                PublicTrips = user.PublicTrips?
+                    .Select(MapPrivateTrip)
+                    .ToList(),
 
-                //BookedTrip = user.Bookings?
-                //    .Select(MapBookingTrip)
-                //    .ToList()
+                BookedTrip = user.BookingPublicTrips?
+                    .Select(MapBookingTrip)
+                    .ToList()
             };
         }
 
@@ -141,15 +141,15 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 Bio = user.TravelerCompanyProfile.Bio,
                 Ssn = user.TravelerCompanyProfile.Ssn,
 
-                BusinessGalaries = user.TravelerCompanyProfile
-                    .travelCompanyBusinessGalaries?
-                    .Select(x => new BusinessGalaryDto
-                    {
-                        Date = x.Date,
-                        Description = x.Description,
-                        Location = x.Location,
-                        PhotoUrl = x.PhotoUrl
-                    }).ToList(),
+                //BusinessGalaries = user.TravelerCompanyProfile
+                //    .travelCompanyBusinessGalaries?
+                //    .Select(x => new BusinessGalaryDto
+                //    {
+                //        Date = x.Date,
+                //        Description = x.Description,
+                //        Location = x.Location,
+                //        PhotoUrl = x.PhotoUrl
+                //    }).ToList(),
 
                 
                         City= user.TravelerCompanyProfile.City,
@@ -203,21 +203,21 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                     .Select(MapComment)
                     .ToList(),
 
-                Likes = post.Likes?
-                    .Select(x => new likesSerive.Query.TemplateuserLikePost
+                Likes = post.Likes?.Select(x => new likesSerive.Query.TemplateuserLikePost
+                {
+                    UserLike = new TemplateUserPost
                     {
-                        UserLike= new TemplateUserPost
-                        {
                         Id = x.UserId,
-                        FullName = x.User.FName+" "+x.User.LName,
-                        PrifleUser = x.User.TravelerProfile != null
-                                    ? x.User.TravelerProfile.PhotoUrl
-                                    : x.User.TourGuideProfile != null
-                                        ? x.User.TourGuideProfile.PhotoUrl
-                                        : null
-                        }
-                        
-                    }).ToList(),
+                        // Use ?. to prevent crash if x.User is null
+                        FullName = x.User != null ? x.User.FName + " " + x.User.LName : "Unknown User",
+
+                        PrifleUser = x.User?.TravelerProfile != null
+                     ? x.User.TravelerProfile.PhotoUrl
+                     : x.User?.TourGuideProfile != null
+                         ? x.User.TourGuideProfile.PhotoUrl
+                         : null
+                    }
+                }).ToList() ?? new List<likesSerive.Query.TemplateuserLikePost>(),
 
                 numLikes = post.Likes?.Count ?? 0
             };
@@ -249,12 +249,52 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
             };
         }
 
-        private static PrivateTemplateTrip MapPrivateTrip(Trip trip)
+        private static TemplateTrip MapPrivateTrip(PublicTrip trip)
         {
-            return new PrivateTemplateTrip
+            return new TemplateTrip
             {
                 Id = trip.Id,
-                Title = trip.Title
+                Title = trip.Title,
+                Price = trip.Price,
+                Destination = trip.Destination,
+                Duration = trip.Duration,
+                StartDate = trip.StartDate,
+                From = trip.From,
+                IncludedPackages = Enum.GetValues(typeof(Package)).Cast<Package>().Where(p => p != Package.None && trip.IncludedPackages.HasFlag(p)).Select(p => (int)p).ToList(),
+                NumberOfMember = trip.CurrentNumberOfMember,
+                TripCategory = trip.TripCategory,
+
+
+                Activities = trip.PublicActivities?.Select(x=>new TemplateActivity
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    DataId = x.DataId,
+                    Description = x.Description,
+                    Destination = x.Destination,
+                    ActivityType = x.ActivityType,
+                    SelectedDay = x.SelectedDay,
+                    Address = x.Address,
+                    EndAt = x.EndAt,
+                    FullPrice = x.FullPrice,
+                    Image = x.Image,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    Phone = x.Phone,
+                    PlaceId = x.PlaceId,
+                    PriceRange = x.PriceRange,
+                    Rating = x.Rating,
+                    Reviews = x.Reviews,
+                    StartAt = x.StartAt,
+                    TripCategory = x.TripCategory,
+                    Website = x.Website,
+                    serviceOption = x.serviceOption?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+    .ToList()
+    ?? new List<string>(),
+                }).ToList(),
+
+
                 // Complete based on your model
             };
         }
@@ -263,7 +303,12 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
         {
             return new BookingTripTemplate
             {
-                Id = booking.Id
+                Id = booking.Id,
+                BookingDate = booking.BookingDate,
+                IsPaid = booking.IsPaid,
+                TotalBookingPrice = booking.TotalBookingPrice,
+                //TripTilte = booking.t
+                
                 // Complete based on your model
             };
         }

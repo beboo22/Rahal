@@ -11,6 +11,8 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
 {
     public class TemplateTrip
     {
+
+        public int CreatedById { get; set; }
         public List<int>? IncludedPackages { get;  set; }
         public int Id { get;  set; }
         public string Title { get;  set; }
@@ -22,10 +24,13 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
 
         public int? NumberOfMember { get;  set; }
         public DateTime? StartDate { get;  set; }
-        public List<TemplateActivity> Activities { get;  set; }
+        public List<TemplateActivity>? Activities { get;  set; }
+        public decimal TravelerFee { get; internal set; }
     }
     public class PrivateTemplateTrip
     {
+
+        public int CreatedById { get; set; }
         public int Id { get;  set; }
         public string Title { get;  set; }
         public string From { get;  set; }
