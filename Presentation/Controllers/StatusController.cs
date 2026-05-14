@@ -6,75 +6,86 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using ApplicationBusiness.Fetures.Authentication.Query.Response;
+using ApplicationBusiness.Fetures.Authentication.Query.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Presentation.Controllers
 {
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Assuming authentication is required since you retrieve User ID
-    public class StatusController : ControllerBase
+    [Authorize]
+    public class StatusController : ApiController
     {
-        private readonly ISender _sender;
-
-        public StatusController(ISender sender)
-        {
-            _sender = sender;
-        }
+        public StatusController(ISender sender) : base(sender) { }
 
         /// <summary>
         /// Creates a new status with an uploaded file.
         /// </summary>
         /// <param name="dto">The status details and file to upload.</param>
-        /// <returns>The created status details.</returns>
-        /// <response code="200">Returns the newly created status.</response>
-        /// <response code="401">If the user is not authenticated.</response>
-        /// <response code="500">If an internal server error occurs during upload or database commit.</response>
         [HttpPost("add")]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateStatus>), 200)]
-        [ProducesResponseType(typeof(ApiResponse), 500)]
+        [ProducesResponseType(typeof(ApiResultResponse<TemplateStatus>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddStatus([FromForm] AddStatusDto dto)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
-            var result = await _sender.Send(new AddStatus(dto, userId.Value));
+            var result = await Sender.Send(new AddStatus(dto, userId.Value));
 
-            return result.statusCode == 200 ? Ok(result) : StatusCode(result.statusCode, result);
+            return ProcessResult(result);
         }
 
         /// <summary>
         /// Deletes a specific status.
         /// </summary>
         /// <param name="id">The ID of the status to delete.</param>
-        /// <returns>A status code indicating success or failure.</returns>
-        /// <response code="200">Status deleted successfully.</response>
-        /// <response code="403">If the user is not the creator of the status.</response>
-        /// <response code="404">If the status ID is not found.</response>
         [HttpDelete("{id:int}")]
-        [ProducesResponseType(typeof(ApiResponse), 200)]
-        [ProducesResponseType(typeof(ApiResponse), 403)]
-        [ProducesResponseType(typeof(ApiResponse), 404)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteStatus(int id)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
-            var result = await _sender.Send(new DeleteStatus(id, userId.Value));
+            var result = await Sender.Send(new DeleteStatus(id, userId.Value));
 
-            return result.statusCode switch
-            {
-                200 => Ok(result),
-                403 => Forbid(),
-                404 => NotFound(result),
-                _ => StatusCode(result.statusCode, result)
-            };
+            return ProcessResult(result);
         }
 
-        private int? GetUserId()
+        /// <summary>
+        /// Retrieves the status of the users that the current user is following.
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(ApiResultResponse<List<TemplateStatusOfFollowing>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetFollowingStatus()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await Sender.Send(new GetStatusForFollowing(userId.Value));
+
+            return ProcessResult(result);
+        }
+        /// <summary>
+        /// Retrieves the status of the users that the current user is following.
+        /// </summary>
+        [HttpGet("view")]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+
+        public async Task<IActionResult> ViewFollowingStatus([FromQuery] int statusId)
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await Sender.Send(new ViewStatus(statusId,userId.Value));
+
+            return ProcessResult(result);
         }
     }
 }

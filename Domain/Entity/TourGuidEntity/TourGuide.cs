@@ -12,7 +12,7 @@ namespace Domain.Entity.TourGuidEntity
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public string PhotoUrl { get; set; }
+        public string? PhotoUrl { get; set; }
         public decimal SalaryPerDay { get; set; }
 
 
@@ -23,7 +23,12 @@ namespace Domain.Entity.TourGuidEntity
         public string? Ssn { get; set; } = null!;
         #endregion
 
-        public ICollection<TourGuideAddress>? tourGuidAddresses {  get; set; }
+
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
+
         public ICollection<TourGuideBusinessGalary>? tourGuidBusinessGalaries { get; set; }
     
         

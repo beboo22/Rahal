@@ -19,8 +19,12 @@ namespace Domain.Entity.TravelerEntity
         public string? Bio { get; set; } = null!;
         public string? Ssn { get; set; } = null!;
         #endregion
-        public ICollection<TrvelerAddress> trvelerAddresses { get; set; }
 
-      
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
+
+
     }
 }

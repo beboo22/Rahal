@@ -133,27 +133,35 @@ namespace ApplicationBusiness.Fetures.TripService.Query
             return new ApiResponse(404, "not found");
         }
 
+
         public async Task<ApiResponse> Handle(GetPubTripSpecQuery request, CancellationToken cancellationToken)
         {
-            // Fetch data using the spec
             var spec = new PublicTripSpecification(request.req);
 
+            // 1. جلب البيانات من القاعدة أولاً (بدون Select معقد) 
+            // تأكد أن GetAllSpec تعيد IQueryable
+            var tripsFromDb = await _repo.GetAllSpec(spec).ToListAsync(cancellationToken);
 
-            var items = await _repo.GetAllSpec(spec).ToListAsync();
+            if (tripsFromDb == null || !tripsFromDb.Any())
+            {
+                return new ApiResponse(404, "No trips found");
+            }
 
-            if (items == null || !items.Any())
-                return new ApiResponse(404);
-
-            // Map to DTO (TemplateTrip)
-            var result = items.Select(x => new TemplateTrip
+            // 2. القيام بعملية الـ Mapping في الذاكرة (In-Memory Mapping)
+            // هنا يمكنك استخدام Split وأي كود C# براحتك لأن البيانات أصبحت في الذاكرة
+            var result = tripsFromDb.Select(x => new TemplateTrip
             {
                 Id = x.Id,
                 Title = x.Title,
                 Destination = x.Destination,
                 Duration = x.Duration,
-                StartDate = x.StartDate ?? DateTime.MinValue, // Handle nullable
+                StartDate = x.StartDate ?? DateTime.MinValue,
                 From = x.From,
-                IncludedPackages = Enum.GetValues(typeof(Package)).Cast<Package>().Where(p => p != Package.None && x.IncludedPackages.HasFlag(p)).Select(p => (int)p).ToList(),
+                IncludedPackages = Enum.GetValues(typeof(Package))
+                    .Cast<Package>()
+                    .Where(p => p != Package.None && x.IncludedPackages.HasFlag(p))
+                    .Select(p => (int)p)
+                    .ToList(),
                 NumberOfMember = x.CurrentNumberOfMember,
                 TripCategory = x.TripCategory,
                 Price = x.Price,
@@ -167,25 +175,27 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                     Image = a.Thumbnail ?? a.Image,
                     SelectedDay = a.SelectedDay,
                     StartAt = a.StartAt,
-                    TripCategory= a.TripCategory,
-                    // ربط بيانات الـ Option المختار
+                    TripCategory = a.TripCategory,
                     PlaceId = a.PlaceId,
                     DataId = a.DataId,
                     ActivityType = a.ActivityType,
                     Latitude = a.Latitude,
                     Longitude = a.Longitude,
-                    Address = a.Address, // الصورة اللي جاية من جوجل
+                    Address = a.Address,
                     Website = a.Website,
                     Phone = a.Phone,
                     Rating = a.Rating,
                     Reviews = a.Reviews,
                     PriceRange = a.PriceRange,
                     Description = a.Description,
-                    serviceOption = a.serviceOption.Split(",").ToList(),
+                    // الـ Split سيعمل هنا بنجاح لأننا في Memory
+                    serviceOption = !string.IsNullOrEmpty(a.serviceOption)
+                        ? a.serviceOption.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                        : new List<string>()
                 }).ToList() ?? new List<TemplateActivity>()
             }).ToList();
 
-            // If ID was requested, you might want to return the single object instead of a list
+            // 3. الإرجاع
             if (request.req.Id.HasValue)
             {
                 return new ApiResultResponse<TemplateTrip>(200, result.First());
@@ -193,6 +203,8 @@ namespace ApplicationBusiness.Fetures.TripService.Query
 
             return new ApiResultResponse<List<TemplateTrip>>(200, result);
         }
+
+
     }
     public class PrivateTripQueryHandler : 
         IQueryHandler<GetPrivateTripforUserId, ApiResponse>,
@@ -244,11 +256,10 @@ namespace ApplicationBusiness.Fetures.TripService.Query
 
         public async Task<ApiResponse> Handle(GetPrivTripSpecQuery request, CancellationToken cancellationToken)
         {
-            // 1. تعريف الـ Specification مرة واحدة عشان نستخدمها
+            // 1. تعريف الـ Specification
             var spec = new PrivateTripSpecification(request.req);
 
-            // 2. جلب البيانات من الداتا بيز
-            // بنستخدم ToListAsync مباشرة لأن الـ Spec جواه الـ Pagination والـ Includes
+            // 2. جلب البيانات من الداتا بيز (In-Memory) لتجنب مشاكل الترجمة (Translation Error)
             var items = await _repo
                 .GetAllSpec(spec)
                 .ToListAsync(cancellationToken);
@@ -256,26 +267,25 @@ namespace ApplicationBusiness.Fetures.TripService.Query
             // 3. التحقق من وجود بيانات
             if (items == null || !items.Any())
             {
-                return new ApiResponse(404);
+                return new ApiResponse(404, "No private trips found");
             }
 
-            // 4. لو المستخدم باعت Id محدد، نرجع عنصر واحد بس في الـ Response
+            // 4. معالجة البيانات وإرجاع الـ Response
             if (request.req.Id.HasValue)
             {
-                var item = items.First(); // لأنه كده كده هيرجع عنصر واحد بسبب الـ Id
+                var item = items.FirstOrDefault(); // استخدام FirstOrDefault أضمن
+                if (item == null) return new ApiResponse(404);
 
-                // تحويل العنصر لـ DTO (PrivateTemplateTrip)
                 var singleResult = MapToPrivateTemplateTrip(item);
                 return new ApiResultResponse<PrivateTemplateTrip>(200, singleResult);
             }
 
-            // 5. في حالة البحث العام (Search Flow) بنرجع List
+            // في حالة البحث العام بنرجع List
             var resultList = items.Select(x => MapToPrivateTemplateTrip(x)).ToList();
-
             return new ApiResultResponse<List<PrivateTemplateTrip>>(200, resultList);
         }
 
-        // دالة مساعدة (Helper Method) للـ Mapping عشان الكود يبقى نضيف وميتكررش
+        // دالة الـ Mapping المصلحة
         private PrivateTemplateTrip MapToPrivateTemplateTrip(PrivateTrip x)
         {
             return new PrivateTemplateTrip
@@ -288,7 +298,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                 From = x.From,
                 TripCategory = x.TripCategory,
                 Price = x.Price,
-                // تأكد إن PrivateActivities مش null قبل الـ Select
+
                 Activities = x.PrivateActivities?.Select(a => new TemplateActivity
                 {
                     Id = a.Id,
@@ -305,17 +315,62 @@ namespace ApplicationBusiness.Fetures.TripService.Query
                     ActivityType = a.ActivityType,
                     Latitude = a.Latitude,
                     Longitude = a.Longitude,
-                    Address = a.Address, // الصورة اللي جاية من جوجل
+                    Address = a.Address,
                     Website = a.Website,
                     Phone = a.Phone,
                     Rating = a.Rating,
                     Reviews = a.Reviews,
                     PriceRange = a.PriceRange,
                     Description = a.Description,
-                    serviceOption = a.serviceOption.Split(",").ToList(),
+                    // تصحيح مشكلة الـ Split والـ Null
+                    serviceOption = !string.IsNullOrEmpty(a.serviceOption)
+                        ? a.serviceOption.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                        : new List<string>()
                 }).ToList() ?? new List<TemplateActivity>()
             };
         }
+        // دالة مساعدة (Helper Method) للـ Mapping عشان الكود يبقى نضيف وميتكررش
+        //private PrivateTemplateTrip MapToPrivateTemplateTrip(PrivateTrip x)
+        //{
+        //    return new PrivateTemplateTrip
+        //    {
+        //        Id = x.Id,
+        //        Title = x.Title,
+        //        Destination = x.Destination,
+        //        Duration = x.Duration,
+        //        StartDate = x.StartDate,
+        //        From = x.From,
+        //        TripCategory = x.TripCategory,
+        //        Price = x.Price,
+        //        // تأكد إن PrivateActivities مش null قبل الـ Select
+        //        Activities = x.PrivateActivities?.Select(a => new TemplateActivity
+        //        {
+        //            Id = a.Id,
+        //            TripCategory = a.TripCategory,
+        //            Destination = a.Destination,
+        //            EndAt = a.EndAt,
+        //            FullPrice = a.FullPrice,
+        //            Image = a.Image,
+        //            SelectedDay = a.SelectedDay,
+        //            StartAt = a.StartAt,
+        //            Title = a.Title,
+        //            PlaceId = a.PlaceId,
+        //            DataId = a.DataId,
+        //            ActivityType = a.ActivityType,
+        //            Latitude = a.Latitude,
+        //            Longitude = a.Longitude,
+        //            Address = a.Address, // الصورة اللي جاية من جوجل
+        //            Website = a.Website,
+        //            Phone = a.Phone,
+        //            Rating = a.Rating,
+        //            Reviews = a.Reviews,
+        //            PriceRange = a.PriceRange,
+        //            Description = a.Description,
+        //            serviceOption = a.serviceOption.Split(",").ToList(),
+        //        }).ToList() ?? new List<TemplateActivity>()
+        //    };
+        //}
+    
     }
 
 

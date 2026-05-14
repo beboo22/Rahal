@@ -18,37 +18,47 @@ namespace Presentation.Controllers
     {
         public CommentController(ISender sender) : base(sender) { }
 
+        /// <summary>
+        /// Adds a comment to an Experience post.
+        /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<TemplateComment>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpPost("commentToExperience")]
-        public async Task<IActionResult> AddCommnet([FromForm] int postId,string msg)
+        public async Task<IActionResult> AddCommnet([FromForm] int postId, string msg)
         {
-            var result = await Sender.Send(new AddcommentToExperiencePost(postId, 
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await Sender.Send(new AddcommentToExperiencePost(postId,
                 new ApplicationBusiness.Dtos.Post.CommnetDto
                 {
-                 UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
-                 Msg = msg
+                    UserId = userId.Value,
+                    Msg = msg
                 }));
-            return Ok(result);
+
+            return ProcessResult(result);
         }
 
+        /// <summary>
+        /// Adds a comment to a Hiring post.
+        /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<TemplateComment>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-        [HttpPost("/commentToHiring")]
+        [HttpPost("/commentToHiring")] // Note: Leading slash makes this an absolute path (api/commentToHiring)
         public async Task<IActionResult> AddCommnetHiring([FromForm] int postId, string msg)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             var result = await Sender.Send(new AddcommentToHiringPost(postId,
                 new ApplicationBusiness.Dtos.Post.CommnetDto
                 {
-                    UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
+                    UserId = userId.Value,
                     Msg = msg
                 }));
-            return Ok(result);
+
+            return ProcessResult(result);
         }
-
-
-
     }
+
 }

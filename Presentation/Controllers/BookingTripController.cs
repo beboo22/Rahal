@@ -16,59 +16,54 @@ namespace Presentation.Controllers
     [ApiController]
     public class BookingTripController : ApiController
     {
-        public BookingTripController(ISender sender): base(sender)
-        {
-        }
+        public BookingTripController(ISender sender) : base(sender) { }
 
-        // GET: api/<BookingTripController>
+        // GET: api/BookingTrip
         [ProducesResponseType(typeof(ApiResultResponse<List<BookingTripTemplate>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var res = await Sender.Send(new GetAllBooking());
-            return Ok(res);
+            return ProcessResult(res);
         }
-        // GET api/<BookingTripController>/5
+
+        // GET: api/BookingTrip/5
         [ProducesResponseType(typeof(ApiResultResponse<BookingTripTemplate>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
             var res = await Sender.Send(new GetBookingById(id));
-            return Ok(res);
+            return ProcessResult(res);
         }
-        // POST api/<BookingTripController>//UserId/TripId
+
         /// <summary>
-        /// Creates a new trip.
+        /// Books a new trip for the current user.
         /// </summary>
-        /// <response code="201">Returns the created trip ID and message</response>
-        [ProducesResponseType(typeof(ApiResultResponse<BookingTripTemplate>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TourGuide,Traveler")]
-
-        public async Task<IActionResult> Post(int UserId, int TripId, int? HotelId, int? flightId)
-        {
-            var result = await Sender.Send(new BookTrip(UserId, TripId,HotelId,flightId));
-            return Ok(result);
-        }
         [ProducesResponseType(typeof(ApiResultResponse<BookingTripTemplate>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Post(int TripId, int? HotelId, int? flightId)
+        {
+            var userId = GetUserId();
+            if (userId == null)
+                return Unauthorized(new ApiResponse(401));
+
+            // Use userId from the token instead of the parameter for better security
+            var result = await Sender.Send(new BookTrip(userId.Value, TripId, HotelId, flightId));
+
+            return ProcessResult(result);
+        }
+
+        /// <summary>
+        /// Cancels/Deletes a trip booking.
+        /// </summary>
         [HttpDelete("cancel")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TourGuide,Traveler")]
-
+        [ProducesResponseType(typeof(ApiResultResponse<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(int BookingId)
         {
             var result = await Sender.Send(new DeleteBookTrip(BookingId));
-            return Ok(result);
+            return ProcessResult(result);
         }
     }
 }

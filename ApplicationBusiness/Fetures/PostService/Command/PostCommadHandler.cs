@@ -116,10 +116,10 @@ namespace ApplicationBusiness.Fetures.PostService.Command
 
         private IWriteUnitOfWork _uow { get; set; }
 
-        private IWriteGenericRepo<ExperiencePost> _WPR;
+        private IWriteExPostRepo _WPR;
         private ICloudinaryService _cloudinaryService;
         private IReadGenericRepo<ExperiencePost> _RPR;
-        public ExperiencePostCommadHandler(IWriteUnitOfWork uow, IWriteGenericRepo<ExperiencePost> wPR, IReadGenericRepo<ExperiencePost> rPR, ICloudinaryService cloudinaryService)
+        public ExperiencePostCommadHandler(IWriteUnitOfWork uow, IWriteExPostRepo wPR, IReadGenericRepo<ExperiencePost> rPR, ICloudinaryService cloudinaryService)
         {
             _uow = uow;
             _WPR = wPR;
@@ -169,8 +169,6 @@ namespace ApplicationBusiness.Fetures.PostService.Command
                     return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't UpdatePost Bec. he is not the create it");
                 post.Country = request.dto.Country;
                 post.City = request.dto.City;
-                //post.Budget = request.dto.Budget;
-                //post.TipsAndRecommendations = request.dto.TipsAndRecommendations;
                 post.CreatedById = request.createdBy;
                 post.Description = request.dto.Description;
                 post.Title = request.dto.Title;

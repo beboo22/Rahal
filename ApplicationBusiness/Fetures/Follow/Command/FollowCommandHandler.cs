@@ -54,7 +54,7 @@ namespace ApplicationBusiness.Fetures.Follow.Command
                 );
             }
             var isAlreadyFollowing = await Sender.Send(new IsFollowingQuery(request.Follower, request.person));
-            if (isAlreadyFollowing.statusCode == 404)
+            if (isAlreadyFollowing.statusCode != 404)
                 return new ApiResponse(409, "Already following");
             try
             {

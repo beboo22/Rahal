@@ -1,6 +1,7 @@
 ﻿using Application.Abstraction.spacification;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Entity.TripEntity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace ApplicationBusiness.Abstraction.spacification
             {
                 crateria = x => x.Id == filter.Id.Value;
 
-                includes.Add(x => x.PublicActivities);
+                AddIncludeChain(query => query.Include(x => x.PublicActivities));
                 return;
             }
 
@@ -81,7 +82,8 @@ namespace ApplicationBusiness.Abstraction.spacification
 
             // optional safe includes:
             //includes.Add(x => (x as PublicTrip).PublicActivities);
-            includes.Add(x => x.PublicActivities);
+            AddIncludeChain(query => query.Include(x => x.PublicActivities));
+            AddIncludeChain(query => query.Include(x => x.CreatedBy));
             //includes.Add(x => (x as PrivateTrip).PrivateActivities);
             // --------------------
             // Ordering & paging
@@ -98,7 +100,7 @@ namespace ApplicationBusiness.Abstraction.spacification
             }
         }
     }
-    
+
     public class PrivateTripSpecification : Specification<PrivateTrip>
     {
         public PrivateTripSpecification(TripFilter filter)
@@ -120,8 +122,9 @@ namespace ApplicationBusiness.Abstraction.spacification
 
                 // optional safe includes:
                 //includes.Add(x => (x as PublicTrip).PublicActivities);
-                includes.Add(x => x.PrivateActivities);
-                
+                AddIncludeChain(query => query.Include(x => x.PrivateActivities));
+
+
                 return;
             }
 
@@ -177,10 +180,11 @@ namespace ApplicationBusiness.Abstraction.spacification
             // --------------------
             // Includes (IMPORTANT)
             // --------------------
-            includes.Add(x => x.CreatedBy);
+            AddIncludeChain(query => query.Include(x => x.CreatedBy));
 
             // optional safe includes:
             //includes.Add(x => (x as PublicTrip).PublicActivities);
+            AddIncludeChain(query => query.Include(x => x.PrivateActivities));
             includes.Add(x => x.PrivateActivities);
             // --------------------
             // Ordering & paging
@@ -197,6 +201,7 @@ namespace ApplicationBusiness.Abstraction.spacification
 
         }
     }
+
     public class TripFilter
     {
         public int? Id { get; set; }
@@ -206,10 +211,10 @@ namespace ApplicationBusiness.Abstraction.spacification
         public int? Duration { get; set; }
         public TripCategory? TripCategory { get; set; }
 
-        public bool  OrderDesBytimeCreated { get; set; }
+        public bool OrderDesBytimeCreated { get; set; }
 
-        public decimal? MinPrice { get;  set; }
-        public decimal? MaxPrice { get;  set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
         public int? PageIndex { get; set; } = 1;
         public int? PageSize { get; set; } = 5;
     }

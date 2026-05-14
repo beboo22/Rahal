@@ -51,23 +51,10 @@ namespace InfraStructure.Impelementation
             }
         }
 
-        public async Task DeleteAsync(int id)
+        public async virtual Task DeleteAsync(int id)
         {
-            T entity = typeof(T) switch
-            {
-                var t when t == typeof(HiringPost) =>
-                    (T)(object)await _context.Set<HiringPost>()
-                        .Include(p => p.Comments)
-                        .FirstOrDefaultAsync(p => p.Id == id),
-
-                var t when t == typeof(ExperiencePost) =>
-                    (T)(object)await _context.Set<ExperiencePost>()
-                        .Include(p => p.Comments)
-                        .FirstOrDefaultAsync(p => p.Id == id),
-
-                _ => await _context.Set<T>().FindAsync(id)
-            };
-
+            
+            T entity = await _context.Set<T>().FindAsync(id);
             if (entity == null)
                 throw new KeyNotFoundException($"Entity with Id {id} not found.");
 

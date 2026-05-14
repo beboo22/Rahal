@@ -44,6 +44,8 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
 
             var result = new TemplateGenericProfile
             {
+                Fname = user.FName,
+                Lname = user.LName,
                 Traveler = UserTemplateMapper.MapTraveler(user),
                 TourGuide = UserTemplateMapper.MapTourGuide(user),
                 TravelCompany = UserTemplateMapper.MapTravelCompany(user)
@@ -58,33 +60,40 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
 
         public async Task<ApiResponse> Handle(GetStatusForFollowing request, CancellationToken cancellationToken)
         {
-            // 1. هنجيب اليوزر الحالي ونمشي في سكة الـ Following بتاعته
-            var followingsStatuses = await _readGenericRepo.GetAll()
+            // 1. هنجيب الـ Ids بتاعة الناس اللي اليوزر ده متابعهم الأول
+            // ده بيضمن إننا ماسكين الـ IDs الصح
+            var followingIds = await _readGenericRepo.GetAll()
                 .Where(x => x.Id == request.userId)
-                .SelectMany(x => x.Following) // دخلنا جوه لستة الناس اللي هو متابعهم
-                .Select(f => new TemplateStatusOfFollowing
-                {
-                    // بيانات الشخص اللي أنا متابعه
-                    UserName = $"{f.Following.FName} {f.Following.LName}",
-                    UserPhoto = f.Following.TravelerProfile != null
-                                ? f.Following.TravelerProfile.PhotoUrl
-                                : f.Following.TourGuideProfile.PhotoUrl,
-
-                    // هنا بقى بنجيب الـ Statuses بتاعة الشخص ده بس
-                    UserStatus = f.Following.StatusUsers
-                                    .Select(su => new StatusViewModel
-                                    {
-                                        Title = su.Status.Title,
-                                        ItemUrl = su.Status.ItemUrl,
-                                        CreatedAt = su.Status.CreatedAt // يفضل يكون عندك تاريخ عشان ترتبهم
-                                    }).ToList()
-                })
+                .SelectMany(x => x.Following.Select(f => f.FollowingId)) // FollowingId هو الـ FK للشخص المتابع
                 .ToListAsync(cancellationToken);
 
-            if (!followingsStatuses.Any())
+            if (!followingIds.Any())
                 return new ApiResponse(404);
 
-            return new ApiResultResponse<List<TemplateStatusOfFollowing>>(200,followingsStatuses);
+            // 2. دلوقتي هنجيب الـ Statuses بتاعة الـ IDs دي مباشرة
+            // هنستخدم الـ Context بتاع الـ Status عشان نضمن إن الداتا تيجي
+            var followingsStatuses = await _readGenericRepo.GetAll() // أو استخدم ريبو اليوزر عادي
+                .Where(u => followingIds.Contains(u.Id))
+                .Select(u => new TemplateStatusOfFollowing
+                {
+                    UserName = $"{u.FName} {u.LName}",
+                    UserPhoto = u.TravelerProfile != null
+                                ? u.TravelerProfile.PhotoUrl
+                                : (u.TourGuideProfile != null ? u.TourGuideProfile.PhotoUrl : null),
+
+                    UserStatus = u.Status
+                        .Select(su => new StatusViewModel
+                        {
+                            Id = su.Id,
+                            Title = su.Title,
+                            ItemUrl = su.ItemUrl,
+                            CreatedAt = su.CreatedAt
+                        }).ToList()
+                })
+                //.Where(x => x.UserStatus.Any()) // عشان مترجعش يوزرز ملهومش ستاتس حالياً
+                .ToListAsync(cancellationToken);
+
+            return new ApiResultResponse<List<TemplateStatusOfFollowing>>(200, followingsStatuses);
         }
     }
 }

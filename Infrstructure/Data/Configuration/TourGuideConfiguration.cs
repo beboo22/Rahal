@@ -34,10 +34,10 @@ namespace Infrstructure.Data.Configuration
                    .WithOne(u => u.TourGuideProfile)
                    .HasForeignKey<TourGuide>(tg => tg.UserId).OnDelete(DeleteBehavior.Cascade);// to ensure that when a User is deleted, the associated TourGuide is also deleted.
 
-            builder.HasMany(tg => tg.tourGuidAddresses)
-                   .WithOne(a => a.TourGuide)
-                   .HasForeignKey(a => a.TourGuideId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(tg => tg.tourGuidAddresses)
+            //       .WithOne(a => a.TourGuide)
+            //       .HasForeignKey(a => a.TourGuideId)
+            //       .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(tg => tg.tourGuidBusinessGalaries)
                    .WithOne(bg => bg.TourGuid)

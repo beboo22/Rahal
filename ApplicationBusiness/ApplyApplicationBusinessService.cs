@@ -6,6 +6,7 @@ using ApplicationBusiness.Abstraction.CloudinaryService;
 using ApplicationBusiness.Abstraction.SerpApiService.Activity;
 using ApplicationBusiness.Configuration;
 using ApplicationBusiness.Fetures.PaymentService.Strategies;
+using ApplicationBusiness.RealTimeservice;
 using ApplicationBusiness.RealTimeservice.ChatService;
 using ApplicationBusiness.service;
 using Infrastructure.Abestraction;
@@ -66,8 +67,8 @@ namespace ApplicationBusiness
             services.AddScoped<PaymentHandlerFactory>();
             services.AddSignalR(options =>
             {
-                // optional configuration
-            }).AddHubOptions<ChatHub>(options =>
+                options.EnableDetailedErrors = true;
+            }).AddHubOptions<AppHub>(options =>
             {
                 // nothing special needed here yet
             });

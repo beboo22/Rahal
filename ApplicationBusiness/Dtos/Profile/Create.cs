@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Dtos.Profile
 {
     public class CreateTourGuideProfileDto
     {
-        public string Photo { get; set; }
+        public IFormFile Photo { get; set; }
 
         public decimal SalaryPerDay { get; set; }
 
@@ -24,14 +27,14 @@ namespace ApplicationBusiness.Dtos.Profile
 
         public string Bio { get; set; }
         public string Ssn { get; set; }
-        public List<Adress> Adresses { get; set; }
-        public BusinessGalary BusinessGalaries { get; set; }
+        //public List<Adress> Adresses { get; set; }
+        //public BusinessGalary BusinessGalaries { get; set; }
         #endregion
     }
 
     public class CreateTravelerProfileDto
     {
-        public string Photo { get; set; }
+        public IFormFile Photo { get; set; }
 
         #region verification
         //// Incoming files from client
@@ -44,12 +47,16 @@ namespace ApplicationBusiness.Dtos.Profile
 
         public string Bio { get; set; }
         public string Ssn { get; set; }
-        public List<Adress> Adresses { get; set; }
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
         #endregion
     }
+    
     public class CreateTravelerCompanyProfileDto
     {
-        public string Photo { get; set; }
+        public IFormFile Photo { get; set; }
 
         #region verification
         //// Incoming files from client
@@ -62,8 +69,8 @@ namespace ApplicationBusiness.Dtos.Profile
 
         public string Bio { get; set; }
         public string Ssn { get; set; }
-        public List<Adress> Adresses { get; set; }
-        public BusinessGalary BusinessGalaries { get; set; }
+        //public List<Adress> Adresses { get; set; }
+        //public BusinessGalary BusinessGalaries { get; set; }
         #endregion
     }
     

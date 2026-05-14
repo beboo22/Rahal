@@ -61,7 +61,14 @@ namespace ApplicationBusiness.RealTimeservice
 
         public async Task SendMessage(string receiverId, string message)
         {
-            var senderId = Context.UserIdentifier!;
+            //var senderId = Context.UserIdentifier!;
+            var senderId = Context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+                   ?? Context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(senderId))
+            {
+                throw new HubException("User ID not found in token.");
+            }
 
             var chatMessage = await _chatService.SaveMessageAsync(senderId, receiverId, message);
 
@@ -94,4 +101,5 @@ namespace ApplicationBusiness.RealTimeservice
             }
         }
     }
+
 }

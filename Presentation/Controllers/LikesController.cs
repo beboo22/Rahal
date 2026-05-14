@@ -20,31 +20,34 @@ namespace Presentation.Controllers
     public class LikesController : ApiController
     {
         public LikesController(ISender sender) : base(sender) { }
+
+        /// <summary>
+        /// Adds or updates a like/reaction on a post.
+        /// </summary>
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpPost("Likes")]
         public async Task<IActionResult> AddLike([FromForm] int postId, LikeType likeType)
         {
-            var result = await Sender.Send(new AddLike(postId, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),likeType));
-            return Ok(result);
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await Sender.Send(new AddLike(postId, userId.Value, likeType));
+
+            return ProcessResult(result);
         }
-        
-        
+
+        /// <summary>
+        /// Retrieves a list of users who liked a specific post.
+        /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<List<TemplateuserLikePost>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         [HttpGet("WhoLikes")]
         public async Task<IActionResult> GetLike([FromQuery] int postId)
         {
             var result = await Sender.Send(new GetUserLikeToPost(postId));
-            return Ok(result);
+
+            return ProcessResult(result);
         }
-
-
-
-
-
-
     }
 }

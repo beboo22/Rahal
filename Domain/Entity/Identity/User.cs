@@ -11,6 +11,7 @@ namespace Domain.Entity.Identity
 
     public class User : BaseEntity
     {
+        public ICollection<Domain.Entity.Status.Status> Status { get; set; }
         public ICollection<StatusUser> StatusUsers { get; set; }
         [Required]
         public string FName { get; set; } = null!;

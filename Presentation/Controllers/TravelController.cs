@@ -27,209 +27,75 @@ namespace Presentation.Controllers
     [Produces("application/json")]
     public class TravelController : ApiController
     {
-
         public TravelController(ISender sender) : base(sender) { }
 
-      
-
-        /// <summary>Search for available flights.</summary>
+        /// <summary>
+        /// Search for available flights via external providers.
+        /// </summary>
         [HttpPost("flights/search")]
-        [ProducesResponseType(typeof(ApiResultResponse<FlightSearchResponse>), 200)]
-        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        [ProducesResponseType(typeof(ApiResultResponse<FlightSearchResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchFlights(
             [FromBody] FlightSearchRequest request,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(
-             new SearchFlightOrchestratorQuery(request));
-
-            return StatusCode(result.statusCode, result);
-
+            var result = await Sender.Send(new SearchFlightOrchestratorQuery(request), cancellationToken);
+            return ProcessResult(result);
         }
 
-        /// <summary>Search for available hotels.</summary>
+        /// <summary>
+        /// Search for available hotels via external providers.
+        /// </summary>
         [HttpPost("hotels/search")]
-        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), 200)]
-        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchHotels(
             [FromBody] HotelSearchRequest request,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(
-            new HotelSearchOrchestratorQuery(request),
-            cancellationToken);
-
-            return StatusCode(result.statusCode, result);
+            var result = await Sender.Send(new HotelSearchOrchestratorQuery(request), cancellationToken);
+            return ProcessResult(result);
         }
-        /// <summary>Search for available hotels.</summary>
+
+        /// <summary>
+        /// Retrieves hotel history or filtered hotel listings from the database.
+        /// </summary>
         [HttpGet("hotels/search")]
-        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), 200)]
-        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetHotels(
             [FromQuery] HotelHistoryFilter request,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(
-            new GetHotelsspecQuery(request),
-            cancellationToken);
-
-            return StatusCode(result.statusCode, result);
+            var result = await Sender.Send(new GetHotelsspecQuery(request), cancellationToken);
+            return ProcessResult(result);
         }
-        /// <summary>Search for available hotels.</summary>
+
+        /// <summary>
+        /// Retrieves flight history or filtered flight offers from the database.
+        /// </summary>
         [HttpGet("flight/search")]
-        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), 200)]
-        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        [ProducesResponseType(typeof(ApiResultResponse<HotelSearchResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetFlights(
             [FromQuery] FlightHistoryFilter request,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(
-            new GetFlightOffer(request),
-            cancellationToken);
-
-
-
-
-            return StatusCode(result.statusCode, result);
+            var result = await Sender.Send(new GetFlightOffer(request), cancellationToken);
+            return ProcessResult(result);
         }
-        
-        
-        
-        
-        
-        
-        /// <summary>Search for available hotels.</summary>
+
+        /// <summary>
+        /// Search for destination photos.
+        /// </summary>
         [HttpPost("Photo/search")]
-        [ProducesResponseType(typeof(ApiResultResponse<PhotoSearchResponse>), 200)]
-        [ProducesResponseType(typeof(ApiResultResponse<object>), 400)]
+        [ProducesResponseType(typeof(ApiResultResponse<PhotoSearchResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchPhoto(
             [FromBody] SearchPhotoReq request,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(
-            new PhotoSearchOrchestratorQuery(request),
-            cancellationToken);
-
-            return StatusCode(result.statusCode, result);
+            var result = await Sender.Send(new PhotoSearchOrchestratorQuery(request), cancellationToken);
+            return ProcessResult(result);
         }
-
-        ///// <summary>Retrieve flight search history.</summary>
-        //[HttpGet("flights/history")]
-        //[ProducesResponseType(typeof(ApiResultResponse<object>), 200)]
-        //public async Task<IActionResult> GetFlightHistory(
-        //    [FromQuery] FlightHistoryFilter filter,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var spec = new FlightSearchHistorySpecification(filter);
-        //    var items = await _flightHistoryRepo.ListAsync(spec, cancellationToken);
-        //    var count = await _flightHistoryRepo.CountAsync(spec, cancellationToken);
-
-        //    var pagination = new PaginationMeta
-        //    {
-        //        PageIndex = filter.PageIndex,
-        //        PageSize = filter.PageSize,
-        //        TotalCount = count
-        //    };
-
-        //    return Ok(new ApiResultResponse<object>(200, new
-        //    {
-        //        pagination = pagination,
-        //        items = items
-        //    }, "Flight history retrieved."));
-        //}
-
-        /// <summary>Retrieve hotel search history.</summary>
-        //[HttpGet("hotels/history")]
-        //[ProducesResponseType(typeof(ApiResultResponse<object>), 200)]
-        //public async Task<IActionResult> GetHotelHistory(
-        //    [FromQuery] HotelHistoryFilter filter,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var spec = new HotelSearchHistorySpecification(filter);
-        //    var items = await _hotelHistoryRepo.ListAsync(spec, cancellationToken);
-        //    var count = await _hotelHistoryRepo.CountAsync(spec, cancellationToken);
-
-        //    var pagination = new PaginationMeta
-        //    {
-        //        PageIndex = filter.PageIndex,
-        //        PageSize = filter.PageSize,
-        //        TotalCount = count
-        //    };
-
-        //    return Ok(new ApiResultResponse<object>(200, new
-        //    {
-        //        pagination = pagination,
-        //        items = items
-        //    }, "Hotel history retrieved."));
-        //}
-
-        // ─────────── Private Helpers ───────────
-
-
-
-
-
     }
-
-
-
-
-
-    //[ApiController]
-    //[Route("api/cache")]
-    //public class CacheTestController : ControllerBase
-    //{
-
-    //    private readonly IDistributedCache _cache;
-
-    //    public CacheTestController(IDistributedCache cache)
-    //    {
-    //        _cache = cache;
-    //    }
-
-    //    [HttpPost("set")]
-    //    public async Task<IActionResult> SetCache(string key, string value)
-    //    {
-    //        await _cache.SetStringAsync(
-    //            key,
-    //            value,
-    //            new DistributedCacheEntryOptions
-    //            {
-    //                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-    //            });
-
-    //        return Ok(new
-    //        {
-    //            success = true,
-    //            message = "Cache saved successfully",
-    //            key,
-    //            value
-    //        });
-    //    }
-
-    //    [HttpGet("get")]
-    //    public async Task<IActionResult> GetCache(string key)
-    //    {
-    //        var value = await _cache.GetStringAsync(key);
-
-    //        if (value is null)
-    //        {
-    //            return NotFound(new
-    //            {
-    //                success = false,
-    //                message = "Cache key not found"
-    //            });
-    //        }
-
-    //        return Ok(new
-    //        {
-    //            success = true,
-    //            key,
-    //            value
-    //        });
-    //    }
-    //}
-
 
 
 

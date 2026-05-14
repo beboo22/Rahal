@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApplicationBusiness.Dtos.Profile
+namespace ApplicationBusiness.Fetures.StatusService.Qurey
 {
+    internal class StatusQueryHandler
+    {
+    }
 }

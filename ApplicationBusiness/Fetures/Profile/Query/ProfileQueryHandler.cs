@@ -111,13 +111,10 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                 SalaryPerDay = item.SalaryPerDay,
                                 Ssn = item.Ssn,
                                 Bio = item.Bio,
-                                Adresses = item.tourGuidAddresses.Select(s => new Dtos.Profile.Adress
-                                {
-                                    City = s.City,
-                                    Country = s.Country,
-                                    BuildingNumber = s.BuildingNumber,
-                                    Street = s.Street,
-                                }).ToList(),
+                                    City = item.City,
+                                    Country = item.Country,
+                                    BuildingNumber = item.BuildingNumber,
+                                    Street = item.Street,
                                 BusinessGalaries = item.tourGuidBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
                                 {
                                     Date = s.Date,
@@ -189,7 +186,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                     UserPost = new TemplateUserPost
                                     {
                                         Id = p.CreatedBy.Id,
-                                        PrifleUser = p.PhotoUrl,
+                                        PrifleUser = item.PhotoUrl,
 
                                         FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
                                     },
@@ -207,7 +204,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                         {
                                             Id = c.User.Id,
                                             FullName = c.User.FName + " " + c.User.LName,
-                                            PrifleUser = p.PhotoUrl,
+                                            PrifleUser = item.PhotoUrl,
                                         },
                                         IsEdited = c.IsEdited,
                                         Msg = c.Msg,
@@ -216,13 +213,10 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                                 }).ToList(),
                                 Ssn = item.Ssn,
                                 Bio = item.Bio,
-                                Adresses = item.trvelerAddresses.Select(s => new Dtos.Profile.Adress
-                                {
-                                    City = s.City,
-                                    Country = s.Country,
-                                    BuildingNumber = s.BuildingNumber,
-                                    Street = s.Street,
-                                }).ToList(),
+                                BuildingNumber = item.BuildingNumber,
+                                City = item.City,
+                                Street = item.Street,
+                                Country = item.Country,
                             })
                             .FirstOrDefaultAsync();
             if (temp == null)
@@ -283,7 +277,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                         {
                             Id = p.CreatedBy.Id,
                             PrifleUser =
-                            p.PhotoUrl,
+                            item.PhotoUrl,
 
                             FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
                         },
@@ -301,7 +295,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             {
                                 Id = c.User.Id,
                                 FullName = c.User.FName + " " + c.User.LName,
-                                PrifleUser = p.PhotoUrl,
+                                PrifleUser = item.PhotoUrl,
                             },
                             IsEdited = c.IsEdited,
                             Msg = c.Msg,
@@ -309,13 +303,10 @@ namespace ApplicationBusiness.Fetures.Profile.Query
 
                     }).ToList(),
                     Ssn = item.Ssn,
-                    Adresses = item.traveleCompanyAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        City = s.City,
-                        Country = s.Country,
-                        BuildingNumber = s.BuildingNumber,
-                        Street = s.Street,
-                    }).ToList(),
+                    BuildingNumber = item.BuildingNumber,
+                    City = item.City,
+                    Street = item.Street,
+                    Country = item.Country,
                     Bio = item.Bio,
                     BusinessGalaries = item.travelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
                     {

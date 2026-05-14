@@ -1,6 +1,7 @@
 ﻿using Application.Abstraction.Specification;
 using Domain.Entity.Hotel_flights;
 using Domain.Entity.Identity;
+using Domain.Entity.PostEntity;
 using Domain.Entity.Status;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,12 @@ namespace Domain.Abstraction
     {
         Task<bool> ExistsAsync(int UserId,int StatusId);
     }
+    public interface IWriteExPostRepo : IWriteGenericRepo<ExperiencePost>
+    {
+    }
+    //public interface IWriteHirPostRepo : IWriteGenericRepo<HiringPost>
+    //{
+    //}
 
     public interface IWriteFlightSearchHistoryRepository: IWriteGenericRepo<FlightSearchHistory> 
     {

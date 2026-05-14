@@ -47,15 +47,12 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                         PhotoUrl = x.PhotoUrl
                     }).ToList(),
 
-                Adresses = user.TourGuideProfile
-                    .tourGuidAddresses.Select(x => new Adress
-                    {
-                        City = x.City,
-                        Country = x.Country,
-                        BuildingNumber = x.BuildingNumber,
-                        Street = x.Street,
-                    })
-                    .ToList(),
+                
+                        City = user.TourGuideProfile.City,
+                        Country = user.TourGuideProfile.Country,
+                        BuildingNumber = user.TourGuideProfile.BuildingNumber,
+                        Street = user.TourGuideProfile.Street,
+                  
 
                 ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()
@@ -75,13 +72,10 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 PhotoUrl = user.TravelerProfile.PhotoUrl,
                 Bio = user.TravelerProfile.Bio,
                 Ssn = user.TravelerProfile.Ssn,
-                Adresses = user.TravelerProfile.trvelerAddresses? .Select(x => new Adress
-                {
-                    City = x.City,
-                    Country = x.Country,
-                    BuildingNumber = x.BuildingNumber,
-                    Street = x.Street,
-                }).ToList(),
+                    City = user.TravelerProfile.City,
+                    Country = user.TravelerProfile.Country,
+                    BuildingNumber = user.TravelerProfile.BuildingNumber,
+                    Street = user.TravelerProfile.Street,
 
                 ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()
@@ -107,22 +101,25 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
 
             return new TemplateTokenTraveler
             {
+                profile = new TemplateTraveler
+                {
+
                 Id = user.Id,
                 PhotoUrl = user.TravelerProfile.PhotoUrl,
                 Bio = user.TravelerProfile.Bio,
                 Ssn = user.TravelerProfile.Ssn,
-                Adresses = user.TravelerProfile.trvelerAddresses?.Select(x => new Adress
-                {
-                    City = x.City,
-                    Country = x.Country,
-                    BuildingNumber = x.BuildingNumber,
-                    Street = x.Street,
-                }).ToList(),
+                    City = user.TravelerCompanyProfile.City,
+                    Country = user.TravelerCompanyProfile.Country,
+                    BuildingNumber = user.TravelerCompanyProfile.BuildingNumber,
+                    Street = user.TravelerCompanyProfile.Street,
 
-                ExperiencePostTemplates = user.Posts?
+
+
+                    ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()
                     .Select(MapExperiencePost)
                     .ToList(),
+                }
 
                 //PrivateTrips = user.CreatedTrips?
                 //    .Select(MapPrivateTrip)
@@ -154,15 +151,12 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                         PhotoUrl = x.PhotoUrl
                     }).ToList(),
 
-                Adresses = user.TravelerCompanyProfile
-                    .traveleCompanyAddresses?.Select(x=>new Adress
-                    {
-                        City= x.City,
-                        Country =x.Country,
-                        BuildingNumber = x.BuildingNumber,
-                        Street = x.Street,
-                    })
-                    .ToList(),
+                
+                        City= user.TravelerCompanyProfile.City,
+                        Country =user.TravelerCompanyProfile.Country,
+                        BuildingNumber = user.TravelerCompanyProfile.BuildingNumber,
+                        Street = user.TravelerCompanyProfile.Street,
+                    
 
                 ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()

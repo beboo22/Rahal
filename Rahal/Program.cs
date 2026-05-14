@@ -13,6 +13,8 @@ using ApplicationBusiness.Configuration;
 using Polly;
 using StackExchange.Redis;
 using ApplicationBusiness.Abstraction.SerpApiService.Activity;
+using Domain.BaseResponce;
+using ApplicationBusiness.RealTimeservice;
 
 namespace Rahal
 {
@@ -45,7 +47,11 @@ namespace Rahal
             builder.Services.applayApplicationBusinessService(builder.Configuration);
             builder.Services.applayInfrastructureService(builder.Configuration);
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
@@ -62,14 +68,69 @@ namespace Rahal
                     {
                         OnMessageReceived = context =>
                         {
+                            // اسحب التوكن من الـ Query String
                             var accessToken = context.Request.Query["access_token"];
+
+                            // تأكد إن الطلب رايح للـ Hub بتاعك
                             var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/realtimehub")))
                             {
                                 context.Token = accessToken;
                             }
                             return Task.CompletedTask;
+                        },
+
+                        OnForbidden = async context =>
+                        {
+                            context.Response.StatusCode = 403;
+                            context.Response.ContentType = "application/json";
+
+                            var response = new ApiResponse(403, "Access Denied: You do not have the required permissions/role to access this resource.");
+
+                            var json = System.Text.Json.JsonSerializer.Serialize(response);
+                            await context.Response.WriteAsync(json);
+                        },
+
+                        // 2. 401 Unauthorized: Issues with the token itself or missing token
+                        OnChallenge = async context =>
+                        {
+                            // Skip the default logic to provide our custom response
+                            context.HandleResponse();
+
+                            if (!context.Response.HasStarted)
+                            {
+                                context.Response.StatusCode = 401;
+                                context.Response.ContentType = "application/json";
+
+                                // Default message: No token provided
+                                string message = "Unauthorized: Authentication token is missing.";
+
+                                // Case: Token is expired
+                                if (context.AuthenticateFailure != null && context.AuthenticateFailure.Message.Contains("expired"))
+                                {
+                                    message = "Unauthorized: Your session has expired. Please refresh your token or login again.";
+                                }
+                                // Case: Token is present but invalid/tampered with
+                                else if (context.Error == "invalid_token")
+                                {
+                                    message = "Unauthorized: The provided token is invalid or malformed.";
+                                }
+
+                                var response = new ApiResponse(401, message);
+                                var json = System.Text.Json.JsonSerializer.Serialize(response);
+                                await context.Response.WriteAsync(json);
+                            }
+                        },
+
+                        // 3. Log technical failures for debugging
+                        OnAuthenticationFailed = async context =>
+                        {
+                            // Adding a header for the frontend dev to see the technical reason in the Network tab
+                            context.Response.Headers.Append("X-Token-Error", context.Exception.Message);
+                            await Task.CompletedTask;
                         }
+
                     };
                 });
 
@@ -242,7 +303,7 @@ namespace Rahal
 
 
             app.MapControllers();
-            app.MapHub<ChatHub>("/chathub");
+            app.MapHub<AppHub>("/realtimehub");
             app.Run();
         }
     }

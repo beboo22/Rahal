@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InfraStructure.Impelementation
 {
+
     public static class SpecificationEvaluation<T> where T : BaseEntity
     {
         public static IQueryable<T> GetQuery(IQueryable<T> inputQuery, ISpecification<T> spec)
@@ -42,4 +43,5 @@ namespace InfraStructure.Impelementation
 
 
     }
+
 }

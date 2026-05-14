@@ -12,7 +12,7 @@ namespace Domain.Entity.TravelerCompanyEntity
     {
         public int UserId { get; set; }
         public User User { get; set; }
-        public string PhotoUrl { get; set; }
+        public string? PhotoUrl { get; set; }
 
 
         #region verification
@@ -21,8 +21,10 @@ namespace Domain.Entity.TravelerCompanyEntity
         public string? Bio { get; set; } = null!;
         public string? Ssn { get; set; } = null!;
         #endregion
-
-        public ICollection<TravelerCompanyAddress> traveleCompanyAddresses {  get; set; } = new List<TravelerCompanyAddress>();
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
         public ICollection<TravelCompanyBusinessGalary> travelCompanyBusinessGalaries { get; set; } = new List<TravelCompanyBusinessGalary>();
         public ICollection<HiringPost> HiringPosts { get; set; } = new List<HiringPost>();
        

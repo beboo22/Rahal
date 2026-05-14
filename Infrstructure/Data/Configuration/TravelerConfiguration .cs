@@ -30,10 +30,10 @@ namespace Infrstructure.Data.Configuration
                    .WithOne(u => u.TravelerProfile)
                    .HasForeignKey<Traveler>(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(t => t.trvelerAddresses)
-                   .WithOne(a => a.Traveler)
-                   .HasForeignKey(a => a.TravelerId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(t => t.trvelerAddresses)
+            //       .WithOne(a => a.Traveler)
+            //       .HasForeignKey(a => a.TravelerId)
+            //       .OnDelete(DeleteBehavior.Cascade);
         }
     }
 

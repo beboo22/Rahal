@@ -1,6 +1,7 @@
 ﻿using Application.Abstraction.message;
 using Application.Fetures.Authentication.Command.Models;
 using Application.Fetures.Authentication.Query.Models;
+using ApplicationBusiness.Fetures.Authentication.Query;
 using ApplicationBusiness.Fetures.CommentService.Command.Model;
 using ApplicationBusiness.Fetures.CommentService.Query.Responce;
 using ApplicationBusiness.Fetures.PostService.Command.Models;
@@ -121,7 +122,7 @@ namespace ApplicationBusiness.Fetures.CommentService.Command
             {
                 return checkUserExitance;
             }
-            var user = checkUserExitance as ApiResultResponse<User>;
+            var user = checkUserExitance as ApiResultResponse<TemplateGenericProfile>;
 
             if (user == null)
             {
@@ -143,17 +144,19 @@ namespace ApplicationBusiness.Fetures.CommentService.Command
                 {
                     Msg = request.Comment.Msg,
                     PostId = request.postId,
-                    UserName = $"{user?.Data?.FName} {user?.Data?.LName}",
                     UserId = request.Comment.UserId,
-                    UserPhoto = user?.Data?.TravelerProfile != null
-                                ? user?.Data?.TravelerProfile.PhotoUrl
-                                : user?.Data?.TourGuideProfile != null
-                                    ? user?.Data?.TourGuideProfile.PhotoUrl
 
-                                        :user.Data.TravelerCompanyProfile != null?
-                                        user.Data.TravelerCompanyProfile.PhotoUrl
+                    // UserName logic like photo
+                    UserName = user?.Data?.Fname + " " +user?.Data?.Lname,
 
-                                    : null,
+                    // UserPhoto logic
+                    UserPhoto = user?.Data?.Traveler != null
+                ? user.Data.Traveler.PhotoUrl
+                : user?.Data?.TourGuide != null
+                    ? user.Data.TourGuide.PhotoUrl
+                    : user?.Data?.TravelCompany != null
+                        ? user.Data.TravelCompany.PhotoUrl
+                        : null,
 
                 }, "Comment Created");
             }

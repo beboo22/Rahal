@@ -14,41 +14,40 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize] // Enabled Authorize as these methods rely on User context
     public class UserController : ApiController
     {
         public UserController(ISender sender) : base(sender) { }
 
+        /// <summary>
+        /// Retrieves the status/likes for the current authenticated user.
+        /// </summary>
         [ProducesResponseType(typeof(ApiResultResponse<List<TemplateStatusOfFollowing>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         [HttpGet("Getstatus")]
         public async Task<IActionResult> Getstatus()
         {
-            var userId= GetUserId();
-            if (!userId.HasValue) 
-                return Unauthorized();
+            var userId = GetUserId();
+            if (userId == null)
+                return Unauthorized(new ApiResponse(401));
+
+            // Note: Ensure the Command matches the intended DTO (GetUserLikeToPost vs FollowingStatus)
             var result = await Sender.Send(new GetUserLikeToPost(userId.Value));
-            return Ok(result);
+
+            return ProcessResult(result);
         }
 
-        [ProducesResponseType(typeof(ApiResultResponse<List<TemplateGenericProfile>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        /// <summary>
+        /// Retrieves a generic profile for a specific user by their ID.
+        /// </summary>
+        /// <param name="UserId">The ID of the user to retrieve.</param>
+        [ProducesResponseType(typeof(ApiResultResponse<TemplateGenericProfile>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         [HttpGet("GetUserById")]
         public async Task<IActionResult> GetProfileById(int UserId)
         {
             var result = await Sender.Send(new GetUserById(UserId));
-            return Ok(result);
+
+            return ProcessResult(result);
         }
-
-
-
-        private int? GetUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
-        }
-
     }
 }

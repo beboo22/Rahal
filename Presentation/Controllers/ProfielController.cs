@@ -11,278 +11,63 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
 using ApplicationBusiness.Fetures.Authentication.Query.Models;
+using Domain.Entity.Identity;
 
 namespace Presentation.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TravelCompany")]
-    public class TravelCompanyProfileController : ApiController
-    {
-        public TravelCompanyProfileController(ISender sender) : base(sender) { }
-
-        // POST: api/travelcompanyprofile
-        [HttpPost]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTravelComapny>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CreateTravelCompanyProfile([FromForm] CreateTravelerCompanyProfileDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
-
-            var result = await Sender.Send(new CreateTravelerCompanyProfileCommand(dto, userId.Value));
-
-            if (result.statusCode != StatusCodes.Status201Created)
-                return Ok(result);
-
-            // ✅ 1. نجيب refresh token من الكوكي
-            var refreshToken = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
-                return Ok(result); // أو ترجع error لو حابب
-
-            // ✅ 2. نطلع token جديد
-            var refreshResult = await Sender.Send(new RefreshTokenModel(refreshToken));
-
-            if (refreshResult is not JwtAuthResponse jwtResponse || jwtResponse.statusCode != 200)
-                return Ok(result); // fallback
-
-            // ✅ 3. نحدث الكوكي
-            Response.Cookies.Append("refreshToken", jwtResponse.Token.RefreshToken, new CookieOptions
-            {
-                HttpOnly = false,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
-
-            // ✅ 4. نرجع access token الجديد
-            return Ok(new ApiResultResponse<object>(
-                200,
-                new
-                {
-                    Profile = result is ApiResultResponse<TemplateTravelComapny> typereuslt ? typereuslt.Data : null,
-                    AccessToken = jwtResponse.Token.AccessToken,
-                    refreshToken = jwtResponse.Token.RefreshToken
-                },
-                "Profile created & token refreshed"
-            ));
-
-
-        }
-
-        // PUT: api/travelcompanyprofile
-        [HttpPut]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTravelComapny>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateTravelCompanyProfile([FromBody] UpdateTravelerCompanyProfileDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
-
-            var result = await Sender.Send(new UpdateTravelerCompanyProfileCommand(dto, userId.Value));
-            return Ok(result);
-        }
-
-        // GET: api/travelcompanyprofile
-        [HttpGet]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTravelComapny>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTravelCompanyProfile()
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
-
-            var result = await Sender.Send(new GetTravelerCompanyProfileQuery(userId.Value));
-
-            if (result.statusCode == 404)
-                return NotFound(result);
-            return Ok(result);
-        }
-
-        private int? GetUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
-        }
     
-    }
+
+
+    // --- TRAVELER ---
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "TourGuide")]
-    public class TourGuideProfileController : ApiController
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+    public class ProfileController : ApiController
     {
-        public TourGuideProfileController(ISender sender) : base(sender) { }
+        public ProfileController(ISender sender) : base(sender) { }
 
-        // POST: api/tourguideprofile
-        [HttpPost]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTourGuide>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CreateTourGuideProfile([FromForm] CreateTourGuideProfileDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
-            var result = await Sender.Send(new CreateTourGuideProfileCommand(dto, userId.Value));
 
-            if (result.statusCode != StatusCodes.Status201Created)
-                return Ok(result);
-
-            // ✅ 1. نجيب refresh token من الكوكي
-            var refreshToken = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
-                return Ok(result); // أو ترجع error لو حابب
-
-            // ✅ 2. نطلع token جديد
-            var refreshResult = await Sender.Send(new RefreshTokenModel(refreshToken));
-
-            if (refreshResult is not JwtAuthResponse jwtResponse || jwtResponse.statusCode != 200)
-                return Ok(result); // fallback
-
-            // ✅ 3. نحدث الكوكي
-            Response.Cookies.Append("refreshToken", jwtResponse.Token.RefreshToken, new CookieOptions
-            {
-                HttpOnly = false,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
-
-            // ✅ 4. نرجع access token الجديد
-            return Ok(new ApiResultResponse<object>(
-                200,
-                new
-                {
-                    Profile = result is ApiResultResponse<TemplateTourGuide> typereuslt ? typereuslt.Data : null,
-                    AccessToken = jwtResponse.Token.AccessToken,
-                    refreshToken = jwtResponse.Token.RefreshToken
-                },
-                "Profile created & token refreshed"
-            ));
-        }
-
-        // PUT: api/tourguideprofile
-        [HttpPut]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTourGuide>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateTourGuideProfile([FromBody] UpdateTourGuideProfileDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
-
-            var result = await Sender.Send(new UpdateTourGuideProfileCommand(dto, userId.Value));
-            return Ok(result);
-        }
-
-        // GET: api/tourguideprofile
+        /// <summary>
+        /// Retrieves the profile of the current user based on their specific role.
+        /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTourGuide>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTourGuideProfile()
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResultResponse<object>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetProfile()
         {
             var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
+            if (userId == null) return Unauthorized();
 
-            var result = await Sender.Send(new GetTourGuideProfileQuery(userId.Value));
-            if (result.statusCode == 404)
-                return NotFound(result);
-            return Ok(result);
+            // 1. Get the role claim value
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-        }
+            // 2. Initialize a variable to hold the result
+            dynamic result = null;
 
-        private int? GetUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
+            // 3. Route to the correct query based on role
+            // Using string comparison or Enum parsing depending on how your claims are stored
+            if (userRole == RoleEnum.Traveler.ToString())
+            {
+                result = await Sender.Send(new GetTravelerProfileQuery(userId.Value));
+            }
+            else if (userRole == RoleEnum.TravelCompany.ToString())
+            {
+                result = await Sender.Send(new GetTravelerCompanyProfileQuery(userId.Value));
+            }
+            else if (userRole == RoleEnum.TourGuide.ToString())
+            {
+                result = await Sender.Send(new GetTourGuideProfileQuery(userId.Value));
+            }
+            else
+            {
+                return BadRequest(new ApiResponse(400, "User role is not recognized."));
+            }
+
+            // 4. Return using your standardized switch logic
+            return ProcessResult(result);
         }
     }
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler")]
-    public class TravelerProfileController : ApiController
-    {
-        public TravelerProfileController(ISender sender) : base(sender) { }
 
-        // POST: api/travelerprofile
-        [HttpPost]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTraveler>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CreateTravelerProfile([FromBody] CreateTravelerProfileDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
 
-            var result = await Sender.Send(new CreateTravelerProfileCommand(dto, userId.Value));
-
-            if (result.statusCode != StatusCodes.Status201Created)
-                return Ok(result);
-
-            // ✅ 1. نجيب refresh token من الكوكي
-            var refreshToken = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
-                return Ok(result); // أو ترجع error لو حابب
-
-            // ✅ 2. نطلع token جديد
-            var refreshResult = await Sender.Send(new RefreshTokenModel(refreshToken));
-
-            if (refreshResult is not JwtAuthResponse jwtResponse || jwtResponse.statusCode != 200)
-                return Ok(result); // fallback
-
-            // ✅ 3. نحدث الكوكي
-            Response.Cookies.Append("refreshToken", jwtResponse.Token.RefreshToken, new CookieOptions
-            {
-                HttpOnly = false,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
-
-            // ✅ 4. نرجع access token الجديد
-            return Ok(new ApiResultResponse<object>(
-                200,
-                new
-                {
-                    Profile = result is ApiResultResponse<TemplateTraveler> typereuslt ? typereuslt.Data : null,
-                    AccessToken = jwtResponse.Token.AccessToken,
-                    refreshToken = jwtResponse.Token.RefreshToken
-                },
-                "Profile created & token refreshed"
-            ));
-        }
-
-        // PUT: api/travelerprofile
-        [HttpPut]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTraveler>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateTravelerProfile([FromBody] UpdateTravelerProfileDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
-
-            var result = await Sender.Send(new UpdateTravelerProfileCommand(dto, userId.Value));
-            return Ok(result);
-        }
-
-        // GET: api/travelerprofile
-        [HttpGet]
-        [ProducesResponseType(typeof(ApiResultResponse<TemplateTraveler>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTravelerProfile()
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse((int)HttpStatusCode.Unauthorized, "User ID claim missing"));
-
-            var result = await Sender.Send(new GetTravelerProfileQuery(userId.Value));
-
-            if (result.statusCode == 404)
-                return NotFound(result);
-            return Ok(result);
-
-        }
-
-        private int? GetUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return int.TryParse(userIdClaim?.Value, out int id) ? id : (int?)null;
-        }
-    }
 }

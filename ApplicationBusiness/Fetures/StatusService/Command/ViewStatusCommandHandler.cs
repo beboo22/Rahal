@@ -32,8 +32,12 @@ namespace ApplicationBusiness.Fetures.StatusService.Command
             {
                 var item = await _mediator.Send(new IsStatusExist(request.StatusId)) as ApiResultResponse<bool>;
 
+                if (await _repo.ExistsAsync(request.ViewerId, request.StatusId))
+                    return new ApiResponse(200, "viewed success");
+
+
                 if (item.Data == false)
-                    return new ApiResponse(404,"Status Not Found");
+                    return new ApiResponse(404, "Status Not Found");
 
                 await _unitOfWork.BeginTransactionAsync();
                 await _repo.AddAsync(new StatusUser
@@ -84,7 +88,7 @@ namespace ApplicationBusiness.Fetures.StatusService.Command
                         StatusId = request.StatusId,
                         viewById = request.ViewerId,
                         Isloved = request.love
-                    },0);
+                    }, 0);
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitAsync();
 

@@ -7,6 +7,10 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 {
     public class TemplateTourGuide 
     {
+        public string Country { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public string BuildingNumber { get; set; }
         public string PhotoUrl { get; internal set; }
 
         public int NumberFollowing { get; set; }
@@ -17,7 +21,6 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public string Email { get; set; }
         public string Bio { get; set; }
         public List<BusinessGalaryDto> BusinessGalaries { get; set; }
-        public List<Adress> Adresses { get; set; }
         public List<ExperiencePostTemplate> ExperiencePostTemplates { get; set; }
         public List<PrivateTemplateTrip> PrivateTrips { get; set; }
         public List<BookingTripTemplate> BookedTrip { get; set; }

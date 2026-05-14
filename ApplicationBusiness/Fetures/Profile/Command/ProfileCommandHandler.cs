@@ -50,41 +50,19 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             try
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
-               
 
-                var TravelCompanyBusinessGalaryPhoto = await _cloudinaryService.UploadFileAsync(request.dto.BusinessGalaries.Photo);
+                var photourl = await _cloudinaryService.UploadFileAsync(request.dto.Photo);
+
+                //var TravelCompanyBusinessGalaryPhoto = await _cloudinaryService.UploadFileAsync(request.dto.BusinessGalaries.Photo);
                 var entity = new TravelCompany
                 {
-                    PhotoUrl = request.dto.Photo,
+                    PhotoUrl = photourl,
 
                     Id = request.Id,
                     Ssn = request.dto.Ssn,
                     UserId = request.Id,
                     Bio = request.dto.Bio,
-                    //travelCompanyBusinessGalaries = request.dto.BusinessGalaries.Select(s => new TravelCompanyBusinessGalary
-                    //{
-                    //    PhotoUrl = s.PhotoUrl,
-                    //    Date = s.Date,
-                    //    Description = s.Description,
-                    //    Location = s.Location,
-                    //}).ToList(),
-                    travelCompanyBusinessGalaries = new List<TravelCompanyBusinessGalary>{
-                        new TravelCompanyBusinessGalary
-                        {
-                        PhotoUrl =TravelCompanyBusinessGalaryPhoto,
-                        Date = request.dto.BusinessGalaries.Date,
-                        Description = request.dto.BusinessGalaries.Description,
-                        Location = request.dto.BusinessGalaries.Location,
-                        }
-                    },
 
-                    traveleCompanyAddresses = request.dto.Adresses.Select(s => new TravelerCompanyAddress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
 
                 };
                 await _WTR.AddAsync(entity);
@@ -107,13 +85,11 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                         Description = s.Description,
                         Location = s.Location,
                     }).ToList(),
-                    Adresses = entity.traveleCompanyAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+                    BuildingNumber = entity.BuildingNumber,
+                    City = entity.City,
+                    Street = entity.Street,
+                    Country = entity.Country,
+
                 };
 
 
@@ -130,32 +106,23 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             try
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
-                var tComp = await _RTR.GetAll().Include(x => x.travelCompanyBusinessGalaries).Include(x => x.traveleCompanyAddresses).FirstOrDefaultAsync(x => x.Id == request.Id);
+                var tComp = await _RTR.GetAll().Include(x => x.travelCompanyBusinessGalaries).FirstOrDefaultAsync(x => x.Id == request.Id);
                 if (tComp != null)
                     return new ApiResponse(404, "There's no profile to User");
                 if (!string.IsNullOrEmpty(request.dto.Ssn))
                     tComp.Ssn = request.dto.Ssn;
                 if (!string.IsNullOrEmpty(request.dto.Bio))
                     tComp.Bio = request.dto.Bio;
-                if (!string.IsNullOrEmpty(request.dto.photo))
-                    tComp.PhotoUrl = request.dto.photo;
-
-
-                //tComp.travelCompanyBusinessGalaries = new List<TravelCompanyBusinessGalary>{
-                //        new TravelCompanyBusinessGalary
-                //    {
-                //        Date = request.dto.BusinessGalaries.Date,
-                //        Description = request.dto.BusinessGalaries.Description,
-                //        Location = request.dto.BusinessGalaries.Location,
-                //        }
-                //    };
-                tComp.traveleCompanyAddresses = request.dto.Adresses.Select(s => new TravelerCompanyAddress
+                if (request.dto.photo is not null)
                 {
-                    BuildingNumber = s.BuildingNumber,
-                    City = s.City,
-                    Street = s.Street,
-                    Country = s.Country,
-                }).ToList();
+                    if (tComp.PhotoUrl != null)
+                        await _cloudinaryService.DeleteFileAsync(tComp.PhotoUrl);
+                    var photourl = await _cloudinaryService.UploadFileAsync(request.dto.photo);
+
+                    tComp.PhotoUrl = photourl;
+                }
+
+
                 await _WTR.UpdateAsync(tComp, request.Id);
 
                 await _writeUnitOfWork.SaveChangesAsync();
@@ -172,13 +139,10 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                         Description = s.Description,
                         Location = s.Location,
                     }).ToList(),
-                    Adresses = tComp.traveleCompanyAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+                    BuildingNumber = tComp.BuildingNumber,
+                    City = tComp.City,
+                    Street = tComp.Street,
+                    Country = tComp.Country,
                 };
                 return new ApiResultResponse<TemplateTravelComapny>((int)HttpStatusCode.OK, temp, "Profile updated successfully");
             }
@@ -218,18 +182,16 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     tComp.Ssn = request.dto.Ssn;
                 if (!string.IsNullOrEmpty(request.dto.Bio))
                     tComp.Bio = request.dto.Bio;
-                if (!string.IsNullOrEmpty(request.dto.photo))
-                    tComp.PhotoUrl = request.dto.photo;
-
-
-
-                tComp.tourGuidAddresses = request.dto.Adresses.Select(s => new TourGuideAddress
+                if (request.dto.photo is not null)
                 {
-                    BuildingNumber = s.BuildingNumber,
-                    City = s.City,
-                    Street = s.Street,
-                    Country = s.Country,
-                }).ToList();
+                    if (tComp.PhotoUrl != null)
+                        await _cloudinaryService.DeleteFileAsync(tComp.PhotoUrl);
+                    var photourl = await _cloudinaryService.UploadFileAsync(request.dto.photo);
+
+                    tComp.PhotoUrl = photourl;
+                }
+
+
                 await _WTR.UpdateAsync(tComp, request.Id);
 
                 await _writeUnitOfWork.SaveChangesAsync();
@@ -247,13 +209,10 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                         Description = s.Description,
                         Location = s.Location,
                     }).ToList(),
-                    Adresses = tComp.tourGuidAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+                    BuildingNumber = tComp.BuildingNumber,
+                    City = tComp.City,
+                    Street = tComp.Street,
+                    Country = tComp.Country,
                 };
                 return new ApiResultResponse<TemplateTourGuide>((int)HttpStatusCode.OK, temp, "Profile updated successfully");
             }
@@ -269,52 +228,17 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
 
-                //var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
-                //if (!Directory.Exists(uploadPath))
-                //    Directory.CreateDirectory(uploadPath);
-                //var baseUrl = $"http://rahalbk.runasp.net";
-
-                //string SaveFile(IFormFile file, string prefix)
-                //{
-                //    var extension = Path.GetExtension(file.FileName); // keep original extension
-                //    var fileName = $"{prefix}{extension}";
-                //    var fullPath = Path.Combine(uploadPath, fileName);
-
-                //    using (var stream = new FileStream(fullPath, FileMode.Create))
-                //    {
-                //        file.CopyTo(stream);
-                //    }
-
-                //    // Return public URL
-                //    return $"{baseUrl}/profile/{fileName}";
-                //}
-                var TourBusinessGalaryPhoto = await _cloudinaryService.UploadFileAsync(request.dto.BusinessGalaries.Photo);
+                var photourl = await _cloudinaryService.UploadFileAsync(request.dto.Photo);
 
                 var entity = new TourGuide
                 {
 
-                    PhotoUrl = request.dto.Photo,
+                    PhotoUrl = photourl,
                     SalaryPerDay = request.dto.SalaryPerDay,
                     Id = request.Id,
                     Ssn = request.dto.Ssn,
                     UserId = request.Id,
-                    Bio = request.dto.Bio,
-                    tourGuidBusinessGalaries = new List<TourGuideBusinessGalary>{
-                        new TourGuideBusinessGalary
-                    {
-                        PhotoUrl = TourBusinessGalaryPhoto,
-                        Date = request.dto.BusinessGalaries.Date,
-                        Description = request.dto.BusinessGalaries.Description,
-                        Location = request.dto.BusinessGalaries.Location,
-                        }
-                    },
-                    tourGuidAddresses = request.dto.Adresses.Select(s => new TourGuideAddress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+                    Bio = request.dto.Bio
                 };
                 await _WTR.AddAsync(entity);
                 await _writeUnitOfWork.SaveChangesAsync();
@@ -335,13 +259,10 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                         Description = s.Description,
                         Location = s.Location,
                     }).ToList(),
-                    Adresses = entity.tourGuidAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+                    BuildingNumber = entity.BuildingNumber,
+                    City = entity.City,
+                    Street = entity.Street,
+                    Country = entity.Country,
                 };
                 return new ApiResultResponse<TemplateTourGuide>((int)HttpStatusCode.Created, temp, "Profile created successfully");
             }
@@ -358,14 +279,17 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         IWriteGenericRepo<Traveler> _WTR;
         IReadGenericRepo<Traveler> _RTR;
         public ISender Sender { get; set; }
+        private ICloudinaryService _cloudinaryService;
 
 
-        public ProfileTravelerCommandHandler(IWriteGenericRepo<Traveler> wTR, IWriteUnitOfWork writeUnitOfWork, IReadGenericRepo<Traveler> rTR, ISender sender)
+
+        public ProfileTravelerCommandHandler(IWriteGenericRepo<Traveler> wTR, IWriteUnitOfWork writeUnitOfWork, IReadGenericRepo<Traveler> rTR, ISender sender, ICloudinaryService cloudinaryService)
         {
             _WTR = wTR;
             _writeUnitOfWork = writeUnitOfWork;
             _RTR = rTR;
             Sender = sender;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<ApiResponse> Handle(UpdateTravelerProfileCommand request, CancellationToken cancellationToken)
@@ -379,33 +303,48 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                     tComp.Ssn = request.dto.Ssn;
                 if (!string.IsNullOrEmpty(request.dto.Bio))
                     tComp.Bio = request.dto.Bio;
-                if (!string.IsNullOrEmpty(request.dto.photo))
-                    tComp.PhotoUrl = request.dto.photo;
-
-
-
-                tComp.trvelerAddresses = request.dto.Adresses.Select(s => new TrvelerAddress
+                if (request.dto.photo is not null)
                 {
-                    BuildingNumber = s.BuildingNumber,
-                    City = s.City,
-                    Street = s.Street,
-                    Country = s.Country,
-                }).ToList();
+                    if (tComp.PhotoUrl != null)
+                        await _cloudinaryService.DeleteFileAsync(tComp.PhotoUrl);
+                    var photourl = await _cloudinaryService.UploadFileAsync(request.dto.photo);
+
+                    tComp.PhotoUrl = photourl;
+                }
+
+
+                if (!string.IsNullOrEmpty(request.dto.City)
+                    && !string.IsNullOrEmpty(request.dto.Country)
+                    && !string.IsNullOrEmpty(request.dto.BuildingNumber)
+                    && !string.IsNullOrEmpty(request.dto.Street)
+                    )
+                {
+
+
+                    tComp.City = request.dto.City;
+                    tComp.Country = request.dto.Country;
+                    tComp.BuildingNumber = request.dto.BuildingNumber;
+                    tComp.Street = request.dto.Street;
+                        
+                }
+
+
+
                 await _WTR.UpdateAsync(tComp, request.Id);
                 await _writeUnitOfWork.SaveChangesAsync();
                 await _writeUnitOfWork.CommitAsync();
                 var temp = new TemplateTraveler
                 {
+                    PhotoUrl = tComp.PhotoUrl,
                     Id = tComp.Id,
                     Ssn = tComp.Ssn,
                     Bio = tComp.Bio,
-                    Adresses = tComp.trvelerAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+
+                    BuildingNumber = tComp.BuildingNumber,
+                    City = tComp.City,
+                    Street = tComp.Street,
+                    Country = tComp.Country,
+
                 };
                 return new ApiResultResponse<TemplateTraveler>((int)HttpStatusCode.OK, temp, "Profile updated successfully");
             }
@@ -420,62 +359,44 @@ namespace ApplicationBusiness.Fetures.Profile.Command
             try
             {
                 await _writeUnitOfWork.BeginTransactionAsync();
-                //var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploadsVerification");
-                //if (!Directory.Exists(uploadPath))
-                //    Directory.CreateDirectory(uploadPath);
-                //var baseUrl = $"http://rahalbk.runasp.net";
-                //string SaveFile(IFormFile file, string prefix)
-                //{
-                //    var extension = Path.GetExtension(file.FileName); // keep original extension
-                //    var fileName = $"{prefix}{extension}";
-                //    var fullPath = Path.Combine(uploadPath, fileName);
 
-                //    using (var stream = new FileStream(fullPath, FileMode.Create))
-                //    {
-                //        file.CopyTo(stream);
-                //    }
 
-                //    // Return public URL
-                //    return $"{baseUrl}/profile/{fileName}";
-                //}
+
+                var photourl = await _cloudinaryService.UploadFileAsync(request.dto.Photo);
+
                 var entity = new Traveler
                 {
-                    PhotoUrl = request.dto.Photo,
+                    PhotoUrl = photourl,
                     Id = request.Id,
                     Ssn = request.dto.Ssn,
                     UserId = request.Id,
                     Bio = request.dto.Bio,
-                    trvelerAddresses = request.dto.Adresses.Select(s => new TrvelerAddress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
+
+                    City = request.dto.City,
+                    Country = request.dto.Country,
+                    BuildingNumber = request.dto.BuildingNumber,
+                    Street = request.dto.Street,
+
 
                 };
                 await _WTR.AddAsync(entity);
                 await _writeUnitOfWork.SaveChangesAsync();
                 await _writeUnitOfWork.CommitAsync();
 
-                var newtoken = await Sender.Send(new VerifiedUser(request.Id)) as  ApiResultResponse<UserDto>;
-                var temp = new TemplateTokenTraveler
+                var newtoken = await Sender.Send(new VerifiedUser(request.Id)) as ApiResultResponse<UserDto>;
+                var temp = new TemplateTokenTraveler();
+                var traveler = new TemplateTraveler
                 {
                     PhotoUrl = entity.PhotoUrl,
                     Id = entity.Id,
                     Ssn = entity.Ssn,
                     Bio = entity.Bio,
-                    Adresses = entity.trvelerAddresses.Select(s => new Dtos.Profile.Adress
-                    {
-                        BuildingNumber = s.BuildingNumber,
-                        City = s.City,
-                        Street = s.Street,
-                        Country = s.Country,
-                    }).ToList()
                 };
+                temp.profile = traveler;
                 if (newtoken?.Data?.Token != null)
                     temp.Token = new Token
                     {
+
                         AccessToken = newtoken.Data.Token.AccessToken,
                         ExpiryDate = newtoken.Data.Token.ExpiryDate,
                         RefreshToken = newtoken.Data.Token.RefreshToken
