@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Fetures\BookHotel\Query\Response\" />
     <Folder Include="Fetures\CommentService\Query\model\" />
     <Folder Include="Fetures\FlightService\Query\Temp\" />
     <Folder Include="Fetures\HotelService\Query\Temp\" />
@@ -21,6 +22,8 @@
     <Folder Include="Fetures\BookingFlight\Command\Models\" />
     <Folder Include="Fetures\BookingFlight\Query\Models\" />
     <Folder Include="Fetures\BookingFlight\Query\Response\" />
+    <Folder Include="Fetures\RequestTourGuideForTrip\Command\Models\" />
+    <Folder Include="Fetures\RequestTourGuideForTrip\Query\Models\" />
     <Folder Include="Fetures\TEST\Command\Models\" />
     <Folder Include="Fetures\TEST\Query\Models\" />
     <Folder Include="Fetures\TEST\Query\Response\" />

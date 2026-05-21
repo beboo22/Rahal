@@ -25,16 +25,17 @@ namespace ApplicationBusiness.Fetures.StatusService.Qurey
 
         public async Task<ApiResponse> Handle(getStatusForUser request, CancellationToken cancellationToken)
         {
-            var item  = await Repo.GetAll().FirstOrDefaultAsync(x => x.CreatedById == request.UserId);
+            var item  = await Repo.GetAll().Where(x => x.CreatedById == request.UserId).Select(x=>new TemplateStatus
+            {
+
+                Id = x.Id,
+                ItemUrl = x.ItemUrl,
+                Title = x.Title,
+            }).ToListAsync();
             if (item == null)
                 return new ApiResponse(404);
 
-            return new ApiResultResponse<TemplateStatus>(200, new TemplateStatus
-            {
-                Id = item.Id,
-                ItemUrl = item.ItemUrl,
-                Title = item.Title,
-            });
+            return new ApiResultResponse<List<TemplateStatus>>(200, item);
 
 
         }

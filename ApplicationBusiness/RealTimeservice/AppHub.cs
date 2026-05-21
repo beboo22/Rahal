@@ -7,16 +7,19 @@ using System.Threading.Tasks;
 namespace ApplicationBusiness.RealTimeservice
 {
     using ApplicationBusiness.RealTimeservice.ChatService;
+    using ApplicationBusiness.RealTimeservice.NotificationService;
     using ApplicationBusiness.service;
     using Microsoft.AspNetCore.SignalR;
 
     public class AppHub : Hub
     {
         private readonly IChatService _chatService;
+        private readonly INotificationService _notificationService;
 
-        public AppHub(IChatService chatService)
+        public AppHub(IChatService chatService, INotificationService notificationService)
         {
             _chatService = chatService;
+            _notificationService = notificationService;
         }
 
         // ---------------- CONNECTION ----------------
@@ -70,7 +73,24 @@ namespace ApplicationBusiness.RealTimeservice
                 throw new HubException("User ID not found in token.");
             }
 
-            var chatMessage = await _chatService.SaveMessageAsync(senderId, receiverId, message);
+            // سحب الاسم والصورة من الـ Claims بتاعة الشخص المتصل حالياً
+            var senderName = Context.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "Unknown User";
+            var senderImage = Context.User.FindFirst("ProfilePicture")?.Value ?? "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+            // تمرير الاسم والصورة للـ Service عشان يحفظهم في الـ Redis
+            var Message = new ChatMessageDto
+            {
+                SenderId = senderId,
+                SenderName = senderName,
+                SenderImage = senderImage,
+                ReceiverId = receiverId,
+                Content = message,
+                Timestamp = DateTime.UtcNow,
+                Status = "Sent"
+            };
+
+
+            var chatMessage = await _chatService.SaveMessageAsync(Message);
 
             var receiverConnection = UserConnectionManager.GetConnection(receiverId);
 
@@ -99,6 +119,27 @@ namespace ApplicationBusiness.RealTimeservice
                 await Clients.Client(senderConn)
                     .SendAsync("MessagesRead", receiverId);
             }
+        }
+
+        public async Task<List<NotificationDto>> GetMyNotifications()
+        {
+            var userId = Context.UserIdentifier!;
+            // هنحتاج نعمل Inject للـ INotificationService جوة الـ Hub لو مش معملوله
+            // أو نرجعها من الـ Redis علطول زي ما تحب، بس الأفضل نستخدم الـ Service
+            return await _notificationService.GetUserNotificationsAsync(userId);
+        }
+        public async Task MarkNotificationAsRead(string notificationId)
+        {
+            var userId = Context.UserIdentifier!;
+            // بننادي السيرفيس المربوطة بالـ Redis عشان تحول IsRead لـ true وتطرح 1 من الـ Counter
+            await _notificationService.MarkAsReadAsync(notificationId, userId);
+        }
+
+        // ضيف الميثود دي جوة كلاس AppHub
+        public async Task<List<string>> GetConversationListAsync(string userId)
+        {
+            // بننادي الـ Service اللي متصلة بالـ Redis علطول
+            return await _chatService.GetConversationListAsync(userId);
         }
     }
 

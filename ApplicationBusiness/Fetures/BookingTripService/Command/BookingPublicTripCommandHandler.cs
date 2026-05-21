@@ -4,6 +4,8 @@ using Application.Fetures.Authentication.Query.Models;
 using ApplicationBusiness.Fetures.Authentication.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
+using ApplicationBusiness.Fetures.FlightService.Command;
+using ApplicationBusiness.Fetures.HotelService.Command;
 using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Abstraction;
@@ -11,6 +13,7 @@ using Domain.BaseResponce;
 using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.BookingTripService.Command
 {
-    internal class BookingTripCommandHandler :
+    internal class BookingPublicTripCommandHandler :
         ICommandHandler<BookTrip, ApiResponse>,
         ICommandHandler<DeleteBookTrip, ApiResponse>
     {
@@ -35,7 +38,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
         public IWriteUnitOfWork _uof { get; set; }
         public ISender Sender { get; set; }
 
-        public BookingTripCommandHandler(IWriteGenericRepo<BookingPublicTrip> wBTR,
+        public BookingPublicTripCommandHandler(IWriteGenericRepo<BookingPublicTrip> wBTR,
             //IWriteGenericRepo<User> wUR, IReadGenericRepo<User> rUR,
             IReadGenericRepo<BookingPublicTrip> rBTR, IWriteUnitOfWork uof, ISender sender)
         {
@@ -75,10 +78,34 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 if (Trip.Data.CreatedById == request.UserId)
                     return new ApiResponse((int)HttpStatusCode.Conflict, "User who create trip can't book it");
                 //var Trip = await _RTR.GetByIdAsync(request.TripId);
+
+                if (request.HotelId.HasValue)
+                {
+
+                    var CheckHotel = await Sender.Send(new CheckHotelExsist(request.HotelId.Value));
+                    if (CheckHotel.statusCode != StatusCodes.Status302Found)
+                    {
+                        return new ApiResponse((int)HttpStatusCode.NotFound, "hotel not found");
+                    }
+                }
+                if (request.flightId.HasValue)
+                {
+
+                    var CheckHotel = await Sender.Send(new CheckFlightExsist(request.HotelId.Value));
+                    if (CheckHotel.statusCode != StatusCodes.Status302Found)
+                    {
+                        return new ApiResponse((int)HttpStatusCode.NotFound, "Flight not found");
+                    }
+                }
+
+
+
                 var entity = new BookingPublicTrip()
                 {
                     PublicTripId = request.TripId,
                     UserId = request.UserId,
+                    HotelsId = request.HotelId,
+                    FlightOffersId = request.flightId,
                 };
                 entity.TotalBookingPrice = Trip.Data.Price + Trip.Data.TravelerFee;
                 await _WBTR.AddAsync(entity);
@@ -88,6 +115,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 var item = new BookingTripTemplate()
                 {
                     Id = entity.Id,
+
                     TripTilte = Trip.Data.Title,
                     BookingDate = entity.BookingDate,
                     TotalBookingPrice = entity.TotalBookingPrice,
@@ -135,9 +163,9 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 //await Task.WhenAll(_WUR.UpdateAsync(user, user.Id),
 
 
-                
+
                 var updateuser = await Sender.Send(new UpdateUsers(new List<User>() { user.Data }));
-                if (updateuser.statusCode != 200) 
+                if (updateuser.statusCode != 200)
                     return updateuser;
 
 
@@ -155,7 +183,6 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 return new ApiResponse(500, ex.Message);
             }
         }
-
 
     }
 }

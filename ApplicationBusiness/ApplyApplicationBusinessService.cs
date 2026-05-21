@@ -8,8 +8,10 @@ using ApplicationBusiness.Configuration;
 using ApplicationBusiness.Fetures.PaymentService.Strategies;
 using ApplicationBusiness.RealTimeservice;
 using ApplicationBusiness.RealTimeservice.ChatService;
+using ApplicationBusiness.RealTimeservice.NotificationService;
 using ApplicationBusiness.service;
 using Infrastructure.Abestraction;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +35,7 @@ namespace ApplicationBusiness
             services.AddScoped(typeof(IPaymobService), typeof(PaymobService));
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IChatService, ChatService>();
+            services.AddSingleton<INotificationService, NotificationService>();
             services.AddScoped(typeof(ISpecification<>), typeof(Specification<>));
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IPaymentHandlerStrategy, PublicTripPaymentHandler>();

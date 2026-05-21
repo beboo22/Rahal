@@ -205,6 +205,7 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
 
                 Likes = post.Likes?.Select(x => new likesSerive.Query.TemplateuserLikePost
                 {
+                    LikeType = x.LikeType,
                     UserLike = new TemplateUserPost
                     {
                         Id = x.UserId,

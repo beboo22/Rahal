@@ -10,4 +10,6 @@ using System.Threading.Tasks;
 namespace ApplicationBusiness.Fetures.TripService.Command.Models
 {
     public record AddPrivateTrip(AddPrivateTripDto dto,int CreatedById):ICommand<ApiResponse>;
+    public record CheckPivTripExsist(int TripId) : ICommand<ApiResponse>;
+
 }

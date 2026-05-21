@@ -5,6 +5,10 @@ namespace Application.Abestraction
     public interface IAuthentication
     {
         Task<(string AccessToken, string RefreshToken, DateTime Expiration)> CreateTokenAsync(User user);
+        Task<(string AccessToken, string RefreshToken, DateTime Expiration)> CreateTokenAsync(int userId);
+
+
+
 
         // Extract user from JWT
         Task<User> GetUserFromTokenAsync(string token);

@@ -10,6 +10,7 @@ using Domain.BaseResponce;
 using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
@@ -17,7 +18,9 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 {
 
     public class PublicTripCommadHandler : ICommandHandler<AddPublicTrip, ApiResponse>,
-                                    ICommandHandler<DeletePublicTrip, ApiResponse>
+                                    ICommandHandler<DeletePublicTrip, ApiResponse>,
+                                    ICommandHandler<CheckPubTripExsist, ApiResponse>
+
 
     {
         private IWriteGenericRepo<PublicTrip> _wTRepo;
@@ -211,11 +214,20 @@ namespace ApplicationBusiness.Fetures.TripService.Command
             }
         }
 
+        public async Task<ApiResponse> Handle(CheckPubTripExsist request, CancellationToken cancellationToken)
+        {
+
+            if (await _wTRepo.ExistsAsync(request.TripId))
+                return new ApiResponse(StatusCodes.Status302Found);
+            return new ApiResponse(StatusCodes.Status404NotFound);
+        }
     }
 
 
     public class PrivateTripCommadHandler : ICommandHandler<AddPrivateTrip, ApiResponse>,
-                                    ICommandHandler<DeletePrivateTrip, ApiResponse>
+                                    ICommandHandler<DeletePrivateTrip, ApiResponse>,
+                                    ICommandHandler<CheckPrivTripExsist, ApiResponse>
+
     {
         private IWriteGenericRepo<PrivateTrip> _wTRepo;
 
@@ -376,6 +388,13 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
         }
 
+        public async Task<ApiResponse> Handle(CheckPrivTripExsist request, CancellationToken cancellationToken)
+        {
+
+            if (await _wTRepo.ExistsAsync(request.TripId))
+                return new ApiResponse(StatusCodes.Status302Found);
+            return new ApiResponse(StatusCodes.Status404NotFound);
+        }
     }
 
 

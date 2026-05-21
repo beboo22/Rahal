@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace ApplicationBusiness.Dtos.Hotels
 
         [Range(0, 10)]
         public int Children { get; set; } = 0;
-        public List<int> ChildrenAges { get;  set; }
+        public List<int> ChildrenAges { get; set; }
 
         [Range(1, 10)]
         public int Rooms { get; set; } = 1;
@@ -98,4 +99,58 @@ namespace ApplicationBusiness.Dtos.Hotels
     {
         public List<string> Names { get; set; } = new();
     }
+
+
+    public static class HotelMappingExtensions
+    {
+        // تحويل الكيان المالي للحجز (PayHotel) إلى الـ DTO الخاص بالفندق التابع له مباشرة
+        public static Expression<Func<PayHotel, HotelResult>> MapToHotelResult => booking => new HotelResult
+        {
+            Name = booking.Hotel != null ? booking.Hotel.Name : string.Empty,
+            Description = booking.Hotel != null ? booking.Hotel.Description : string.Empty,
+            Link = booking.Hotel != null ? booking.Hotel.Link : string.Empty,
+            // تحويل الـ decimal الخاص بالـ Entity إلى double كما هو مطلوب في الـ DTO الخاص بك
+            Rating = booking.Hotel != null ? (double)booking.Hotel.Rating : 0.0,
+            Reviews = booking.Hotel != null ? booking.Hotel.Reviews : 0,
+            PropertyToken = booking.Hotel != null ? booking.Hotel.PropertyToken : string.Empty,
+            SponsoredHotel = booking.Hotel != null && booking.Hotel.SponsoredHotel,
+            EcoLabel = booking.Hotel != null ? booking.Hotel.EcoLabel : null,
+
+            // جلب السعر الأقل من الفندق نفسه
+            LowestPrice = booking.Hotel != null ? booking.Hotel.LowestPrice : 0,
+            PriceLabel = booking.Hotel != null ? booking.Hotel.PriceLabel : string.Empty,
+
+            // تعيين موقع الفندق بالتوافق مع الـ DTO الجديد (double)
+            Location = booking.Hotel != null && booking.Hotel.Location != null ? new HotelLocation
+            {
+                Latitude = (double)booking.Hotel.Location.Latitude,
+                Longitude = (double)booking.Hotel.Location.Longitude
+            } : new HotelLocation(),
+
+            // معالجة النصوص المفصولة بفواصل لتحويلها إلى List<string>
+            Images = booking.Hotel != null && !string.IsNullOrEmpty(booking.Hotel.Images)
+                ? booking.Hotel.Images.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+                : new List<string>(),
+
+            Amenities = booking.Hotel != null && !string.IsNullOrEmpty(booking.Hotel.Amenities)
+                ? booking.Hotel.Amenities.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+                : new List<string>(),
+
+            NearbyPlaces = booking.Hotel != null && !string.IsNullOrEmpty(booking.Hotel.NearbyPlaces)
+                ? booking.Hotel.NearbyPlaces.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+                : new List<string>(),
+
+            // عمل مابينج لقائمة الأسعار اليومية إلى الـ PriceSummary الموجود بالـ DTO
+            RatePerNight = booking.Hotel != null
+                ? booking.Hotel.RatesPerNight.Select(r => new PriceSummary
+                {
+                    Lowest = r.Lowest,
+                    BeforeTaxesFees = r.BeforeTaxesFees
+                }).ToList()
+                : new List<PriceSummary>()
+        };
+    }
+
+
+
 }

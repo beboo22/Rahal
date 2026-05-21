@@ -231,8 +231,8 @@ namespace ApplicationBusiness.Abstraction.spacification
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
         public int? MinRating { get; set; }
-        public int? PageIndex { get; set; } = 1;
-        public int? PageSize { get; set; } = 10;
+        public int? PageIndex { get; set; } 
+        public int? PageSize { get; set; } 
     }
 
 }

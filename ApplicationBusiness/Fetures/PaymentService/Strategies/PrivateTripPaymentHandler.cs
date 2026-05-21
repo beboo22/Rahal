@@ -12,13 +12,15 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
     {
         private readonly IWriteGenericRepo<BookingPrivateTrip> _wrepo;
         private readonly IReadGenericRepo<BookingPrivateTrip> _rrepo;
+        private IWriteUnitOfWork _unitOfWork;
 
         public PaymentEntityType Type => PaymentEntityType.PrivateTrip;
 
-        public PrivateTripPaymentHandler(IWriteGenericRepo<BookingPrivateTrip> repo, IReadGenericRepo<BookingPrivateTrip> rrepo)
+        public PrivateTripPaymentHandler(IWriteGenericRepo<BookingPrivateTrip> repo, IReadGenericRepo<BookingPrivateTrip> rrepo, IWriteUnitOfWork unitOfWork)
         {
             _wrepo = repo;
             _rrepo = rrepo;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task HandleAsync(int entityId, bool success)
@@ -29,8 +31,10 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
                 throw new Exception("Private booking not found");
 
             booking.IsPaid = success;
-
+            await _unitOfWork.BeginTransactionAsync();
             await _wrepo.UpdateAsync(booking, entityId);
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
         }
     }
 }

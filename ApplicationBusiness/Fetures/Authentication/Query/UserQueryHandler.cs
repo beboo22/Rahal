@@ -21,6 +21,7 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
 {
     internal class UserQueryHandler :
         IQueryHandler<GetUserById, ApiResponse>,
+        IQueryHandler<GetUserByName, ApiResponse>,
         IQueryHandler<GetStatusForFollowing, ApiResponse>
 
     {
@@ -97,6 +98,46 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
                 .ToListAsync(cancellationToken);
 
             return new ApiResultResponse<List<TemplateStatusOfFollowing>>(200, followingsStatuses);
+        }
+
+        public async Task<ApiResponse> Handle(GetUserByName request, CancellationToken cancellationToken)
+        {
+            var user = await _readGenericRepo.GetAllSpec(
+                new UserSearchSpec(request.UserName)).Select(
+                user => new TemplateGenericProfile
+                {
+                    Roles =
+                        user.Roles.Select(x => x.Role.RoleName.ToString()).ToList(),
+                    Id = user.Id,
+                    Fname = user.FName,
+                    Lname = user.LName,
+                    Email = user.Email,
+                    Followers = user.Followers.Count(),
+                    Following = user.Following.Count(),
+                    Traveler = UserTemplateMapper.MapTraveler(user),
+                    TourGuide = UserTemplateMapper.MapTourGuide(user),
+                    TravelCompany = UserTemplateMapper.MapTravelCompany(user)
+                }
+
+                ).ToListAsync();
+
+            if (!user.Any())
+                return new ApiResponse(404, "user not found");
+
+            //var result = new TemplateGenericProfile
+            //{
+            //    Fname = user.FName,
+            //    Lname = user.LName,
+            //    Email = user.Email,
+            //    Followers = user.Followers.Count(),
+            //    Following = user.Following.Count(),
+            //    Traveler = UserTemplateMapper.MapTraveler(user),
+            //    TourGuide = UserTemplateMapper.MapTourGuide(user),
+            //    TravelCompany = UserTemplateMapper.MapTravelCompany(user)
+            //};
+
+            return new ApiResultResponse<List<TemplateGenericProfile>>(200, user);
+
         }
     }
 }

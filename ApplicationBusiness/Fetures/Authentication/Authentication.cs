@@ -43,6 +43,10 @@ namespace Application.Abestraction
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, $"{user.FName ?? string.Empty} {user.LName ?? string.Empty}"),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("ProfilePicture", user.TravelerProfile !=null?
+                                            user.TravelerProfile.PhotoUrl:user.TravelerCompanyProfile != null?
+                                            user.TravelerCompanyProfile.PhotoUrl:user.TourGuideProfile!=null?
+                                            user.TourGuideProfile.PhotoUrl:"https://cdn-icons-png.flaticon.com/512/149/149071.png"),
                 // add claim save Isverified status
                 new Claim("IsVerified", user.Isverified.ToString()),
                 new Claim("IsBlocked", user.IsBlocked.ToString())
@@ -111,6 +115,13 @@ namespace Application.Abestraction
         {
             var refreshTokenEntity = await _RRepo.GetAll()
                                         .Include(r => r.User).ThenInclude(u=>u.Roles).ThenInclude(ur => ur.Role)
+                                        
+                                        .Include(x=>x.User)
+                                            .ThenInclude(x=>x.TravelerProfile)
+                                        .Include(x=>x.User)
+                                            .ThenInclude(x=>x.TravelerCompanyProfile)
+                                        .Include(x=>x.User)
+                                            .ThenInclude(x=>x.TourGuideProfile)
                                         .FirstOrDefaultAsync(r => r.Token == refreshToken);
 
             if (refreshTokenEntity == null || refreshTokenEntity.ExpiresAt <= DateTime.UtcNow)
@@ -169,7 +180,18 @@ namespace Application.Abestraction
             }
         }
 
+        public async Task<(string AccessToken, string RefreshToken, DateTime Expiration)> CreateTokenAsync(int userId)
+        {
+            var user =  await _RUR.GetAll()
+                .Include(x=>x.TourGuideProfile)
+                .Include(x=>x.TravelerCompanyProfile)
+                .Include(x=>x.TravelerProfile).FirstOrDefaultAsync(x=>x.Id == userId);
 
+            if (user is null)
+                return ("","",DateTime.Now);
+
+            return await CreateTokenAsync(user);
+        }
     }
 
     //public class Authentication : IAuthentication

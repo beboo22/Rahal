@@ -1,8 +1,6 @@
 ﻿using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
-using ApplicationBusiness.Fetures.TripService.Query.Models;
-using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.BaseResponce;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,9 +13,9 @@ namespace Presentation.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    public class BookingTripController : ApiController
+    public class BookingPrivTripController : ApiController
     {
-        public BookingTripController(ISender sender) : base(sender) { }
+        public BookingPrivTripController(ISender sender) : base(sender) { }
 
         // GET: api/BookingTrip
         [ProducesResponseType(typeof(ApiResultResponse<List<BookingTripTemplate>>), StatusCodes.Status200OK)]
@@ -50,7 +48,7 @@ namespace Presentation.Controllers
                 return Unauthorized(new ApiResponse(401));
 
             // Use userId from the token instead of the parameter for better security
-            var result = await Sender.Send(new BookTrip(userId.Value, TripId, HotelId, flightId));
+            var result = await Sender.Send(new BookPrivTrip(userId.Value, TripId, HotelId, flightId));
 
             return ProcessResult(result);
         }
@@ -63,7 +61,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResultResponse<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(int BookingId)
         {
-            var result = await Sender.Send(new DeleteBookTrip(BookingId));
+            var result = await Sender.Send(new DeletePrivBookTrip(BookingId));
             return ProcessResult(result);
         }
     }

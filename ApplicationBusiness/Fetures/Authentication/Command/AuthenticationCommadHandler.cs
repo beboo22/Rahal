@@ -1,6 +1,7 @@
 ﻿using Application.Abestraction;
 using Application.Abstraction.message;
 using Application.Fetures.Authentication.Command.Models;
+using ApplicationBusiness.Abstraction.spacification;
 using ApplicationBusiness.Dtos.Auth;
 using ApplicationBusiness.Fetures.Authentication.Command.Models;
 using Domain.Abstraction;
@@ -105,7 +106,12 @@ namespace Application.Fetures.Authentication.Command
     VerifyOtpCommand request,
     CancellationToken cancellationToken)
         {
-            var user = await _rur.GetAll().Include(u => u.Roles).ThenInclude(ur => ur.Role)
+            var user = await _rur.GetAll()
+                .Include(u => u.Roles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(x=>x.TourGuideProfile)
+                .Include(x=>x.TravelerCompanyProfile)
+                .Include(x=>x.TravelerProfile)
                 .FirstOrDefaultAsync(
                     x => x.Email == request.Email,
                     cancellationToken);
@@ -187,7 +193,7 @@ namespace Application.Fetures.Authentication.Command
 
         public async Task<ApiResponse> Handle(VerifiedUser request, CancellationToken cancellationToken)
         {
-            var user = await _rur.GetByIdAsync(request.Id);
+            var user = await _rur.GetByIDSpec(new UserSpec(request.Id,null,null,null));
             if (user == null)
                 return new ApiResponse(404);
             try

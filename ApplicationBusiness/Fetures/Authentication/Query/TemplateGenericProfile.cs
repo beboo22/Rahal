@@ -4,6 +4,8 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
 {
     public class TemplateGenericProfile
     {
+        public List<string> Roles { get; set; }
+        public int Id { get; set; }
         public string Fname { get; set; }
         public string Lname { get; set; }
         public string Email { get; set; }

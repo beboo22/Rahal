@@ -12,7 +12,7 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
     public interface IChatService
     {
         Task<List<string>> GetConversationListAsync(string userId);
-        Task<ChatMessageDto> SaveMessageAsync(string senderId, string receiverId, string message);
+        Task<ChatMessageDto> SaveMessageAsync(ChatMessageDto chatMessage);
         Task<List<ChatMessageDto>> GetChatHistoryAsync(string senderId, string receiverId);
         Task MarkMessagesAsDeliveredAsync(string receiverId);
         Task MarkMessagesAsDeliveredAsync(string receiverId, string senderId);
@@ -22,10 +22,12 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
     public class ChatMessageDto
     {
         public string SenderId { get; set; } = default!;
+        public string SenderName { get; set; } = default!; // جديد
+        public string SenderImage { get; set; } = default!; // جديد
         public string ReceiverId { get; set; } = default!;
         public string Content { get; set; } = default!;
         public DateTime Timestamp { get; set; }
-        public string Status { get; set; } = "Sent"; // Sent | Delivered | Read
+        public string Status { get; set; } = "Sent";
     }
 
 
@@ -61,26 +63,26 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
 
         // ----------------- CORE METHODS -----------------
 
-        public async Task<ChatMessageDto> SaveMessageAsync(string senderId, string receiverId, string message)
+        public async Task<ChatMessageDto> SaveMessageAsync(ChatMessageDto chatMessage)
         {
-            var chatMessage = new ChatMessageDto
-            {
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                Content = message,
-                Timestamp = DateTime.UtcNow,
-                Status = "Sent"
-            };
+            //var chatMessage = new ChatMessageDto
+            //{
+            //    SenderId = senderId,
+            //    ReceiverId = receiverId,
+            //    Content = message,
+            //    Timestamp = DateTime.UtcNow,
+            //    Status = "Sent"
+            //};
 
-            var chatKey = GetChatKey(senderId, receiverId);
+            var chatKey = GetChatKey(chatMessage.SenderId, chatMessage.ReceiverId);
             var serialized = JsonSerializer.Serialize(chatMessage);
 
             // Save message to chat list
             await _db.ListRightPushAsync(chatKey, serialized);
 
             // Update recent conversations
-            await UpdateConversationListAsync(senderId, receiverId, chatMessage.Timestamp);
-            await UpdateConversationListAsync(receiverId, senderId, chatMessage.Timestamp);
+            await UpdateConversationListAsync(chatMessage.SenderId, chatMessage.ReceiverId, chatMessage.Timestamp);
+            await UpdateConversationListAsync(chatMessage.ReceiverId, chatMessage.SenderId, chatMessage.Timestamp);
 
             return chatMessage;
         }

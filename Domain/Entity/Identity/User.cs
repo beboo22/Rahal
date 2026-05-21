@@ -90,6 +90,7 @@ namespace Domain.Entity.Identity
         public DateTime? NextOtpAllowedAt { get; set; }
 
         public DateTime? LastOtpRequestTime { get; set; }
+        //public string? ProfileImageUrl { get; set; }
 
 
         // Generate OTP

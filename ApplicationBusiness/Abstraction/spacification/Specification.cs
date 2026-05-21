@@ -15,10 +15,10 @@ namespace Application.Abstraction.spacification
             Expression<Func<HiringPost, bool>> _criteria = post => true;
 
             if (!string.IsNullOrWhiteSpace(title))
-                _criteria = _criteria.AndAlso(post => post.Title.Contains(title));
+                AndAlso(post => post.Title.Contains(title));
 
             if (date.HasValue)
-                _criteria = _criteria.AndAlso(post => post.CreatedAt.Date == date.Value.Date);
+                AndAlso(post => post.CreatedAt.Date == date.Value.Date);
 
 
 
@@ -43,7 +43,7 @@ namespace Application.Abstraction.spacification
             Expression<Func<PaymentRequest, bool>> _criteria = post => true;
 
             if (!string.IsNullOrWhiteSpace(providerRef))
-                _criteria = _criteria.AndAlso(post => post.ProviderRef == providerRef);
+                AndAlso(post => post.ProviderRef == providerRef);
 
             crateria = _criteria;
         }
@@ -86,16 +86,16 @@ namespace Application.Abstraction.spacification
 
 
             if (!string.IsNullOrWhiteSpace(title))
-                _criteria = _criteria.AndAlso(post => post.Title.Contains(title));
+                AndAlso(post => post.Title.Contains(title));
 
             if (date.HasValue)
-                _criteria = _criteria.AndAlso(post => post.CreatedAt.Date == date.Value.Date);
+                AndAlso(post => post.CreatedAt.Date == date.Value.Date);
 
             if (!string.IsNullOrWhiteSpace(country))
-                _criteria = _criteria.AndAlso(post => post.Country.Contains(country));
+                AndAlso(post => post.Country.Contains(country));
 
             if (!string.IsNullOrWhiteSpace(city))
-                _criteria = _criteria.AndAlso(post => post.City.Contains(city));
+                AndAlso(post => post.City.Contains(city));
 
 
             crateria = _criteria;

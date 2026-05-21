@@ -37,4 +37,16 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
 
     }
+    public class TemplateTourSearch
+    {
+        public string? Photo { get; internal set; }
+        public string Email { get; internal set; }
+        public string name { get; internal set; }
+        public int Id { get; internal set; }
+    }
+
+
+
+
+
 }

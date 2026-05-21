@@ -69,7 +69,7 @@ namespace ApplicationBusiness.Fetures.BookHotel.Command
                     HotelId = request.HotleId,
                     IsPaid = false,
                     Canceled = false,
-                    TotalBookingPrice = hotel.Data.LowestPrice,
+                    TotalBookingPrice = hotel.Data.LowestPrice * request.durationInDay,
                 };
                 await writeGenericRepo.AddAsync(item);
                 await writeUnitOfWork.SaveChangesAsync();

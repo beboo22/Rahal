@@ -12,5 +12,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command.Models
 {
     public record CreateTravelerCompanyProfileCommand(CreateTravelerCompanyProfileDto dto, int Id):ICommand<ApiResponse>;
     public record CreateTourGuideProfileCommand(CreateTourGuideProfileDto dto, int Id):ICommand<ApiResponse>;
+    public record CheckTourguideExsist(int TourId) : ICommand<ApiResponse>;
+
     public record CreateTravelerProfileCommand(CreateTravelerProfileDto dto, int Id):ICommand<ApiResponse>;
 }

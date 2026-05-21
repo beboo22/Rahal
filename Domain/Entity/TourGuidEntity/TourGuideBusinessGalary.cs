@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Entity.TourGuidEntity
 {
-    public class TourGuideBusinessGalary
+    public class TourGuideBusinessGalary:BaseEntity
     {
         public int Id { get; set; }
-
-
         public int TourGuidId { get; set; }
         public TourGuide TourGuid{ get; set; }
 

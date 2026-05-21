@@ -7,7 +7,7 @@ namespace Domain.Entity.TripEntity
 
     public abstract class RequestTourGuide : BaseEntity
     {
-        public bool? Accept { get; set; }
+        public bool? Accept { get; set; }=false;
         public DateTime AcceptedAt { get; set; }
     }
     public class RequestTourGuidePulicTrip : RequestTourGuide

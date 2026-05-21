@@ -33,8 +33,10 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
 
             booking.IsPaid = success;
 
+            await _writeUnitOfWork.BeginTransactionAsync();
             await _wrepo.UpdateAsync(booking, entityId);
             await _writeUnitOfWork.SaveChangesAsync();
+            await _writeUnitOfWork.CommitAsync();
 
         }
     }

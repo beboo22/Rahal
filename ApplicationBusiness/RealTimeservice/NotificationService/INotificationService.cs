@@ -51,21 +51,25 @@ namespace ApplicationBusiness.RealTimeservice.NotificationService
 
         public NotificationService(
             IHubContext<AppHub> hubContext,
-            IConfiguration config,
             IConnectionMultiplexer redis)
         {
-            var connectionString = config["Redis:ConnectionString"];
-            _redis = ConnectionMultiplexer.Connect(
-            new ConfigurationOptions
-            {
-                EndPoints = { { "redis-19301.c341.af-south-1-1.ec2.redns.redis-cloud.com", 19301 } },
-                User = "default",
-                Password = "uJhzvCJD1pjVz9lBh4gKVc9OrKRL9pTR"
-            }
-            );
-            //_redis = ConnectionMultiplexer.Connect(connectionString);
+            //var connectionString = config["Redis:ConnectionString"];
+            //_redis = ConnectionMultiplexer.Connect(
+            //new ConfigurationOptions
+            //{
+            //    EndPoints = { { "redis-19301.c341.af-south-1-1.ec2.redns.redis-cloud.com", 19301 } },
+            //    User = "default",
+            //    Password = "uJhzvCJD1pjVz9lBh4gKVc9OrKRL9pTR"
+            //}
+            //);
+            ////_redis = ConnectionMultiplexer.Connect(connectionString);
+            //_hubContext = hubContext;
+            //_db = redis.GetDatabase();
             _hubContext = hubContext;
+
             _db = redis.GetDatabase();
+            _redis = redis;
+
         }
 
         private string GetUnreadCountKey(string userId)
@@ -193,4 +197,5 @@ namespace ApplicationBusiness.RealTimeservice.NotificationService
                 .SendAsync("UnreadNotificationCount", 0);
         }
     }
+
 }
