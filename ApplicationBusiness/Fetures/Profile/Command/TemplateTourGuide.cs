@@ -3,11 +3,13 @@ using ApplicationBusiness.Dtos.Profile;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
 using ApplicationBusiness.Fetures.PostService.Query.Response;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
+using Domain.Entity.Identity;
 
 namespace ApplicationBusiness.Fetures.Profile.Command
 {
     public class TemplateTourGuide 
     {
+
         public string Country { get; set; }
         public string City { get; set; }
         public string Street { get; set; }
@@ -16,8 +18,10 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
         public int NumberFollowing { get; set; }
         public int NumberFollowers { get; set; }
+        public decimal SalaryPerDay { get; internal set; }
 
         public int? Id { get; set; }
+        public double? AvgRate { get; set; }
         public string Ssn { get; set; }
         public string Email { get; set; }
         public string Bio { get; set; }
@@ -25,8 +29,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public List<ExperiencePostTemplate> ExperiencePostTemplates { get; set; }
         public List<PrivateTemplateTrip> PrivateTrips { get; set; }
         public List<BookingTripTemplate> BookedTrip { get; set; }
-        public decimal SalaryPerDay { get; internal set; }
-
+        public ICollection<Languages> Languages { get; internal set; }
     }
     public class TemplateTokenTour
     {

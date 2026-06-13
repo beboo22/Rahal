@@ -70,6 +70,8 @@ namespace ApplicationBusiness.Fetures.BookHotel.Command
                     IsPaid = false,
                     Canceled = false,
                     TotalBookingPrice = hotel.Data.LowestPrice * request.durationInDay,
+                    durationInDay = request.durationInDay,
+                    StartDate =  request.StartDate
                 };
                 await writeGenericRepo.AddAsync(item);
                 await writeUnitOfWork.SaveChangesAsync();

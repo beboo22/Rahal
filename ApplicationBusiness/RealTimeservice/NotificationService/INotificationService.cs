@@ -21,6 +21,7 @@ namespace ApplicationBusiness.RealTimeservice.NotificationService
         public const string Like = "Like";
         public const string Comment = "Comment";
         public const string System = "System";
+        public const string Follow = "Follow";
     }
     public class NotificationDto
     {

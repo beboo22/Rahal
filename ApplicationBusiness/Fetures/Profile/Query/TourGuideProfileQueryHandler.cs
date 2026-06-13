@@ -39,8 +39,11 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTourGuide
                             {
+                                AvgRate = item.ReviewTourGuides.Select(x => (double?)x.Rating).Average() ?? 0,
                                 PhotoUrl = item.PhotoUrl,
 
+                                //SalaryPerDay = item.SalaryPerDay,
+                                Languages = item.User.Languages,
                                 NumberFollowers = item.User.Followers.Count,
                                 NumberFollowing = item.User.Following.Count,
                                 Email = item.User.Email,

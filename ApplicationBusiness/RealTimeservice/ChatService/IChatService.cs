@@ -6,12 +6,23 @@ using System.Text;
 using System.Threading.Tasks;
 using StackExchange.Redis;
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
+using MediatR;
+using Application.Fetures.Authentication.Query.Models;
+using ApplicationBusiness.Fetures.Authentication.Query;
+using Domain.BaseResponce;
 
 namespace ApplicationBusiness.RealTimeservice.ChatService
 {
+    public class ConversationDto
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Image { get; set; }
+    }
     public interface IChatService
     {
-        Task<List<string>> GetConversationListAsync(string userId);
+        Task<List<ConversationDto>> GetConversationListAsync(string userId);
         Task<ChatMessageDto> SaveMessageAsync(ChatMessageDto chatMessage);
         Task<List<ChatMessageDto>> GetChatHistoryAsync(string senderId, string receiverId);
         Task MarkMessagesAsDeliveredAsync(string receiverId);
@@ -35,8 +46,9 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
     {
         private readonly IConnectionMultiplexer _redis;
         private readonly IDatabase _db;
+        public ISender Sender { get; set; }
 
-        public ChatService(IConnectionMultiplexer redis)
+        public ChatService(IConnectionMultiplexer redis, ISender sender)
         {
             //var connectionString = config["Redis:ConnectionString"];
             //_redis = ConnectionMultiplexer.Connect(
@@ -50,6 +62,7 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
             //_redis = ConnectionMultiplexer.Connect(connectionString);
             _db = redis.GetDatabase();
             _redis = redis;
+            Sender = sender;
         }
 
         // Generate consistent chat key
@@ -63,29 +76,75 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
 
         // ----------------- CORE METHODS -----------------
 
+        //public async Task<ChatMessageDto> SaveMessageAsync(ChatMessageDto chatMessage)
+        //{
+        //    //var chatMessage = new ChatMessageDto
+        //    //{
+        //    //    SenderId = senderId,
+        //    //    ReceiverId = receiverId,
+        //    //    Content = message,
+        //    //    Timestamp = DateTime.UtcNow,
+        //    //    Status = "Sent"
+        //    //};
+
+        //    var chatKey = GetChatKey(chatMessage.SenderId, chatMessage.ReceiverId);
+        //    var serialized = JsonSerializer.Serialize(chatMessage);
+
+        //    // Save message to chat list
+        //    await _db.ListRightPushAsync(chatKey, serialized);
+
+        //    // Update recent conversations
+        //    await UpdateConversationListAsync(chatMessage.SenderId, chatMessage.ReceiverId, chatMessage.Timestamp);
+        //    await UpdateConversationListAsync(chatMessage.ReceiverId, chatMessage.SenderId, chatMessage.Timestamp);
+
+        //    return chatMessage;
+        //}
+
         public async Task<ChatMessageDto> SaveMessageAsync(ChatMessageDto chatMessage)
         {
-            //var chatMessage = new ChatMessageDto
-            //{
-            //    SenderId = senderId,
-            //    ReceiverId = receiverId,
-            //    Content = message,
-            //    Timestamp = DateTime.UtcNow,
-            //    Status = "Sent"
-            //};
+            var chatKey = GetChatKey(
+                chatMessage.SenderId,
+                chatMessage.ReceiverId);
 
-            var chatKey = GetChatKey(chatMessage.SenderId, chatMessage.ReceiverId);
             var serialized = JsonSerializer.Serialize(chatMessage);
 
-            // Save message to chat list
             await _db.ListRightPushAsync(chatKey, serialized);
 
-            // Update recent conversations
-            await UpdateConversationListAsync(chatMessage.SenderId, chatMessage.ReceiverId, chatMessage.Timestamp);
-            await UpdateConversationListAsync(chatMessage.ReceiverId, chatMessage.SenderId, chatMessage.Timestamp);
+            // بيانات الريسيفر
+            var receiver = await Sender.Send(new GetUserById(int.Parse(chatMessage.ReceiverId))) as ApiResultResponse<TemplateGenericProfile>;
+            //await _userManager.FindByIdAsync(chatMessage.ReceiverId);
+
+            var senderConversation = new ConversationDto
+            {
+                Id = chatMessage.ReceiverId,
+                Name = receiver?.Data?.Fname + "" + receiver?.Data?.Lname,
+                Image = receiver?.Data?.Traveler is not null ?
+                receiver.Data.Traveler.PhotoUrl : receiver?.Data.TourGuide is not null ?
+                receiver.Data.TourGuide.PhotoUrl : receiver?.Data?.TravelCompany is not null ?
+                receiver.Data.TravelCompany.PhotoUrl : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+            };
+
+            var receiverConversation = new ConversationDto
+            {
+                Id = chatMessage.SenderId,
+                Name = chatMessage.SenderName,
+                Image = chatMessage.SenderImage
+            };
+
+            await UpdateConversationListAsync(
+                chatMessage.SenderId,
+                senderConversation,
+                chatMessage.Timestamp);
+
+            await UpdateConversationListAsync(
+                chatMessage.ReceiverId,
+                receiverConversation,
+                chatMessage.Timestamp);
 
             return chatMessage;
         }
+
+
 
         public async Task<List<ChatMessageDto>> GetChatHistoryAsync(string senderId, string receiverId)
         {
@@ -156,19 +215,80 @@ namespace ApplicationBusiness.RealTimeservice.ChatService
 
         // ----------------- CONVERSATION LIST -----------------
 
-        private async Task UpdateConversationListAsync(string userId, string otherUserId, DateTime timestamp)
+        private async Task UpdateConversationListAsync(
+    string userId,
+    ConversationDto otherUser,
+    DateTime timestamp)
         {
             var convKey = GetConversationKey(userId);
-            double score = new DateTimeOffset(timestamp).ToUnixTimeSeconds();
-            await _db.SortedSetAddAsync(convKey, otherUserId, score);
+
+            double score = new DateTimeOffset(timestamp)
+                .ToUnixTimeSeconds();
+
+            var serialized = JsonSerializer.Serialize(otherUser);
+
+            await _db.SortedSetAddAsync(
+                convKey,
+                serialized,
+                score);
         }
 
-        public async Task<List<string>> GetConversationListAsync(string userId)
+        //public async Task<List<ConversationDto> GetConversationListAsync(string userId)
+        //{
+        //    var convKey = GetConversationKey(userId);
+        //    var result = await _db.SortedSetRangeByRankAsync(convKey, 0, -1, Order.Descending);
+        //    return result.Select(r => (string)r!).ToList();
+        //}
+
+        //public async Task<List<ConversationDto>> GetConversationListAsync(string userId)
+        //{
+        //    var convKey = GetConversationKey(userId);
+
+        //    var result = await _db.SortedSetRangeByRankAsync(
+        //        convKey,
+        //        0,
+        //        -1,
+        //        Order.Descending);
+
+        //    var item = result
+        //       .Select(x => JsonSerializer.Deserialize<ConversationDto>(x!)!)
+        //       .ToList();
+        //    return item;
+        //}
+
+
+        public async Task<List<ConversationDto>> GetConversationListAsync(string userId)
         {
             var convKey = GetConversationKey(userId);
-            var result = await _db.SortedSetRangeByRankAsync(convKey, 0, -1, Order.Descending);
-            return result.Select(r => (string)r!).ToList();
+
+            var result = await _db.SortedSetRangeByRankAsync(
+                convKey,
+                0,
+                -1,
+                Order.Descending);
+
+            var conversations = new List<ConversationDto>();
+
+            foreach (var item in result)
+            {
+                try
+                {
+                    conversations.Add(
+                        JsonSerializer.Deserialize<ConversationDto>(item!)!
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"BAD VALUE = {item}");
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return conversations;
         }
+
+
+
     }
 
 

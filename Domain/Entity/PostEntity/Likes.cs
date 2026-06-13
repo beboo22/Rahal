@@ -11,7 +11,7 @@ namespace Domain.Entity.PostEntity
     {
 
         public int postId { get; set; }
-        public Post post { get; set; }
+        public ExperiencePost post { get; set; }
 
         public LikeType LikeType { get; set; }
 

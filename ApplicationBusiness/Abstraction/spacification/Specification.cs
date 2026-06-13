@@ -7,50 +7,89 @@ using System.Linq.Expressions;
 
 namespace Application.Abstraction.spacification
 {
-
     public class HiringPostSearchSpecification : Specification<HiringPost>
     {
-        public HiringPostSearchSpecification(DateTime? date, string? title, bool OrderDesBytimeCreated, int? pageIndex, int? pageSize = 5)
+        public HiringPostSearchSpecification(
+            DateTime? date,
+            int? id,
+            string? title,
+            bool OrderDesBytimeCreated,
+            int? pageIndex,
+            int? pageSize = 5)
         {
-            Expression<Func<HiringPost, bool>> _criteria = post => true;
+            AndAlso(x=>x.IsValid == true);
+            if (id.HasValue)
+            {
+                crateria = x => x.Id == id.Value;
+                
+                // --------------------
+                // Includes (IMPORTANT)
+                // --------------------
+                includes.Add(post => post.Comments);
+                includes.Add(x => x.CreatedBy);
+                return;
+            }
 
+            // Build criteria for list view
             if (!string.IsNullOrWhiteSpace(title))
                 AndAlso(post => post.Title.Contains(title));
 
             if (date.HasValue)
                 AndAlso(post => post.CreatedAt.Date == date.Value.Date);
 
+           
 
-
-            crateria = _criteria;
+            // Add includes for list view
             includes.Add(post => post.Comments);
+            includes.Add(x => x.CreatedBy);  // Added to match Experience
+            //includes.Add(x => x.Likes);
+
             // Pagination
             if (pageIndex.HasValue && pageIndex > 0)
             {
-                int skip = (pageIndex.Value - 1) * (pageSize.HasValue ? pageSize.Value : 1);
-                ApplyPagination(skip, (pageSize.HasValue ? pageSize.Value : 1));
+                int skip = (pageIndex.Value - 1) * (pageSize ?? 5);
+                int take = pageSize ?? 5;
+                ApplyPagination(skip, take);
             }
+
+            // Sorting
             if (OrderDesBytimeCreated)
                 AddOrderByDecs(x => x.CreatedAt);
             else
                 AddOrderBy(x => x.CreatedAt);
         }
     }
+    //public class PaymentSpecification : Specification<PaymentRequest>
+    //{
+    //    public PaymentSpecification(string? providerRef)
+    //    {
+    //        Expression<Func<PaymentRequest, bool>> _criteria = post => true;
+
+    //        if (!string.IsNullOrWhiteSpace(providerRef))
+    //            AndAlso(post => post.ProviderRef == providerRef);
+
+    //        crateria = _criteria;
+    //    }
+    //}
+
+
     public class PaymentSpecification : Specification<PaymentRequest>
     {
         public PaymentSpecification(string? providerRef)
         {
-            Expression<Func<PaymentRequest, bool>> _criteria = post => true;
-
             if (!string.IsNullOrWhiteSpace(providerRef))
-                AndAlso(post => post.ProviderRef == providerRef);
-
-            crateria = _criteria;
+            {
+                // بنباصي الشرط للـ Base Class مباشرة بدون لف ودوران
+                // تأكد من كتابة اسم المتغير الموروث صح (سواء Criteria أو crateria حسب الـ Base)
+                crateria = post => post.ProviderRef == providerRef;
+            }
+            else
+            {
+                // حماية ليك عشان لو الـ ref جه فاضي ميرجعش أول سطر في الجدول
+                crateria = post => false;
+            }
         }
     }
-
-
-
 
 
 
@@ -67,7 +106,7 @@ namespace Application.Abstraction.spacification
             int? pageIndex,
             int pageSize = 5)
         {
-            Expression<Func<ExperiencePost, bool>> _criteria = post => true;
+            AndAlso(x => x.IsValid == true);
 
             if (id.HasValue)
             {
@@ -98,10 +137,11 @@ namespace Application.Abstraction.spacification
                 AndAlso(post => post.City.Contains(city));
 
 
-            crateria = _criteria;
+            //crateria = _criteria;
 
             includes.Add(post => post.Comments);
             includes.Add(x => x.CreatedBy);
+            includes.Add(x => x.Likes);
             // Pagination
             if (pageIndex.HasValue && pageIndex > 0)
             {

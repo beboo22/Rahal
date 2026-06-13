@@ -18,9 +18,9 @@ namespace Domain.Entity.TripEntity
     }
     public enum PaymentEntityType
     {
-        PublicTrip = 1,
-        PrivateTrip = 2,
-        Hotel = 3,
-        Flight = 4
+        PublicTrip = 0,
+        PrivateTrip,
+        Hotel ,
+        Flight
     }
 }

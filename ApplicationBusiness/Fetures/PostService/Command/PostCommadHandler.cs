@@ -10,7 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.PostService.Command
@@ -127,38 +129,100 @@ namespace ApplicationBusiness.Fetures.PostService.Command
             _cloudinaryService = cloudinaryService;
         }
 
+
         public async Task<ApiResponse> Handle(AddExperiencePostCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var url = await _cloudinaryService.UploadFileAsync(request.dto.Photo);
+                // 1. Upload the image first to get the PhotoUrl (since we always save)
+                string photoUrl = null;
+                if (request.dto.Photo != null && request.dto.Photo.Length > 0)
+                {
+                    photoUrl = await _cloudinaryService.UploadFileAsync(request.dto.Photo);
+                }
 
+                // Default status is true, we will flip it to false if any check fails
+                bool isPostValid = true;
+                using var httpClient = new HttpClient();
+                var baseUrl = "https://driven-committees-parade-burner.trycloudflare.com/api/v1";
 
+                // 2. Text Classification Check
+                var fullText = $"{request.dto.Title} {request.dto.Description}";
+                var textPayload = new { text = fullText };
+                var textContent = new StringContent(JsonSerializer.Serialize(textPayload), Encoding.UTF8, "application/json");
 
+                var textResponse = await httpClient.PostAsync($"{baseUrl}/toxic-text-classify", textContent, cancellationToken);
+                if (textResponse.IsSuccessStatusCode)
+                {
+                    var textJson = await textResponse.Content.ReadAsStringAsync(cancellationToken);
+                    using var doc = JsonDocument.Parse(textJson);
+                    bool isHarmful = doc.RootElement.GetProperty("is_harmful").GetBoolean();
+
+                    if (isHarmful)
+                    {
+                        isPostValid = false;
+                    }
+                }
+
+                // 3. Image Classification Check (Only if a photo was uploaded and post is still considered valid)
+                if (isPostValid && request.dto.Photo != null && request.dto.Photo.Length > 0)
+                {
+                    using var multipartContent = new MultipartFormDataContent();
+                    using var stream = request.dto.Photo.OpenReadStream();
+                    var fileContent = new StreamContent(stream);
+
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue(request.dto.Photo.ContentType ?? "image/png");
+                    multipartContent.Add(fileContent, "file", request.dto.Photo.FileName);
+
+                    var imageResponse = await httpClient.PostAsync($"{baseUrl}/toxic-image-classify", multipartContent, cancellationToken);
+                    if (imageResponse.IsSuccessStatusCode)
+                    {
+                        var imageJson = await imageResponse.Content.ReadAsStringAsync(cancellationToken);
+                        using var doc = JsonDocument.Parse(imageJson);
+                        bool isViolent = doc.RootElement.GetProperty("is_violent").GetBoolean();
+
+                        if (isViolent)
+                        {
+                            isPostValid = false;
+                        }
+                    }
+                }
+
+                // 4. Save to Database regardless of the validation outcome
                 await _uow.BeginTransactionAsync();
+
                 var item = new ExperiencePost
                 {
                     CreatedById = request.CreatedBy,
                     Country = request.dto.Country,
-                    PhotoUrl = url,
+                    PhotoUrl = photoUrl,
                     Title = request.dto.Title,
                     Description = request.dto.Description,
                     City = request.dto.City,
-                    //Budget = request.dto.Budget,
-                    //TipsAndRecommendations = request.dto.TipsAndRecommendations,
+                    IsValid = isPostValid // Set based on AI classification results
                 };
+
                 await _WPR.AddAsync(item);
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
 
-                return new ApiResultResponse<ExperiencePost>(StatusCodes.Status201Created,item);
+                // 5. Return appropriate response message to the client
+                if (!isPostValid)
+                {
+                    return new ApiResultResponse<ExperiencePost>(
+                        StatusCodes.Status202Accepted,
+                        item,
+                        "Post saved under review due to content policy violations."
+                    );
+                }
+
+                return new ApiResultResponse<ExperiencePost>(StatusCodes.Status201Created, item, "Post created successfully.");
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message, ex.InnerException);
             }
         }
-
         public async Task<ApiResponse> Handle(UpdateExperiencePostCommand request, CancellationToken cancellationToken)
         {
             try

@@ -55,15 +55,16 @@ namespace Infrstructure.Data.Configuration
                    .HasForeignKey(t => t.CreatedById)
                    .OnDelete(DeleteBehavior.Restrict); // When a User is deleted, do not delete their created Trips.
 
-            builder.HasMany(x=>x.Reviews)
-                .WithOne(x=>x.PublicTrip)
-                .HasForeignKey(x=>x.PublicTripId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasMany(x=>x.Reviews)
+            //    .WithOne(x=>x.PublicTrip)
+            //    .HasForeignKey(x=>x.PublicTripId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(t=>t.requestTourGuides)
                    .WithOne(r => r.PublicTrip)
                    .HasForeignKey(r => r.PublicTripId)
                    .OnDelete(DeleteBehavior.Cascade);
+
             builder.Property(b => b.TravelerFee)
                    .HasColumnType("decimal(18,2)").IsRequired();
 
@@ -76,6 +77,13 @@ namespace Infrstructure.Data.Configuration
             builder.HasOne(p=>p.TourGuide)
                 .WithMany()
                 .HasForeignKey(p => p.TourGuideId).OnDelete(DeleteBehavior.Restrict); // When a TourGuide is deleted, do not delete their Public Trips.
+
+
+
+            builder.HasMany(t => t.Reviews)
+                   .WithOne(r => r.PublicTrip)
+                   .HasForeignKey(r => r.PublicTripId)
+                   .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

@@ -59,7 +59,7 @@ namespace Domain.Entity.Identity
 
         public ICollection<Review> ReviewsWritten { get; set; }
 
-        public ICollection<Review> ReviewsReceived { get; set; }
+        //public ICollection<Review> ReviewsReceived { get; set; }
 
         public ICollection<ExperiencePost> Posts { get; set; }
 

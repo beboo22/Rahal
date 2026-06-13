@@ -1,5 +1,8 @@
-﻿using Domain.Abstraction;
+﻿using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
+using Domain.Abstraction;
+using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +16,16 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
         private readonly IWriteGenericRepo<BookingPrivateTrip> _wrepo;
         private readonly IReadGenericRepo<BookingPrivateTrip> _rrepo;
         private IWriteUnitOfWork _unitOfWork;
+        public ISender Sender { get; set; }
 
         public PaymentEntityType Type => PaymentEntityType.PrivateTrip;
 
-        public PrivateTripPaymentHandler(IWriteGenericRepo<BookingPrivateTrip> repo, IReadGenericRepo<BookingPrivateTrip> rrepo, IWriteUnitOfWork unitOfWork)
+        public PrivateTripPaymentHandler(IWriteGenericRepo<BookingPrivateTrip> repo, IReadGenericRepo<BookingPrivateTrip> rrepo, IWriteUnitOfWork unitOfWork, ISender sender)
         {
             _wrepo = repo;
             _rrepo = rrepo;
             _unitOfWork = unitOfWork;
+            Sender = sender;
         }
 
         public async Task HandleAsync(int entityId, bool success)
@@ -35,6 +40,13 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
             await _wrepo.UpdateAsync(booking, entityId);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
+            await Sender.Send(
+            new SendPaymentNotificationCommand(
+                booking.UserId.ToString(),
+                "success New payment for booking ur trip🔥",
+                $"{booking.BookingDate}.",
+                ""
+            ));
         }
     }
 }

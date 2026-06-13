@@ -294,5 +294,7 @@ namespace Domain.Entity.Hotel_flights
         public int UserId { get; set; }
         public User User { get; set; } = null!;
         public decimal TotalBookingPrice { get; set; }
+        public int durationInDay { get; set; }
+        public DateTime StartDate { get; set; }
     }
 }

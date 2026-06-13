@@ -27,7 +27,7 @@ namespace ApplicationBusiness.Fetures.PostService.Query
         {
             try
             {
-                var spec = new HiringPostSearchSpecification(request.Date, request.Title, request.OrderDesBytimeCreated, request.page, request.capacity);
+                var spec = new HiringPostSearchSpecification(request.Date, request.id,request.Title, request.OrderDesBytimeCreated, request.page, request.capacity);
 
                 var posts = await _RPR
                     .GetAllSpec(spec)
@@ -46,23 +46,23 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                         Requirements = x.Requirements,
                         Status = x.Status,
                         CreatedAt = x.CreatedAt,
-                        Likes = x.Likes.Select(x => new likesSerive.Query.TemplateuserLikePost
-                        {
-                            LikeType = x.LikeType,
-                            UserLike = new TemplateUserPost
-                            {
-                                Id = x.User.Id,
-                                FullName = $"{x.User.FName} {x.User.LName}",
+                        //Likes = x.Likes.Select(x => new likesSerive.Query.TemplateuserLikePost
+                        //{
+                        //    LikeType = x.LikeType,
+                        //    UserLike = new TemplateUserPost
+                        //    {
+                        //        Id = x.User.Id,
+                        //        FullName = $"{x.User.FName} {x.User.LName}",
 
-                                PrifleUser =
-                                x.User.TravelerProfile != null
-                                    ? x.User.TravelerProfile.PhotoUrl
-                                    : x.User.TourGuideProfile != null
-                                        ? x.User.TourGuideProfile.PhotoUrl
-                                        : null,
-                            }
-                        }).ToList(),
-                        numLikes = x.Likes.Count,
+                        //        PrifleUser =
+                        //        x.User.TravelerProfile != null
+                        //            ? x.User.TravelerProfile.PhotoUrl
+                        //            : x.User.TourGuideProfile != null
+                        //                ? x.User.TourGuideProfile.PhotoUrl
+                        //                : null,
+                        //    }
+                        //}).ToList(),
+                        //numLikes = x.Likes.Count,
                         Comments = x.Comments.Select(c => new TemplateComment
                         {
                             CreatedAt = c.CreatedAt,
@@ -84,7 +84,10 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                     .ToListAsync();
 
                 if (posts.Any())
-                    return new ApiResultResponse<List<HiringPostTemplate>>(200, posts, "Hiring posts retrieved successfully");
+                    if (request.id.HasValue)
+                        return new ApiResultResponse<HiringPostTemplate>(200, posts.First(), "Hiring posts retrieved successfully");
+                    else
+                        return new ApiResultResponse<List<HiringPostTemplate>>(200, posts, "Hiring posts retrieved successfully");
 
                 return new ApiResponse(404, "No posts found");
             }

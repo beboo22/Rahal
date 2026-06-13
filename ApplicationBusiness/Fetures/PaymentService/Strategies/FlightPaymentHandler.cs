@@ -1,6 +1,8 @@
-﻿using Domain.Abstraction;
+﻿using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
+using Domain.Abstraction;
 using Domain.Entity.Hotel_flights;
 using Domain.Entity.TripEntity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,13 +16,16 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
         private readonly IWriteGenericRepo<PayFlight> _wrepo;
         private readonly IReadGenericRepo<PayFlight> _rrepo;
         private IWriteUnitOfWork _unitOfWork;
+        public ISender Sender { get; set; }
+
         public PaymentEntityType Type => PaymentEntityType.Flight;
 
-        public FlightPaymentHandler(IWriteGenericRepo<PayFlight> repo, IReadGenericRepo<PayFlight> rrepo, IWriteUnitOfWork unitOfWork)
+        public FlightPaymentHandler(IWriteGenericRepo<PayFlight> repo, IReadGenericRepo<PayFlight> rrepo, IWriteUnitOfWork unitOfWork, ISender sender)
         {
             _wrepo = repo;
             _rrepo = rrepo;
             _unitOfWork = unitOfWork;
+            Sender = sender;
         }
 
         public async Task HandleAsync(int entityId, bool success)
@@ -37,6 +42,13 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
                 await _wrepo.UpdateAsync(booking, entityId);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
+                await Sender.Send(
+new SendPaymentNotificationCommand(
+booking.UserId.ToString(),
+"success New payment for booking flight🔥",
+$"✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️.",
+""
+));
             }
             catch (Exception ex)
             {

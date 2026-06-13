@@ -40,6 +40,23 @@ namespace Presentation.Controllers
             // Otherwise, you can handle it explicitly based on the status code:
             return StatusCode(result.statusCode, result);
         }
+        /// <summary>
+        /// Request tour guides for a private trip.
+        /// </summary>
+        [HttpPut("trips/private/Accept-request-tour-guide")]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AcceptRequestPrivateTripTourGuide(
+            [FromBody] AcceptPivRequest command,
+            CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(command, cancellationToken);
+
+            // If your base ProcessResult handles ApiResponse, use it here. 
+            // Otherwise, you can handle it explicitly based on the status code:
+            return StatusCode(result.statusCode, result);
+        }
 
         /// <summary>
         /// Request tour guides for a public trip.
@@ -50,6 +67,20 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RequestPublicTripTourGuide(
             [FromBody] RequestTourGuidePubTripCommand command,
+            CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(command, cancellationToken);
+            return StatusCode(result.statusCode, result);
+        }
+        /// <summary>
+        /// Request tour guides for a public trip.
+        /// </summary>
+        [HttpPut("trips/public/Accept-request-tour-guide")]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AcceptRequestPublicTripTourGuide(
+            [FromBody] AcceptPubRequest command,
             CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);

@@ -136,11 +136,17 @@ namespace ApplicationBusiness.RealTimeservice
         }
 
         // ضيف الميثود دي جوة كلاس AppHub
-        public async Task<List<string>> GetConversationListAsync(string userId)
+        //public async Task<List<string>> GetConversationListAsync(string userId)
+        //{
+        //    // بننادي الـ Service اللي متصلة بالـ Redis علطول
+        //    return await _chatService.GetConversationListAsync(userId);
+        //}
+
+        public async Task<List<ConversationDto>> GetConversationListAsync(string userId)
         {
-            // بننادي الـ Service اللي متصلة بالـ Redis علطول
             return await _chatService.GetConversationListAsync(userId);
         }
+
     }
 
 }

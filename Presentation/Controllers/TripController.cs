@@ -67,6 +67,27 @@ namespace Presentation.Controllers
             var result = await Sender.Send(new GetPubTripSpecQuery(dto));
             return ProcessResult(result);
         }
+    
+        /// <summary>
+        /// Search for public trips.
+        /// </summary>
+        [HttpGet("MyPublicTrip")]
+        [ProducesResponseType(typeof(ApiResultResponse<List<TemplateTrip>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> MyPublic()
+        {
+
+            var userid = GetUserId();
+            if (userid == null)
+                return Unauthorized();
+            var result = await Sender.Send(new GetPubTripSpecQuery(new TripFilter
+            {
+                createdById = userid,
+            }));
+            return ProcessResult(result);
+        }
+    
+    
+        
     }
 
     [Route("api/[controller]")]

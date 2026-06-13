@@ -42,7 +42,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 {
                     PublicTripId = request.dto.TripId,
                     ReviewerId = request.UserId,
-                    RevieweeId = checkTrip?.CreatedById,
+                    //RevieweeId = checkTrip?.CreatedById,
                     Rating = request.dto.Rate,
                     Feedback = request.dto.Feedback,
                 };
@@ -96,8 +96,8 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     Rating = request.dto.Rate,
                     Feedback = request.dto.Feedback,
                 };
-                if (Trip?.TourGuideId is int tourGuideId)
-                    review.RevieweeId = tourGuideId;
+                //if (Trip?.TourGuideId is int tourGuideId)
+                //    review.RevieweeId = tourGuideId;
                 await _wrr.AddAsync(review);
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();

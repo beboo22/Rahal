@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.BookHotel.Command.Models
 {
-    public record BookHotelcommand(int UserId,int HotleId, int durationInDay=1) :ICommand<ApiResponse>;
+    public record BookHotelcommand(int UserId,int HotleId, DateTime StartDate, int durationInDay=1) :ICommand<ApiResponse>;
 }

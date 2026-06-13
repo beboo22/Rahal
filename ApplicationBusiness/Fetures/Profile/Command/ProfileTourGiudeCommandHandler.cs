@@ -161,7 +161,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
                 var temp = new TemplateTokenTour();
                 var traveler = new TemplateTourGuide
                 {
-                    PhotoUrl = entity.PhotoUrl,
+                    PhotoUrl = photourl,
                     Id = entity.Id,
                     Ssn = entity.Ssn,
                     Bio = entity.Bio,

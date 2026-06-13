@@ -96,10 +96,10 @@ namespace Infrstructure.Data.Configuration
                    .WithOne(a => a.User)
                    .HasForeignKey<Admin>(a => a.UserId);
 
-            builder.HasMany(r => r.ReviewsReceived)
-                   .WithOne(u => u.Reviewee)
-                   .HasForeignKey(r => r.RevieweeId)
-                   .OnDelete(DeleteBehavior.SetNull);
+            //builder.HasMany(r => r.ReviewsReceived)
+            //       .WithOne(u => u.Reviewee)
+            //       .HasForeignKey(r => r.RevieweeId)
+            //       .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasMany(r => r.ReviewsWritten)
                    .WithOne(u => u.Reviewer)

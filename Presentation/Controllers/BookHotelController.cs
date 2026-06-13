@@ -24,13 +24,13 @@ namespace Presentation.Controllers
         /// <param name="hotelId">The ID of the hotel to book.</param>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResultResponse<object>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> BookHotels(int hotelId,int durationInDay)
+        public async Task<IActionResult> BookHotels(int hotelId,DateTime StartDate, int durationInDay)
         {
             var userId = GetUserId();
             if (userId == null)
                 return Unauthorized(new ApiResponse(401, "User ID claim missing"));
 
-            var response = await Sender.Send(new BookHotelcommand(userId.Value, hotelId,durationInDay));
+            var response = await Sender.Send(new BookHotelcommand(userId.Value, hotelId,StartDate,durationInDay));
 
             return ProcessResult(response);
         }

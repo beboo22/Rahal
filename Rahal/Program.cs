@@ -16,6 +16,7 @@ using ApplicationBusiness.Abstraction.SerpApiService.Activity;
 using Domain.BaseResponce;
 using ApplicationBusiness.RealTimeservice;
 using Scalar.AspNetCore;
+using Microsoft.Extensions.Options;
 
 namespace Rahal
 {
@@ -168,6 +169,7 @@ namespace Rahal
                                                 Array.Empty<string>()
                                             }
                                         });
+                c.CustomSchemaIds(type => type.FullName);
             });
 
 

@@ -43,8 +43,13 @@ namespace Infrastructure.Data
         public DbSet<PrivateTrip> PrivateTrips { get; set; }
         public DbSet<ActivityPublicTrip> ActivityPublicTrips { get; set; }
         public DbSet<ActivityPrivateTrip> ActivityPrivateTrips { get; set; }
+
+
         public DbSet<ReviewPrivateTrip> ReviewPrivateTrips { get; set; }
         public DbSet<ReviewPublicTrip> ReviewPublicTrips { get; set; }
+        public DbSet<ReviewTourGuide> ReviewTourGuides { get; set; }
+        public DbSet<ReviewHotel> ReviewHotels { get; set; }
+
 
         public DbSet<HiringPost> HiringPosts { get; set; }
         public DbSet<ExperiencePost> ExperiencePosts { get; set; }

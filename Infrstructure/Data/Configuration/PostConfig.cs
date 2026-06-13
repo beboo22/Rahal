@@ -23,10 +23,6 @@ namespace Infrstructure.Data.Configuration
             builder.Property(x=>x.Country).IsRequired(false);
 
 
-            builder.HasMany(x=>x.Likes)
-                .WithOne(x=>x.post)
-                .HasForeignKey(x=>x.postId)
-                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }
@@ -47,6 +43,11 @@ namespace Infrstructure.Data.Configuration
                 .WithMany(x => x.Posts)
                 .HasForeignKey(x => x.CreatedById)
                 .OnDelete(deleteBehavior: DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.Likes)
+                .WithOne(x => x.post)
+                .HasForeignKey(x => x.postId)
+                .OnDelete(DeleteBehavior.NoAction);
 
         }
     }

@@ -5,11 +5,15 @@ using ApplicationBusiness.Fetures.Authentication.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
 using ApplicationBusiness.Fetures.BookingTripService.Query.Response;
 using ApplicationBusiness.Fetures.FlightService.Command;
+using ApplicationBusiness.Fetures.FlightService.Query;
 using ApplicationBusiness.Fetures.HotelService.Command;
+using ApplicationBusiness.Fetures.HotelService.Query.Model;
+using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
+using Domain.Entity.Hotel_flights;
 using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
 using MediatR;
@@ -79,38 +83,63 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                     return new ApiResponse((int)HttpStatusCode.Conflict, "User who create trip can't book it");
                 //var Trip = await _RTR.GetByIdAsync(request.TripId);
 
-                if (request.HotelId.HasValue)
-                {
-
-                    var CheckHotel = await Sender.Send(new CheckHotelExsist(request.HotelId.Value));
-                    if (CheckHotel.statusCode != StatusCodes.Status302Found)
-                    {
-                        return new ApiResponse((int)HttpStatusCode.NotFound, "hotel not found");
-                    }
-                }
-                if (request.flightId.HasValue)
-                {
-
-                    var CheckHotel = await Sender.Send(new CheckFlightExsist(request.HotelId.Value));
-                    if (CheckHotel.statusCode != StatusCodes.Status302Found)
-                    {
-                        return new ApiResponse((int)HttpStatusCode.NotFound, "Flight not found");
-                    }
-                }
-
-
-
                 var entity = new BookingPublicTrip()
                 {
                     PublicTripId = request.TripId,
                     UserId = request.UserId,
-                    HotelsId = request.HotelId,
-                    FlightOffersId = request.flightId,
+                    //HotelsId = request.HotelId,
+                    //FlightOffersId = request.flightId,
                 };
+                if (request.HotelId.HasValue)
+                {
+
+                    var CheckHotel = await Sender.Send(new GetHotelsspecQuery(new Abstraction.spacification.HotelHistoryFilter { Id = request.HotelId.Value })) as ApiResultResponse<Hotel>;
+                    if (CheckHotel.statusCode != 200)
+                    {
+                        return new ApiResponse((int)HttpStatusCode.NotFound, "hotel not found");
+                    }
+                    entity.HotelsId = request.HotelId.Value;
+                    entity.TotalBookingPrice += CheckHotel.Data.LowestPrice * Trip.Data.Duration;
+                }
+                if (request.flightId.HasValue)
+                {
+
+                    var Checkflight = await Sender.Send(new GetFlightOffer(new Abstraction.spacification.FlightHistoryFilter { Id = request.flightId.Value })) as ApiResultResponse<FlightOffer>;
+                    if (Checkflight.statusCode != 200)
+                    {
+                        return new ApiResponse((int)HttpStatusCode.NotFound, "Flight not found");
+                    }
+                    entity.FlightOffersId = request.flightId;
+                    entity.TotalBookingPrice += Checkflight.Data.Price;
+                }
+
+
+
                 entity.TotalBookingPrice = Trip.Data.Price + Trip.Data.TravelerFee;
                 await _WBTR.AddAsync(entity);
                 await _uof.SaveChangesAsync();
                 await _uof.CommitAsync();
+
+
+                await Sender.Send(
+                    new SendBookingNotificationCommand(
+                        request.UserId.ToString(),
+                        "Booking Confirmed ✈️",
+                        $"You booked '{Trip.Data.Title}' successfully.",
+                        entity.Id.ToString()
+                    ));
+
+                // ==========================
+                // Notification For Trip Owner
+                // ==========================
+                await Sender.Send(
+                    new SendBookingNotificationCommand(
+                        Trip.Data.CreatedById.ToString(),
+                        "New Booking Request ✈️",
+                        "Someone booked your trip. Check details now.",
+                        entity.Id.ToString()
+                    ));
+
 
                 var item = new BookingTripTemplate()
                 {

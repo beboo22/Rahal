@@ -10,6 +10,7 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
         public string Lname { get; set; }
         public string Email { get; set; }
         public int Followers { get; set; }
+        public List<int> FollowersIds { get; set; }
         public int Following { get; set; }
         
         public TemplateTraveler? Traveler { get; set; }

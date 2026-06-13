@@ -417,6 +417,9 @@ namespace Infrstructure.Data.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("TotalBookingPrice")
                         .HasColumnType("decimal(18,2)");
 
@@ -424,6 +427,9 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("durationInDay")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -907,6 +913,9 @@ namespace Infrstructure.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsValid")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PhotoUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -1103,6 +1112,9 @@ namespace Infrstructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
@@ -1122,6 +1134,9 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<int>("TourGuidId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1705,17 +1720,8 @@ namespace Infrstructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PrivateTripId1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PublicTripId1")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("RevieweeId")
-                        .HasColumnType("int");
 
                     b.Property<int?>("ReviewerId")
                         .HasColumnType("int");
@@ -1724,12 +1730,6 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PrivateTripId1");
-
-                    b.HasIndex("PublicTripId1");
-
-                    b.HasIndex("RevieweeId");
 
                     b.HasIndex("ReviewerId");
 
@@ -1751,9 +1751,6 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatedById")
-                        .HasColumnType("int");
 
                     b.Property<string>("Destination")
                         .IsRequired()
@@ -1787,8 +1784,6 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
 
                     b.ToTable((string)null);
 
@@ -1901,11 +1896,23 @@ namespace Infrstructure.Data.Migrations
                     b.ToTable("HiringPosts");
                 });
 
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewHotel", b =>
+                {
+                    b.HasBaseType("Domain.Entity.TripEntity.Review");
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("HotelId");
+
+                    b.HasDiscriminator().HasValue("ReviewHotel");
+                });
+
             modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPrivateTrip", b =>
                 {
                     b.HasBaseType("Domain.Entity.TripEntity.Review");
 
-                    b.Property<int?>("PrivateTripId")
+                    b.Property<int>("PrivateTripId")
                         .HasColumnType("int");
 
                     b.HasIndex("PrivateTripId");
@@ -1917,7 +1924,7 @@ namespace Infrstructure.Data.Migrations
                 {
                     b.HasBaseType("Domain.Entity.TripEntity.Review");
 
-                    b.Property<int?>("PublicTripId")
+                    b.Property<int>("PublicTripId")
                         .HasColumnType("int");
 
                     b.HasIndex("PublicTripId");
@@ -1925,9 +1932,24 @@ namespace Infrstructure.Data.Migrations
                     b.HasDiscriminator().HasValue("ReviewPublicTrip");
                 });
 
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewTourGuide", b =>
+                {
+                    b.HasBaseType("Domain.Entity.TripEntity.Review");
+
+                    b.Property<int>("TourGuideId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("TourGuideId");
+
+                    b.HasDiscriminator().HasValue("ReviewTourGuide");
+                });
+
             modelBuilder.Entity("Domain.Entity.TripEntity.PrivateTrip", b =>
                 {
                     b.HasBaseType("Domain.Entity.TripEntity.Trip");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("CustomizationFee")
                         .IsRequired()
@@ -1935,6 +1957,8 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<int?>("TourGuideId")
                         .HasColumnType("int");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("TourGuideId");
 
@@ -1944,6 +1968,9 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TripEntity.PublicTrip", b =>
                 {
                     b.HasBaseType("Domain.Entity.TripEntity.Trip");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
 
                     b.Property<int>("CurrentNumberOfMember")
                         .HasColumnType("int");
@@ -1962,6 +1989,8 @@ namespace Infrstructure.Data.Migrations
 
                     b.Property<decimal>("TravelerFee")
                         .HasColumnType("decimal(18,2)");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("TourGuideId");
 
@@ -2286,10 +2315,10 @@ namespace Infrstructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entity.PostEntity.Post", "post")
+                    b.HasOne("Domain.Entity.PostEntity.ExperiencePost", "post")
                         .WithMany("Likes")
                         .HasForeignKey("postId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -2360,7 +2389,7 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuideBusinessGalary", b =>
                 {
                     b.HasOne("Domain.Entity.TourGuidEntity.TourGuide", "TourGuid")
-                        .WithMany("tourGuidBusinessGalaries")
+                        .WithMany()
                         .HasForeignKey("TourGuidId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2382,7 +2411,7 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TravelerCompanyEntity.TravelCompanyBusinessGalary", b =>
                 {
                     b.HasOne("Domain.Entity.TravelerCompanyEntity.TravelCompany", "TravelCompany")
-                        .WithMany("travelCompanyBusinessGalaries")
+                        .WithMany()
                         .HasForeignKey("TravelCompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2525,38 +2554,12 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.TripEntity.Review", b =>
                 {
-                    b.HasOne("Domain.Entity.TripEntity.PrivateTrip", null)
-                        .WithMany("Reviews")
-                        .HasForeignKey("PrivateTripId1");
-
-                    b.HasOne("Domain.Entity.TripEntity.PublicTrip", null)
-                        .WithMany("Reviews")
-                        .HasForeignKey("PublicTripId1");
-
-                    b.HasOne("Domain.Entity.Identity.User", "Reviewee")
-                        .WithMany("ReviewsReceived")
-                        .HasForeignKey("RevieweeId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Domain.Entity.Identity.User", "Reviewer")
                         .WithMany("ReviewsWritten")
                         .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Reviewee");
-
                     b.Navigation("Reviewer");
-                });
-
-            modelBuilder.Entity("Domain.Entity.TripEntity.Trip", b =>
-                {
-                    b.HasOne("Domain.Entity.Identity.User", "CreatedBy")
-                        .WithMany("CreatedTrips")
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("Domain.Entity.photo.PhotoResultItem", b =>
@@ -2588,11 +2591,24 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewHotel", b =>
+                {
+                    b.HasOne("Domain.Entity.Hotel_flights.Hotel", "Hotel")
+                        .WithMany()
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hotel");
+                });
+
             modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPrivateTrip", b =>
                 {
                     b.HasOne("Domain.Entity.TripEntity.PrivateTrip", "PrivateTrip")
-                        .WithMany()
-                        .HasForeignKey("PrivateTripId");
+                        .WithMany("Reviews")
+                        .HasForeignKey("PrivateTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("PrivateTrip");
                 });
@@ -2600,28 +2616,57 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TripEntity.ReviewPublicTrip", b =>
                 {
                     b.HasOne("Domain.Entity.TripEntity.PublicTrip", "PublicTrip")
-                        .WithMany()
-                        .HasForeignKey("PublicTripId");
+                        .WithMany("Reviews")
+                        .HasForeignKey("PublicTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("PublicTrip");
                 });
 
+            modelBuilder.Entity("Domain.Entity.TripEntity.ReviewTourGuide", b =>
+                {
+                    b.HasOne("Domain.Entity.TourGuidEntity.TourGuide", "TourGuide")
+                        .WithMany("ReviewTourGuides")
+                        .HasForeignKey("TourGuideId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TourGuide");
+                });
+
             modelBuilder.Entity("Domain.Entity.TripEntity.PrivateTrip", b =>
                 {
+                    b.HasOne("Domain.Entity.Identity.User", "CreatedBy")
+                        .WithMany("PrivateTrips")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entity.Identity.User", "TourGuide")
                         .WithMany()
                         .HasForeignKey("TourGuideId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedBy");
 
                     b.Navigation("TourGuide");
                 });
 
             modelBuilder.Entity("Domain.Entity.TripEntity.PublicTrip", b =>
                 {
+                    b.HasOne("Domain.Entity.Identity.User", "CreatedBy")
+                        .WithMany("PublicTrips")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entity.Identity.User", "TourGuide")
                         .WithMany()
                         .HasForeignKey("TourGuideId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedBy");
 
                     b.Navigation("TourGuide");
                 });
@@ -2661,8 +2706,6 @@ namespace Infrstructure.Data.Migrations
 
                     b.Navigation("BookingPublicTrips");
 
-                    b.Navigation("CreatedTrips");
-
                     b.Navigation("Followers");
 
                     b.Navigation("Following");
@@ -2671,9 +2714,11 @@ namespace Infrstructure.Data.Migrations
 
                     b.Navigation("Posts");
 
-                    b.Navigation("RefreshTokens");
+                    b.Navigation("PrivateTrips");
 
-                    b.Navigation("ReviewsReceived");
+                    b.Navigation("PublicTrips");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("ReviewsWritten");
 
@@ -2692,11 +2737,6 @@ namespace Infrstructure.Data.Migrations
                     b.Navigation("phoneNumbers");
                 });
 
-            modelBuilder.Entity("Domain.Entity.PostEntity.Post", b =>
-                {
-                    b.Navigation("Likes");
-                });
-
             modelBuilder.Entity("Domain.Entity.Status.Status", b =>
                 {
                     b.Navigation("StatusUsers");
@@ -2704,14 +2744,12 @@ namespace Infrstructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>
                 {
-                    b.Navigation("tourGuidBusinessGalaries");
+                    b.Navigation("ReviewTourGuides");
                 });
 
             modelBuilder.Entity("Domain.Entity.TravelerCompanyEntity.TravelCompany", b =>
                 {
                     b.Navigation("HiringPosts");
-
-                    b.Navigation("travelCompanyBusinessGalaries");
                 });
 
             modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>
@@ -2722,6 +2760,8 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.PostEntity.ExperiencePost", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Likes");
                 });
 
             modelBuilder.Entity("Domain.Entity.PostEntity.HiringPost", b =>

@@ -1,4 +1,5 @@
 ﻿using Domain.Entity.Identity;
+using Domain.Entity.TripEntity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,8 +30,8 @@ namespace Domain.Entity.TourGuidEntity
         public string Street { get; set; }
         public string BuildingNumber { get; set; }
 
+        public ICollection<ReviewTourGuide> ReviewTourGuides { get; set; } = new List<ReviewTourGuide>();
 
-    
-        
+
     }
 }

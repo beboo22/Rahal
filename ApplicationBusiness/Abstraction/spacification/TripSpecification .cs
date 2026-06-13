@@ -60,6 +60,10 @@ namespace ApplicationBusiness.Abstraction.spacification
             {
                 AndAlso(x => x.Price >= filter.MinPrice.Value);
             }
+            if (filter.createdById.HasValue)
+            {
+                AndAlso(x => x.CreatedById == filter.createdById.Value);
+            }
 
             if (filter.MaxPrice.HasValue)
             {
@@ -204,6 +208,8 @@ namespace ApplicationBusiness.Abstraction.spacification
 
     public class TripFilter
     {
+
+        public int? createdById { get; set; }
         public int? Id { get; set; }
         public string? Title { get; set; }
         public string? From { get; set; }

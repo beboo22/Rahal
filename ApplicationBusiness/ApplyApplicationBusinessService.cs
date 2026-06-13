@@ -2,6 +2,7 @@
 using Application.Abstraction.spacification;
 using Application.Abstraction.Specification;
 using Application.Features.PaymentService;
+using ApplicationBusiness.Abstraction;
 using ApplicationBusiness.Abstraction.CloudinaryService;
 using ApplicationBusiness.Abstraction.SerpApiService.Activity;
 using ApplicationBusiness.Configuration;
@@ -42,7 +43,7 @@ namespace ApplicationBusiness
             services.AddScoped<IPaymentHandlerStrategy, PrivateTripPaymentHandler>();
             services.AddScoped<IPaymentHandlerStrategy, HotelPaymentHandler>();
             services.AddScoped<IPaymentHandlerStrategy, FlightPaymentHandler>();
-
+            services.AddScoped<IReviewQueryService, ReviewQueryService>();
             //services.Configure<SerpApiSettings>(
             //  configuration.GetSection(SerpApiSettings.SectionName));
 

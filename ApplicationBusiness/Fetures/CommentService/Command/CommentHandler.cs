@@ -4,7 +4,10 @@ using Application.Fetures.Authentication.Query.Models;
 using ApplicationBusiness.Fetures.Authentication.Query;
 using ApplicationBusiness.Fetures.CommentService.Command.Model;
 using ApplicationBusiness.Fetures.CommentService.Query.Responce;
+using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
 using ApplicationBusiness.Fetures.PostService.Command.Models;
+using ApplicationBusiness.Fetures.PostService.Query.Models;
+using ApplicationBusiness.Fetures.PostService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.Identity;
@@ -37,7 +40,7 @@ namespace ApplicationBusiness.Fetures.CommentService.Command
         }
         public async Task<ApiResponse> Handle(AddcommentToHiringPost request, CancellationToken cancellationToken)
         {
-            var checkPostExitance = await Sender.Send(new IsHiringPostExistCommand(request.postId));
+            var checkPostExitance = await Sender.Send(new GetHiringSpacificationPost(null,request.postId,null,null)) as ApiResultResponse<HiringPostTemplate>;
 
             if (checkPostExitance.statusCode != 200)
             {
@@ -67,7 +70,20 @@ namespace ApplicationBusiness.Fetures.CommentService.Command
                     UserId = request.Comment.UserId
                 };
                 await _wpcR.AddAsync(item);
-                return new ApiResultResponse<TemplateComment>((int)StatusCodes.Status201Created, new TemplateComment
+
+                await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
+
+                await Sender.Send(
+                    new SendCommentNotificationCommand(
+                        checkPostExitance.Data.UserPost.Id.ToString(),
+                        "New Comment 💬",
+                        $"{user.Data.FName} {user.Data.LName} commented on your post.",
+                        item.Id.ToString()
+                    ));
+
+
+                return new ApiResultResponse<Query.Responce.TemplateComment>((int)StatusCodes.Status201Created, new Query.Responce.TemplateComment
                 {
                     Msg = request.Comment.Msg,
                     PostId = request.postId,
@@ -84,9 +100,12 @@ namespace ApplicationBusiness.Fetures.CommentService.Command
                                     : null,
 
                 }, "Comment Created");
+
+
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync();
                 return new ApiResponse(500, ex.Message);
             }
 
@@ -140,7 +159,17 @@ namespace ApplicationBusiness.Fetures.CommentService.Command
                 await _wpcR.AddAsync(item);
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
-                return new ApiResultResponse<TemplateComment>((int)StatusCodes.Status201Created, new TemplateComment
+
+
+                await Sender.Send(
+                    new SendCommentNotificationCommand(
+                        request.postId.ToString(),
+                        "New Comment 💬",
+                        $"{user.Data.Fname} {user.Data.Lname} commented on your post.",
+                        item.Id.ToString()
+                    ));
+
+                return new ApiResultResponse<Query.Responce.TemplateComment>((int)StatusCodes.Status201Created, new Query.Responce.TemplateComment
                 {
                     Msg = request.Comment.Msg,
                     PostId = request.postId,

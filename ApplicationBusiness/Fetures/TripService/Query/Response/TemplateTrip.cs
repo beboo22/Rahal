@@ -46,6 +46,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
         public int? TourGuideId { get; set; }
         public decimal? CustomizationFee { get; set; }
         public List<TemplateActivity> Activities { get; set; }
+        public decimal TravelerFee { get;  set; }
     }
 
     public static class TripMappingExtensions

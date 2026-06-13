@@ -2,6 +2,7 @@
 using Application.Fetures.Authentication.Command.Models;
 using ApplicationBusiness.Fetures.Follow.Command.Models;
 using ApplicationBusiness.Fetures.Follow.Query.Models;
+using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.Identity;
@@ -62,6 +63,19 @@ namespace ApplicationBusiness.Fetures.Follow.Command
                 await _userWriteGenericRepo.AddAsync(new UserFollow { FollowerId = request.Follower, FollowingId = request.person });
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
+
+
+                await Sender.Send(
+                        new SendFollowNotificationCommand(
+                            request.person.ToString(),
+                            "new Follower",
+                            $"new Follower",
+                            ""
+                        ));
+
+
+
+
                 return new ApiResponse(200);
             }
             catch (Exception ex)

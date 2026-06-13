@@ -26,7 +26,7 @@ namespace ApplicationBusiness.Dtos.Hotels
 
         [Range(0, 10)]
         public int Children { get; set; } = 0;
-        public List<int> ChildrenAges { get; set; }
+        public List<int> ChildrenAges { get; set; } = new List<int>();
 
         [Range(1, 10)]
         public int Rooms { get; set; } = 1;

@@ -1,8 +1,11 @@
 ﻿using Application.Abstraction.spacification;
+using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
 using ApplicationBusiness.Fetures.PaymentService.Strategies;
 using Domain.Abstraction;
+using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -19,6 +22,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
     public class HandlePaymobWebhookHandler : IRequestHandler<HandlePaymobWebhookCommand, bool>
     {
         private readonly IConfiguration _configuration;
+        public ISender Sender { get; set; }
 
 
         private readonly IReadGenericRepo<PaymentRequest> _paymentRepo;
@@ -29,12 +33,14 @@ namespace ApplicationBusiness.Fetures.PaymentService
             IConfiguration configuration,
             ILogger<HandlePaymobWebhookHandler> logger,
             IReadGenericRepo<PaymentRequest> paymentRepo,
-            PaymentHandlerFactory factory)
+            PaymentHandlerFactory factory,
+            ISender sender)
         {
             _configuration = configuration;
             _logger = logger;
             _paymentRepo = paymentRepo;
             _factory = factory;
+            Sender = sender;
         }
 
         public async Task<bool> Handle(HandlePaymobWebhookCommand request, CancellationToken cancellationToken)
@@ -68,7 +74,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
                 var spec = new PaymentSpecification(providerRef);
 
 
-                var payment = await _paymentRepo.GetByIDSpec(spec);
+                var payment =  await _paymentRepo.GetAllSpec(spec).FirstOrDefaultAsync();
 
                 if (payment == null)
                 {
@@ -80,7 +86,7 @@ namespace ApplicationBusiness.Fetures.PaymentService
                 var handler = _factory.GetHandler(payment.EntityType);
 
                 await handler.HandleAsync(payment.EntityId, success);
-
+                
                 return true;
             }
             catch (Exception ex)

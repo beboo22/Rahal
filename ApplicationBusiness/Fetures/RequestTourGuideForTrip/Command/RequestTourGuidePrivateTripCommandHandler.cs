@@ -1,6 +1,11 @@
 ﻿using Application.Abstraction.message;
+using ApplicationBusiness.Abstraction.spacification;
+using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
 using ApplicationBusiness.Fetures.Profile.Command.Models;
+using ApplicationBusiness.Fetures.TripService.Command;
 using ApplicationBusiness.Fetures.TripService.Command.Models;
+using ApplicationBusiness.Fetures.TripService.Query.Models;
+using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.TripEntity;
@@ -50,10 +55,15 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
 
             }
 
-            var cheacktrip = await Sender.Send(new CheckPrivTripExsist(request.Trip));
-            if (cheacktrip.statusCode != StatusCodes.Status302Found)
-                return new ApiResponse(StatusCodes.Status404NotFound, "Can't found tourguide");
-
+            //var cheacktrip = await Sender.Send(new CheckPrivTripExsist(request.Trip));
+            //if (cheacktrip.statusCode != StatusCodes.Status302Found)
+            //    return new ApiResponse(StatusCodes.Status404NotFound, "Can't found trip");
+            var trip = await Sender.Send(new GetPrivTripSpecQuery(new TripFilter
+            {
+                Id = request.Trip,
+            })) as ApiResultResponse<PrivateTemplateTrip>;
+            if (trip?.Data == null)
+                return new ApiResponse(404);
 
 
             var item = new List<RequestTourGuidePrivateTrip>();
@@ -74,6 +84,18 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
                 await WriteGenericRepo.AddRangAsync(item);
                 await writeUnitOfWork.SaveChangesAsync();
                 await writeUnitOfWork.CommitAsync();
+
+                foreach (var TourguideId in request.TourguideIds)
+                {
+                    await Sender.Send(
+                    new SendGuideRequestNotificationCommand(
+                        TourguideId.ToString(),
+                        "New Guide Request 🧭",
+                        $"{trip.Data.Title} requested you to a guide.",
+                        trip.Data.Id.ToString()
+                    ));
+                }
+
                 return new ApiResponse(StatusCodes.Status201Created);
 
             }
@@ -93,7 +115,6 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
             try
             {
 
-                await writeUnitOfWork.BeginTransactionAsync();
                 var item = await ReadGenericRepo.GetByIdAsync(request.RequestId);
 
                 if (item == null)
@@ -115,9 +136,18 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
 
                 item.Accept = true;
                 item.AcceptedAt = DateTime.UtcNow;
+
+                var updatetrip = await Sender.Send(new AddTourguideToPivTrip(item.TourGuideId, item.PrivateTripId));
+                if (updatetrip.statusCode != 200)
+                    return updatetrip;
+                var res = await Sender.Send(new AddTourguideToPubTrip(item.TourGuideId, item.PrivateTripId));
+                if (res.statusCode != 200)
+                    return res;
+                await writeUnitOfWork.BeginTransactionAsync();
                 await WriteGenericRepo.UpdateAsync(item, item.Id);
                 await writeUnitOfWork.SaveChangesAsync();
                 await writeUnitOfWork.CommitAsync();
+
                 return new ApiResponse(200);
             }
             catch (Exception ex)

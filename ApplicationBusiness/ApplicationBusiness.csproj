@@ -24,6 +24,11 @@
     <Folder Include="Fetures\BookingFlight\Query\Response\" />
     <Folder Include="Fetures\RequestTourGuideForTrip\Command\Models\" />
     <Folder Include="Fetures\RequestTourGuideForTrip\Query\Models\" />
+    <Folder Include="Fetures\NotficationSystem\Query\Models\" />
+    <Folder Include="Fetures\NotficationSystem\Query\Response\" />
+    <Folder Include="Fetures\Search\Command\Models\" />
+    <Folder Include="Fetures\Search\Query\Models\" />
+    <Folder Include="Fetures\Search\Query\Response\" />
     <Folder Include="Fetures\TEST\Command\Models\" />
     <Folder Include="Fetures\TEST\Query\Models\" />
     <Folder Include="Fetures\TEST\Query\Response\" />
