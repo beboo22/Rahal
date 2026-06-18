@@ -18,7 +18,10 @@ namespace Domain.Abstraction
         Task<bool> ExistsAsync(int UserId);
         Task<bool> BlockUserrAsync(int id,DateTime from,DateTime to);
     }
-
+    public interface IDashDashbourdDataQuery
+    {
+        Task<GetDashbourdDataDto> GetDashbourdDataDtoAsync();
+    }
 
     public interface IWriteStatusUserRepo : IWriteGenericRepo<StatusUser>
     {

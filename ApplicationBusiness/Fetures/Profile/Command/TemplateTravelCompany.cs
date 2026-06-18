@@ -28,6 +28,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 
 
         public int? Id { get; internal set; }
+        public List<int> FolloewersIds { get; internal set; }
     }
     public class TemplateTokenTraveler
     {
@@ -65,6 +66,8 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public List<BusinessGalaryDto> BusinessGalaries { get; internal set; }
         //public List<Adress> Adresses { get; internal set; }
         public string Email { get;  set; }
+        public string Name { get; set; }
+        public List<int> FolloewersIds { get; internal set; }
     }
     
 }

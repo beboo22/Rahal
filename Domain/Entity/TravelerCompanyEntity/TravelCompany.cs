@@ -14,6 +14,8 @@ namespace Domain.Entity.TravelerCompanyEntity
         public User User { get; set; }
         public string? PhotoUrl { get; set; }
 
+        //public decimal? TotalEarnings { get; set; } = 0;
+
 
         #region verification
         public string? FrontIdentityPhotoUrl { get; set; } = null!;
@@ -26,6 +28,7 @@ namespace Domain.Entity.TravelerCompanyEntity
         public string Street { get; set; }
         public string BuildingNumber { get; set; }
         public ICollection<HiringPost> HiringPosts { get; set; } = new List<HiringPost>();
-       
+        public ICollection<TravelCompanyBusinessGalary> TravelCompanyBusinessGalaries { get; set; } = new List<TravelCompanyBusinessGalary>();
+
     }
 }

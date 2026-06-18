@@ -3,6 +3,7 @@ using ApplicationBusiness.Fetures.likesSerive.Command.Models;
 using Domain.BaseResponce;
 using Domain.Entity.PostEntity;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,8 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Added Authorize as following usually requires a logged-in user
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class FollowController : ApiController
     {
         public FollowController(ISender sender) : base(sender) { }

@@ -20,7 +20,13 @@ namespace ApplicationBusiness.Fetures.NotficationSystem.Command.Models
     string Body,
     string ReferenceId
 ) : BaseNotificationCommand(UserId, Title, Body, ReferenceId);
-    public record SendGuideRequestNotificationCommand(
+    public record SendGuideRequestNotificationForPublicTripCommand(
+    string UserId,
+    string Title,
+    string Body,
+    string ReferenceId
+) : BaseNotificationCommand(UserId, Title, Body, ReferenceId);
+    public record SendGuideRequestNotificationForPrivateTripCommand(
     string UserId,
     string Title,
     string Body,

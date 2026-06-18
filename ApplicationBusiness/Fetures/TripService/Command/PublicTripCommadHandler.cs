@@ -1,5 +1,8 @@
 ﻿using Application.Abstraction.message;
+using Application.Fetures.Authentication.Query.Models;
+using ApplicationBusiness.Fetures.Authentication.Query;
 using ApplicationBusiness.Fetures.BookingTripService.Command.Models;
+using ApplicationBusiness.Fetures.BookingTripService.Query;
 using ApplicationBusiness.Fetures.Profile.Command.Models;
 using ApplicationBusiness.Fetures.TripService.Command.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
@@ -20,11 +23,14 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.TripService.Command
 {
-    public record AddTourguideToPubTrip(int TourGuideId,int pubTripId):ICommand<ApiResponse>;
+
+    public record AddTourguideToPubTrip(int TourGuideId, int pubTripId) : ICommand<ApiResponse>;
+    public record UpdatePubTripStatus(int createdby,int pubTripId,TripStatus TripStatus) : ICommand<ApiResponse>;
     public class PublicTripCommadHandler : ICommandHandler<AddPublicTrip, ApiResponse>,
                                     ICommandHandler<DeletePublicTrip, ApiResponse>,
                                     ICommandHandler<AddTourguideToPubTrip, ApiResponse>,
-                                    ICommandHandler<CheckPubTripExsist, ApiResponse>
+                                    ICommandHandler<CheckPubTripExsist, ApiResponse>,
+                                    ICommandHandler<UpdatePubTripStatus, ApiResponse>
 
 
     {
@@ -58,7 +64,6 @@ namespace ApplicationBusiness.Fetures.TripService.Command
             Sender = sender;
             _rPTR = rPTR;
         }
-
         public async Task<ApiResponse> Handle(AddPublicTrip request, CancellationToken cancellationToken)
         {
             try
@@ -69,6 +74,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 
                 var trip = new PublicTrip()
                 {
+                    TripStatus = TripStatus.Upcoming, // تعيين الحالة الافتراضية للرحلة
                     From = request.dto.From,
                     Title = request.dto.Title,
                     Destination = request.dto.Destination,
@@ -77,9 +83,14 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                     IncludedPackages = (Package)request.dto.IncludedPackages,
                     TripCategory = request.dto.TripCategory,
                     MaxNumberOfMember = request.dto.NumberOfMember,
-                    Duration = request.dto.Duration, // تأكد من إضافة الـ Duration
+                    Duration = request.dto.Duration,
+                    CreatedAt = DateTime.UtcNow,
 
-                    // تحويل الـ Activities الـ DTO لـ Entity مع البيانات الجديدة
+                    // قيم افتراضية يتم تعديلها بالأسفل بناءً على الصلاحيات
+                    Price = 0,
+                    TravelerFee = 0,
+                    OwnerTripFee = 0,
+
                     PublicActivities = request.dto.Activities.Select(a => new ActivityPublicTrip
                     {
                         Title = a.Title,
@@ -91,41 +102,54 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                         Image = a.Thumbnail ?? a.Image,
                         TripCategory = a.TripCategory,
                         CreatedAt = DateTime.UtcNow,
-
-                        // ربط بيانات الـ Option المختار
                         PlaceId = a.PlaceId,
                         DataId = a.DataId,
                         ActivityType = a.ActivityType,
                         Latitude = a.Latitude,
                         Longitude = a.Longitude,
                         Address = a.Address,
-                        Thumbnail = a.Thumbnail, // الصورة اللي جاية من جوجل
+                        Thumbnail = a.Thumbnail,
                         Website = a.Website,
                         Phone = a.Phone,
                         Rating = a.Rating,
                         Reviews = a.Reviews,
                         PriceRange = a.PriceRange,
                         Description = a.Description,
-                        serviceOption = string.Join(",", a.serviceOption)
+                        serviceOption = a.serviceOption != null ? string.Join(",", a.serviceOption) : string.Empty
                     }).ToList(),
                 };
 
-                // حساب الأسعار والعمولات
-                var totalPrice = trip.PublicActivities.Sum(a => a.FullPrice);
-                trip.Price = totalPrice;
-                trip.TravelerFee = totalPrice * 0.01m;
-                trip.OwnerTripFee = totalPrice * 0.05m;
+                var rolesResponse = await Sender.Send(new GetRoleForUserById(request.CreatedById)) as ApiResultResponse<List<List<string>>>;
+
+                // تعديل الشرط إلى && لحماية الكود من الـ NullReferenceException
+                if (rolesResponse?.Data != null && rolesResponse.Data.Any(innerList => innerList.Contains(RoleEnum.TourGuide.ToString())))
+                {
+                    trip.TourGuideId = request.CreatedById;
+                    var tourguide = await Sender.Send(new GetUserById(request.CreatedById)) as ApiResultResponse<TemplateGenericProfile>;
+
+                    if (tourguide?.Data?.TourGuide != null)
+                    {
+                        var totalPrice = tourguide.Data.TourGuide.SalaryPerDay * trip.Duration;
+                        trip.Price = totalPrice;
+                        trip.TravelerFee = totalPrice * 0.01m;
+                        trip.OwnerTripFee = totalPrice * 0.05m;
+                    }
+                }
+
 
                 await _uot.BeginTransactionAsync();
                 await _wTRepo.AddAsync(trip);
                 await _uot.SaveChangesAsync();
                 await _uot.CommitAsync();
 
-                // الـ Mapping للـ Template (Response)
-                // ... (نفس الكود القديم مع التأكد من نقل الـ Id الجديد)
-                // 5. تجهيز الـ Template Trip للـ Response (لإرجاع الداتا للـ UI)
+                // تجهيز الـ Template للـ Response
                 var temp = new TemplateTrip
                 {
+                    
+                    NumberOfMember = trip.MaxNumberOfMember,
+                    TravelerFee = trip.TravelerFee,
+                    TourGuideId = request.dto.TourGuideId,
+                    CreatedById = trip.CreatedById,
                     Id = trip.Id,
                     Title = trip.Title,
                     From = trip.From,
@@ -147,14 +171,14 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                         SelectedDay = a.SelectedDay,
                         StartAt = a.StartAt,
                         EndAt = a.EndAt,
-                        Image = a.Thumbnail ?? a.Image, // الأولوية لصورة جوجل في العرض
+                        Image = a.Image,
                         TripCategory = a.TripCategory,
-                        // يمكنك إضافة الـ Latitude والـ Longitude هنا لو الـ Front-end محتاج يرسم الخريطة فوراً
                         Latitude = a.Latitude,
                         Longitude = a.Longitude,
                         Description = a.Description,
                         ActivityType = a.ActivityType,
-                        serviceOption = a.serviceOption.Split(",").ToList(),
+                        // حماية الـ Split من الـ Null أو الفراغ
+                        serviceOption = !string.IsNullOrEmpty(a.serviceOption) ? a.serviceOption.Split(",").ToList() : new List<string>(),
                         Address = a.Address,
                         Phone = a.Phone,
                         PlaceId = a.PlaceId,
@@ -163,7 +187,6 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                         Rating = a.Rating,
                         Reviews = a.Reviews,
                         Website = a.Website,
-
                     }).ToList()
                 };
 
@@ -171,7 +194,6 @@ namespace ApplicationBusiness.Fetures.TripService.Command
             }
             catch (Exception ex)
             {
-                // تراجع عن العملية في حالة حدوث أي خطأ
                 await _uot.RollbackAsync();
                 return new ApiResponse(500, $"Internal Server Error: {ex.Message}");
             }
@@ -231,29 +253,84 @@ namespace ApplicationBusiness.Fetures.TripService.Command
         {
             try
             {
+                // 1. التأكد من وجود المرشد السياحي أولاً
+                var tourguideResponse = await Sender.Send(new CheckTourguideExsist(request.TourGuideId));
+                if (tourguideResponse.statusCode != StatusCodes.Status302Found)
+                    return new ApiResponse(StatusCodes.Status404NotFound, "Tour guide not found");
 
-                var tourguide = await Sender.Send(new CheckTourguideExsist(request.TourGuideId));
-                if (tourguide.statusCode != StatusCodes.Status302Found)
-                    return new ApiResponse(StatusCodes.Status404NotFound, "tourgiude not found");
+                // 2. جلب الرحلة من ريبوزيتوري الكتابة لضمان الـ Tracking وتجنب مشاكل الـ DbContext
                 var trip = await _rPTR.GetByIdAsync(request.pubTripId);
                 if (trip is null)
-                    return new ApiResponse(StatusCodes.Status404NotFound, "trip not found");
+                    return new ApiResponse(StatusCodes.Status404NotFound, "Trip not found");
+
+                // 3. جلب بيانات المرشد السياحي للحصول على راتبه اليومي لإعادة حساب السعر
+                var tourguideData = await Sender.Send(new GetUserById(request.TourGuideId)) as ApiResultResponse<TemplateGenericProfile>;
+                if (tourguideData?.Data?.TourGuide == null)
+                    return new ApiResponse(StatusCodes.Status404NotFound, "Tour guide profile details not found");
+
+                // 4. ربط المرشد وإعادة حساب الأسعار بناءً على الـ Duration
                 trip.TourGuideId = request.TourGuideId;
+
+                var totalPrice = tourguideData.Data.TourGuide.SalaryPerDay * trip.Duration;
+                trip.Price = totalPrice;
+                trip.TravelerFee = totalPrice * 0.01m;
+                trip.OwnerTripFee = totalPrice * 0.05m;
+
+                // 5. حفظ التعديلات داخل Transaction آمنة
+                await _uot.BeginTransactionAsync();
+
+                await _wTRepo.UpdateAsync(trip, trip.Id);
+                await _uot.SaveChangesAsync();
+
+                await _uot.CommitAsync();
+
+                return new ApiResponse(StatusCodes.Status200OK, "Tour guide added and trip prices updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                // لتجنب ضرب الكود لو الـ Transaction لم تبدأ بعد
+                try
+                {
+                    await _uot.RollbackAsync();
+                }
+                catch { /* تجاهل خطأ الـ rollback لو الـ transaction مكنتش بدأت أساساً */ }
+
+                return new ApiResponse(StatusCodes.Status500InternalServerError, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse> Handle(UpdatePubTripStatus request, CancellationToken cancellationToken)
+        {
+            var trip = await _rPTR.GetByIdAsync(request.pubTripId);
+            if (trip == null)
+                return new ApiResponse(StatusCodes.Status404NotFound, "Trip not found");
+            if(request.createdby != trip.CreatedById)
+                return new ApiResponse(StatusCodes.Status403Forbidden, "You are not authorized to update this trip");
+            var CheakBooking = await Sender.Send(new IsBookingExistToTrip(request.pubTripId)) as ApiResultResponse<bool>;
+            if (CheakBooking != null && CheakBooking.Data&&request.TripStatus == TripStatus.Cancelled)
+                return new ApiResponse(StatusCodes.Status403Forbidden, "You can't cancel this trip because there are bookings for it");
+            trip.TripStatus = request.TripStatus;
+            try
+            {
+
                 await _uot.BeginTransactionAsync();
                 await _wTRepo.UpdateAsync(trip, trip.Id);
                 await _uot.SaveChangesAsync();
                 await _uot.CommitAsync();
-                return new ApiResponse(200);
+                return new ApiResponse(StatusCodes.Status200OK, "Trip status updated to WaitingForGuideApproval successfully.");
             }
             catch (Exception ex)
             {
-                await _uot.RollbackAsync();
-                return new ApiResponse(500, ex.Message);
+                try
+                {
+                    await _uot.RollbackAsync();
+                }
+                catch { /* تجاهل خطأ الـ rollback لو الـ transaction مكنتش بدأت أساساً */ }
+                return new ApiResponse(StatusCodes.Status500InternalServerError, $"Internal Server Error: {ex.Message}");
+
             }
-
-
-
         }
     }
-
 }
+
+

@@ -35,9 +35,10 @@ namespace Infrastructure
             services.AddScoped(typeof(IWriteStatusUserRepo), typeof(WriteStatusUserRepo));
             services.AddScoped(typeof(IWriteExPostRepo), typeof(WriteExPostRepo));
             services.AddScoped(typeof(IWritepubTripRepo), typeof(WritepubTripRepo));
-            services.AddScoped(typeof(IGoogleDriveRepo), typeof(GoogleDrvieRepository));
+            //services.AddScoped(typeof(IGoogleDriveRepo), typeof(GoogleDrvieRepository));
             services.AddScoped(typeof(IPhotoService), typeof(PhotoService));
 
+            services.AddScoped(typeof(IDashDashbourdDataQuery), typeof(DashDashbourdDataQuery));
 
             services.AddScoped<IReadHotelSearchHistoryRepository, ReadHotelSearchHistoryRepository>();
             services.AddScoped<IWriteHotelSearchHistoryRepository, WriteHotelSearchHistoryRepository>();

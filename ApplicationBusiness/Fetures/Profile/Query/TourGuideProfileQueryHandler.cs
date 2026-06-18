@@ -20,10 +20,11 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.Profile.Query
 {
-
+    public record GetUnverfiredTourGuide() : IQuery<ApiResponse>;
     public record GetTourgideInSpecCountry(string country) : IQuery<ApiResponse>;
     internal class TourGuideProfileQueryHandler : IQueryHandler<GetTourGuideProfileQuery, ApiResponse>,
-        IQueryHandler<GetTourgideInSpecCountry, ApiResponse>
+        IQueryHandler<GetTourgideInSpecCountry, ApiResponse>,
+        IQueryHandler<GetUnverfiredTourGuide, ApiResponse>
     {
         private IReadGenericRepo<TourGuide> _RTR;
 
@@ -39,9 +40,10 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                             .Select(item => new TemplateTourGuide
                             {
+                                FolloewersIds = item.User.Followers.Select(x => x.Id).ToList(),
                                 AvgRate = item.ReviewTourGuides.Select(x => (double?)x.Rating).Average() ?? 0,
                                 PhotoUrl = item.PhotoUrl,
-
+                                TotalEarnings = item.TotalEarnings,
                                 //SalaryPerDay = item.SalaryPerDay,
                                 Languages = item.User.Languages,
                                 NumberFollowers = item.User.Followers.Count,
@@ -137,13 +139,13 @@ namespace ApplicationBusiness.Fetures.Profile.Query
 
         public async Task<ApiResponse> Handle(GetTourgideInSpecCountry request, CancellationToken cancellationToken)
         {
-            var item =await _RTR.GetAll()
+            var item = await _RTR.GetAll()
                 .Where(x => x.Country == request.country)
                 .Include(x => x.User)
             .Select(user => new TemplateTourSearch
             {
                 Id = user.Id,
-                name = user.User.FName+" "+ user.User.LName,
+                name = user.User.FName + " " + user.User.LName,
                 Email = user.User.Email,
                 Photo = user.PhotoUrl
             }).ToListAsync();
@@ -151,6 +153,43 @@ namespace ApplicationBusiness.Fetures.Profile.Query
             if (!item.Any()) return new ApiResponse(404);
 
             return new ApiResultResponse<List<TemplateTourSearch>>(200, item);
+        }
+
+        public async Task<ApiResponse> Handle(GetUnverfiredTourGuide request, CancellationToken cancellationToken)
+        {
+            var item = await _RTR.GetAll()
+                .Where(x => x.User.Isverified == false)
+                .Include(x => x.User)
+            .Select(user => new TemplateTourGuide
+            {
+                Id = user.Id,
+                name = user.User.FName + " " + user.User.LName,
+                Email = user.User.Email,
+                PhotoUrl = user.PhotoUrl,
+                SalaryPerDay = user.SalaryPerDay,
+                Bio = user.Bio,
+                City = user.City,
+                Country = user.Country,
+                BuildingNumber = user.BuildingNumber,
+                Street = user.Street,
+                Ssn = user.Ssn,
+                Languages = user.User.Languages.Select(x => new Languages
+                {
+                    Code = x.Code,
+
+                }).ToList(),
+                BusinessGalaries = user.TourGuideBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
+                {
+                    Date = s.Date,
+                    Description = s.Description,
+                    Location = s.Location,
+                    PhotoUrl = s.PhotoUrl,
+
+                }).ToList(),
+            }).ToListAsync();
+            if (!item.Any()) return new ApiResponse(404);
+            return new ApiResultResponse<List<TemplateTourGuide>>(200, item);
+
         }
     }
 

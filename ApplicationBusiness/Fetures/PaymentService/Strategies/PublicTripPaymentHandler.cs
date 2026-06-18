@@ -1,7 +1,9 @@
 ﻿using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
+using ApplicationBusiness.Fetures.Profile.Command;
 using Domain.Abstraction;
 using Domain.Entity.TripEntity;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,16 +22,17 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
 
         public PaymentEntityType Type => PaymentEntityType.PublicTrip;
 
-        public PublicTripPaymentHandler(IWriteGenericRepo<BookingPublicTrip> repo, IReadGenericRepo<BookingPublicTrip> rrepo, IWriteUnitOfWork writeUnitOfWork)
+        public PublicTripPaymentHandler(IWriteGenericRepo<BookingPublicTrip> repo, IReadGenericRepo<BookingPublicTrip> rrepo, IWriteUnitOfWork writeUnitOfWork, ISender sender)
         {
             _wrepo = repo;
             _rrepo = rrepo;
             _writeUnitOfWork = writeUnitOfWork;
+            Sender = sender;
         }
 
         public async Task HandleAsync(int entityId, bool success)
         {
-            var booking = await _rrepo.GetByIdAsync(entityId);
+            var booking =  await _rrepo.GetAll().Include(x=>x.PublicTrip).Where(x=>x.Id == entityId).FirstOrDefaultAsync();
 
             if (booking == null)
                 throw new Exception("Public booking not found");
@@ -44,6 +47,8 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
                 await _wrepo.UpdateAsync(booking, entityId);
                 await _writeUnitOfWork.SaveChangesAsync();
                 await _writeUnitOfWork.CommitAsync();
+                if(booking.PublicTrip.TourGuideId.HasValue)
+                    await Sender.Send(new AddEarnToTourguide(booking.PublicTrip.TourGuideId.Value, booking.TotalOwnerProfit));
                 await Sender.Send(
             new SendPaymentNotificationCommand(
                 booking.UserId.ToString(),

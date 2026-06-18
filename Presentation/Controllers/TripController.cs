@@ -1,10 +1,12 @@
 ﻿using ApplicationBusiness.Abstraction.spacification;
 using ApplicationBusiness.Dtos.Trip;
+using ApplicationBusiness.Fetures.TripService.Command;
 using ApplicationBusiness.Fetures.TripService.Command.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Models;
 using ApplicationBusiness.Fetures.TripService.Query.Response;
 using Domain.BaseResponce;
 using Domain.Entity.Identity;
+using Domain.Entity.TripEntity;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +18,8 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class PublicTripController : ApiController
     {
         public PublicTripController(ISender sender) : base(sender) { }
@@ -67,7 +71,7 @@ namespace Presentation.Controllers
             var result = await Sender.Send(new GetPubTripSpecQuery(dto));
             return ProcessResult(result);
         }
-    
+
         /// <summary>
         /// Search for public trips.
         /// </summary>
@@ -85,9 +89,24 @@ namespace Presentation.Controllers
             }));
             return ProcessResult(result);
         }
-    
-    
-        
+        /// <summary>
+        /// update public trips status.
+        /// </summary>
+        [HttpPut("UpdatePublicTrip")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdatePublicTrip([FromQuery]int tripId,TripStatus tripStatus)
+        {
+
+            var userid = GetUserId();
+            if (userid == null)
+                return Unauthorized();
+            var result = await Sender.Send(new UpdatePubTripStatus(userid.Value,tripId,tripStatus));
+            return ProcessResult(result);
+        }
+
+
+
     }
 
     [Route("api/[controller]")]
@@ -149,6 +168,21 @@ namespace Presentation.Controllers
         public async Task<IActionResult> SearchForTrip([FromQuery] TripFilter dto)
         {
             var result = await Sender.Send(new GetPrivTripSpecQuery(dto));
+            return ProcessResult(result);
+        }
+        /// <summary>
+        /// update public trips status.
+        /// </summary>
+        [HttpPut("UpdatePrivateTrip")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateprivateTrip([FromQuery] int tripId, TripStatus tripStatus)
+        {
+
+            var userid = GetUserId();
+            if (userid == null)
+                return Unauthorized();
+            var result = await Sender.Send(new UpdatePrivTripStatus(userid.Value,tripId, tripStatus));
             return ProcessResult(result);
         }
     }

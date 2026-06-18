@@ -73,8 +73,12 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
 
                 if (Trip?.Data.CreatedById != request.UserId)
                     return new ApiResponse(StatusCodes.Status403Forbidden, "U Can't Book This Trip It's not urs");
-
-
+                if (Trip.Data.TripStatus != TripStatus.Published &&
+                    Trip.Data.TripStatus != TripStatus.GuideAssigned&&
+                    Trip.Data.TripStatus != TripStatus.Finished )
+                {
+                    return new ApiResponse((int)HttpStatusCode.Conflict, "Trip is not open for booking");
+                }
                 var CheckUser = await Sender.Send(new IsUserExist(request.UserId));
                 //await _WUR.ExistsAsync(request.UserId);
                 if (CheckUser.statusCode != 200)

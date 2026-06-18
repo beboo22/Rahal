@@ -3,6 +3,7 @@ using ApplicationBusiness.Fetures.BookingFlight.Command;
 using ApplicationBusiness.Fetures.BookingFlight.Query;
 using Domain.BaseResponce;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
     public class BookFlightController : ApiController
     {
         public BookFlightController(ISender sender) : base(sender) { }

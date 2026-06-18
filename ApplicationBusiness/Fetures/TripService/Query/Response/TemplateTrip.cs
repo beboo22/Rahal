@@ -12,7 +12,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
 {
     public class TemplateTrip
     {
-
+        public TripStatus TripStatus { get; set; }
         public int CreatedById { get; set; }
         public List<int>? IncludedPackages { get; set; }
         public int Id { get; set; }
@@ -31,6 +31,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query.Response
     }
     public class PrivateTemplateTrip
     {
+        public TripStatus TripStatus { get; set; }
 
         public int CreatedById { get; set; }
         public int Id { get; set; }

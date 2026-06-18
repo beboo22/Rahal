@@ -96,6 +96,10 @@ namespace Infrastructure.Data
         public DbSet<Status> Status { get; set; }
 
 
+
+        public DbSet<TourGuideBusinessGalary> TourGuideBusinessGalarys { get; set; }
+        public DbSet<TravelCompanyBusinessGalary> TravelCompanyBusinessGalarys { get; set; }
+
     }
 }
 

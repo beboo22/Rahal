@@ -5,10 +5,13 @@ using ApplicationBusiness.Fetures.StatusService.Qurey.res;
 using Domain.Abstraction;
 using Domain.BaseResponce;
 using Domain.Entity.Status;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.StatusService.Command
@@ -36,28 +39,133 @@ namespace ApplicationBusiness.Fetures.StatusService.Command
         {
             try
             {
+                using var httpClient = new HttpClient();
+                var aiBaseUrl = "https://driven-committees-parade-burner.trycloudflare.com/api/v1";
+
+                // ==========================
+                // Validate Title
+                // ==========================
+                if (!string.IsNullOrWhiteSpace(request.req.Title))
+                {
+                    var textPayload = new
+                    {
+                        text = request.req.Title
+                    };
+
+                    var textContent = new StringContent(
+                        JsonSerializer.Serialize(textPayload),
+                        Encoding.UTF8,
+                        "application/json");
+
+                    var textResponse = await httpClient.PostAsync(
+                        $"{aiBaseUrl}/toxic-text-classify",
+                        textContent,
+                        cancellationToken);
+
+                    if (textResponse.IsSuccessStatusCode)
+                    {
+                        var textJson =
+                            await textResponse.Content.ReadAsStringAsync(cancellationToken);
+
+                        using var document = JsonDocument.Parse(textJson);
+
+                        bool isHarmful = document.RootElement
+                            .GetProperty("is_harmful")
+                            .GetBoolean();
+
+                        if (isHarmful)
+                        {
+                            return new ApiResponse(
+                                StatusCodes.Status400BadRequest,
+                                "Title contains harmful content.");
+                        }
+                    }
+                }
+
+                // ==========================
+                // Validate Image
+                // ==========================
+                if (request.req.ItemUrl is not null)
+                {
+                    using var multipartContent = new MultipartFormDataContent();
+
+                    using var stream = request.req.ItemUrl.OpenReadStream();
+
+                    var fileContent = new StreamContent(stream);
+
+                    fileContent.Headers.ContentType =
+                        new MediaTypeHeaderValue(
+                            request.req.ItemUrl.ContentType ?? "image/jpeg");
+
+                    multipartContent.Add(
+                        fileContent,
+                        "file",
+                        request.req.ItemUrl.FileName);
+
+                    var imageResponse = await httpClient.PostAsync(
+                        $"{aiBaseUrl}/toxic-image-classify",
+                        multipartContent,
+                        cancellationToken);
+
+                    if (imageResponse.IsSuccessStatusCode)
+                    {
+                        var imageJson =
+                            await imageResponse.Content.ReadAsStringAsync(cancellationToken);
+
+                        using var document = JsonDocument.Parse(imageJson);
+
+                        bool isViolent = document.RootElement
+                            .GetProperty("is_violent")
+                            .GetBoolean();
+
+                        if (isViolent)
+                        {
+                            return new ApiResponse(
+                                StatusCodes.Status400BadRequest,
+                                "Image contains harmful content.");
+                        }
+                    }
+                }
+
                 await _unitOfWork.BeginTransactionAsync();
 
+                var imageUrl =
+                    await _cloudinaryService.UploadFileAsync(request.req.ItemUrl);
 
-                var url = await _cloudinaryService.UploadFileAsync(request.req.ItemUrl);
-
-
-                var item = new Status
+                var status = new Status
                 {
-                    ItemUrl = url,
+                    ItemUrl = imageUrl,
                     Title = request.req.Title,
                     CreatedById = request.CreatedById,
                 };
 
-                await _writeGenericRepo.AddAsync(
-                    item
-                );
+                await _writeGenericRepo.AddAsync(status);
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
-                return new ApiResultResponse<TemplateStatus>(200,new TemplateStatus { Id = item.Id,Title= item.Title,ItemUrl = url});
-            }catch (Exception ex)
+
+                return new ApiResultResponse<TemplateStatus>(
+                    StatusCodes.Status200OK,
+                    new TemplateStatus
+                    {
+                        Id = status.Id,
+                        Title = status.Title,
+                        ItemUrl = imageUrl
+                    });
+            }
+            catch (Exception ex)
             {
-                return new ApiResponse(500);
+                try
+                {
+                    await _unitOfWork.RollbackAsync();
+                }
+                catch
+                {
+                }
+
+                return new ApiResponse(
+                    StatusCodes.Status500InternalServerError,
+                    ex.Message);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -29,6 +30,12 @@
     <Folder Include="Fetures\Search\Command\Models\" />
     <Folder Include="Fetures\Search\Query\Models\" />
     <Folder Include="Fetures\Search\Query\Response\" />
+    <Folder Include="Fetures\AdminDashbourd\Command\Models\" />
+    <Folder Include="Fetures\AdminDashbourd\Query\Models\" />
+    <Folder Include="Fetures\AdminDashbourd\Query\Response\" />
+    <Folder Include="Fetures\BusinessGalary\Command\Models\" />
+    <Folder Include="Fetures\BusinessGalary\Query\Models\" />
+    <Folder Include="Fetures\BusinessGalary\Query\Response\" />
     <Folder Include="Fetures\TEST\Command\Models\" />
     <Folder Include="Fetures\TEST\Query\Models\" />
     <Folder Include="Fetures\TEST\Query\Response\" />

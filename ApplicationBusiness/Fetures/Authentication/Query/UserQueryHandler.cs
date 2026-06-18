@@ -19,10 +19,12 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.Authentication.Query
 {
+    public record GetRoleForUserById(int UserId) : IQuery<ApiResponse>;
     internal class UserQueryHandler :
         IQueryHandler<GetUserById, ApiResponse>,
         IQueryHandler<GetUserByName, ApiResponse>,
-        IQueryHandler<GetStatusForFollowing, ApiResponse>
+        IQueryHandler<GetStatusForFollowing, ApiResponse>,
+        IQueryHandler<GetRoleForUserById, ApiResponse>
 
     {
         private IReadGenericRepo<User> _readGenericRepo;
@@ -140,6 +142,15 @@ namespace ApplicationBusiness.Fetures.Authentication.Query
             //};
 
             return new ApiResultResponse<List<TemplateGenericProfile>>(200, user);
+
+        }
+
+        public async Task<ApiResponse> Handle(GetRoleForUserById request, CancellationToken cancellationToken)
+        {
+            var roles =await _readGenericRepo.GetAll().Where(x=>x.Id == request.UserId).Select(x => x.Roles.Select(r => r.Role.RoleName.ToString()).ToList()).ToListAsync();
+            if (!roles.Any())
+                return new ApiResponse(404, "user not found");
+            return new ApiResultResponse<List<List<string>>>(200,  roles);
 
         }
     }

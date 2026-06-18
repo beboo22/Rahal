@@ -11,5 +11,6 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Query.Response
         public decimal TotalBookingPrice { get; set; }
         public bool IsPaid { get; set; } = false;
         public int Id { get; internal set; }
+        public int PublicTripId { get;  set; }
     }
 }

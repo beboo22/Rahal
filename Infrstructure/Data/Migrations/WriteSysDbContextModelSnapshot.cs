@@ -1090,6 +1090,9 @@ namespace Infrstructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("TotalEarnings")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -1658,9 +1661,10 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PrivateTripId");
-
                     b.HasIndex("TourGuideId");
+
+                    b.HasIndex("PrivateTripId", "TourGuideId")
+                        .IsUnique();
 
                     b.ToTable("RequestTourGuidePrivateTrips");
                 });
@@ -1693,9 +1697,10 @@ namespace Infrstructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PublicTripId");
-
                     b.HasIndex("TourGuideId");
+
+                    b.HasIndex("PublicTripId", "TourGuideId")
+                        .IsUnique();
 
                     b.ToTable("RequestTourGuidePulicTrips");
                 });
@@ -1778,6 +1783,9 @@ namespace Infrstructure.Data.Migrations
                         .HasColumnType("nvarchar(300)");
 
                     b.Property<int>("TripCategory")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TripStatus")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -2389,7 +2397,7 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuideBusinessGalary", b =>
                 {
                     b.HasOne("Domain.Entity.TourGuidEntity.TourGuide", "TourGuid")
-                        .WithMany()
+                        .WithMany("TourGuideBusinessGalaries")
                         .HasForeignKey("TourGuidId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2411,7 +2419,7 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TravelerCompanyEntity.TravelCompanyBusinessGalary", b =>
                 {
                     b.HasOne("Domain.Entity.TravelerCompanyEntity.TravelCompany", "TravelCompany")
-                        .WithMany()
+                        .WithMany("TravelCompanyBusinessGalaries")
                         .HasForeignKey("TravelCompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2745,11 +2753,15 @@ namespace Infrstructure.Data.Migrations
             modelBuilder.Entity("Domain.Entity.TourGuidEntity.TourGuide", b =>
                 {
                     b.Navigation("ReviewTourGuides");
+
+                    b.Navigation("TourGuideBusinessGalaries");
                 });
 
             modelBuilder.Entity("Domain.Entity.TravelerCompanyEntity.TravelCompany", b =>
                 {
                     b.Navigation("HiringPosts");
+
+                    b.Navigation("TravelCompanyBusinessGalaries");
                 });
 
             modelBuilder.Entity("Domain.Entity.photo.PhotoSearchResponse", b =>

@@ -10,7 +10,5 @@ namespace Domain.Abstraction
 
         public Task<T> GetByIDSpec(ISpecification<T> spec);
         public IQueryable<T> GetAllSpec(ISpecification<T> spec);
-
-
     }
 }

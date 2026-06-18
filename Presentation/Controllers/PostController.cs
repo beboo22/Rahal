@@ -18,6 +18,8 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class HiringPostController : ApiController
     {
         public HiringPostController(ISender sender) : base(sender) { }
@@ -77,6 +79,8 @@ namespace Presentation.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class ExperiencePostController : ApiController
     {
         public ExperiencePostController(ISender sender) : base(sender) { }

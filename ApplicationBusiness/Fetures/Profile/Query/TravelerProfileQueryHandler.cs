@@ -36,6 +36,7 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             {
 
                                 Id = item.Id,
+                                FolloewersIds = item.User.Followers.Select(x => x.Id).ToList(),
 
                                 NumberFollowers = item.User.Followers.Count,
                                 NumberFollowing = item.User.Following.Count,

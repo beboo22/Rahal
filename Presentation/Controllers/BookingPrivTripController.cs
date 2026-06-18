@@ -13,6 +13,8 @@ namespace Presentation.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class BookingPrivTripController : ApiController
     {
         public BookingPrivTripController(ISender sender) : base(sender) { }

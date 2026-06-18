@@ -22,8 +22,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApplicationBusiness.Fetures.Profile.Query
 {  
-    
-    internal class TravelerCompanyProfileQueryHandler : IQueryHandler<GetTravelerCompanyProfileQuery, ApiResponse>
+    public record GetUnverfiredTraveleCompany() : IQuery<ApiResponse>;
+    internal class TravelerCompanyProfileQueryHandler : IQueryHandler<GetTravelerCompanyProfileQuery, ApiResponse>,
+        IQueryHandler<GetUnverfiredTraveleCompany, ApiResponse>
     {
         private IReadGenericRepo<TravelCompany> _RTR;
 
@@ -39,6 +40,9 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                             .Where(t => t.Id == request.UserId)
                 .Select(item => new TemplateTravelComapny
                 {
+                    FolloewersIds = item.User.Followers.Select(x => x.Id).ToList(),
+
+                    Name = item.User.FName + " " + item.User.LName,
                     PhotoUrl = item.PhotoUrl,
                     NumberFollowers = item.User.Followers.Count,
                     NumberFollowing = item.User.Following.Count,
@@ -105,20 +109,51 @@ namespace ApplicationBusiness.Fetures.Profile.Query
                     Street = item.Street,
                     Country = item.Country,
                     Bio = item.Bio,
-                    //BusinessGalaries = item.travelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
-                    //{
-                    //    Date = s.Date,
-                    //    Description = s.Description,
-                    //    Location = s.Location,
-                    //    PhotoUrl = s.PhotoUrl,
 
-                    //}).ToList()
+                    BusinessGalaries = item.TravelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
+                    {
+                        Date = s.Date,
+                        Description = s.Description,
+                        Location = s.Location,
+                        PhotoUrl = s.PhotoUrl,
+                    }).ToList()
                 })
                 .FirstOrDefaultAsync();
             if (temp == null)
                 return new ApiResponse((int)HttpStatusCode.NotFound, "there's no profile to user");
 
             return new ApiResultResponse<TemplateTravelComapny>((int)HttpStatusCode.OK, temp);
+        }
+
+        public async Task<ApiResponse> Handle(GetUnverfiredTraveleCompany request, CancellationToken cancellationToken)
+        {
+            var temp = await _RTR.GetAll()
+                            .AsNoTracking()
+                            .Where(t => t.User.Isverified == false)
+                .Select(item => new TemplateTravelComapny
+                {
+                    Id = item.Id,
+                    Name = item.User.FName + " " + item.User.LName,
+                    PhotoUrl = item.PhotoUrl,
+                    Email = item.User.Email,
+                    Ssn = item.Ssn,
+                    BuildingNumber = item.BuildingNumber,
+                    City = item.City,
+                    Street = item.Street,
+                    Country = item.Country,
+                    Bio = item.Bio,
+                    BusinessGalaries = item.TravelCompanyBusinessGalaries.Select(s => new Dtos.Profile.BusinessGalaryDto
+                    {
+                        Date = s.Date,
+                        Description = s.Description,
+                        Location = s.Location,
+                        PhotoUrl = s.PhotoUrl,
+                    }).ToList()
+                })
+                .ToListAsync();
+            if (temp == null || temp.Count == 0)
+                return new ApiResponse((int)HttpStatusCode.NotFound, "there's no unverified travel company");
+            return new ApiResultResponse<List<TemplateTravelComapny>>((int)HttpStatusCode.OK, temp);
         }
     }
 }

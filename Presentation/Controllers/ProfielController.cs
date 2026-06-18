@@ -12,6 +12,7 @@ using System.Net;
 using System.Security.Claims;
 using ApplicationBusiness.Fetures.Authentication.Query.Models;
 using Domain.Entity.Identity;
+using ApplicationBusiness.Fetures.BusinessGalary.Query;
 
 namespace Presentation.Controllers
 {
@@ -25,6 +26,27 @@ namespace Presentation.Controllers
     public class ProfileController : ApiController
     {
         public ProfileController(ISender sender) : base(sender) { }
+
+
+
+
+
+        [HttpGet("GetTourguideBusinessGalary")]
+        public async Task<IActionResult> GetTourguideBusinessGalaryEndpoint([FromQuery] int tourguide)
+        {
+            var result = await Sender.Send(
+                new GetTourguideBusinessGalary(tourguide));
+            return ProcessResult(result);
+        }
+
+        [HttpGet("GetTravelCompanyBusinessGalary")]
+        public async Task<IActionResult> GetTravelCompanyBusinessGalaryEndpoint([FromQuery] int TC)
+        {
+            var result = await Sender.Send(
+                new GetTravelCompanyBusinessGalary(TC));
+            return ProcessResult(result);
+        }
+
 
 
 

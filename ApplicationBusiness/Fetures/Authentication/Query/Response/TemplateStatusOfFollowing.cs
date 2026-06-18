@@ -32,33 +32,27 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
 
             return new TemplateTourGuide
             {
+                AvgRate = user.TourGuideProfile.ReviewTourGuides.Select(x=> (double?)x.Rating).Average() ?? 0,
+                SalaryPerDay = user.TourGuideProfile.SalaryPerDay,
                 Id = user.Id,
                 PhotoUrl = user.TourGuideProfile.PhotoUrl,
                 Bio = user.TourGuideProfile.Bio,
                 Ssn = user.TourGuideProfile.Ssn,
-
-                //BusinessGalaries = user.TourGuideProfile
-                //    .tourGuidBusinessGalaries?
-                //    .Select(x => new BusinessGalaryDto
-                //    {
-                //        Date = x.Date,
-                //        Description = x.Description,
-                //        Location = x.Location,
-                //        PhotoUrl = x.PhotoUrl
-                //    }).ToList(),
-
-                
-                        City = user.TourGuideProfile.City,
-                        Country = user.TourGuideProfile.Country,
-                        BuildingNumber = user.TourGuideProfile.BuildingNumber,
-                        Street = user.TourGuideProfile.Street,
-                  
-
+                City = user.TourGuideProfile.City,
+                Country = user.TourGuideProfile.Country,
+                BuildingNumber = user.TourGuideProfile.BuildingNumber,
+                Street = user.TourGuideProfile.Street,
                 ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()
                     .Select(MapExperiencePost)
                     .ToList(),
-
+                Languages = user.Languages.Select(x=>new Languages
+                {
+                    Code = x.Code
+                }).ToList(),
+                PublicTrips = user.PublicTrips?
+                    .Select(MapPublicTrip)
+                    .ToList(),
             };
         }
         public static TemplateTraveler MapTraveler(User user)
@@ -72,18 +66,18 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 PhotoUrl = user.TravelerProfile.PhotoUrl,
                 Bio = user.TravelerProfile.Bio,
                 Ssn = user.TravelerProfile.Ssn,
-                    City = user.TravelerProfile.City,
-                    Country = user.TravelerProfile.Country,
-                    BuildingNumber = user.TravelerProfile.BuildingNumber,
-                    Street = user.TravelerProfile.Street,
-
+                City = user.TravelerProfile.City,
+                Country = user.TravelerProfile.Country,
+                BuildingNumber = user.TravelerProfile.BuildingNumber,
+                Street = user.TravelerProfile.Street,
+                
                 ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()
                     .Select(MapExperiencePost)
                     .ToList(),
 
                 PublicTrips = user.PublicTrips?
-                    .Select(MapPrivateTrip)
+                    .Select(MapPublicTrip)
                     .ToList(),
 
                 BookedTrip = user.BookingPublicTrips?
@@ -104,10 +98,10 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 profile = new TemplateTraveler
                 {
 
-                Id = user.Id,
-                PhotoUrl = user.TravelerProfile.PhotoUrl,
-                Bio = user.TravelerProfile.Bio,
-                Ssn = user.TravelerProfile.Ssn,
+                    Id = user.Id,
+                    PhotoUrl = user.TravelerProfile.PhotoUrl,
+                    Bio = user.TravelerProfile.Bio,
+                    Ssn = user.TravelerProfile.Ssn,
                     City = user.TravelerCompanyProfile.City,
                     Country = user.TravelerCompanyProfile.Country,
                     BuildingNumber = user.TravelerCompanyProfile.BuildingNumber,
@@ -140,32 +134,17 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 PhotoUrl = user.TravelerCompanyProfile.PhotoUrl,
                 Bio = user.TravelerCompanyProfile.Bio,
                 Ssn = user.TravelerCompanyProfile.Ssn,
+                City = user.TravelerCompanyProfile.City,
+                Country = user.TravelerCompanyProfile.Country,
+                BuildingNumber = user.TravelerCompanyProfile.BuildingNumber,
+                Street = user.TravelerCompanyProfile.Street,
 
-                //BusinessGalaries = user.TravelerCompanyProfile
-                //    .travelCompanyBusinessGalaries?
-                //    .Select(x => new BusinessGalaryDto
-                //    {
-                //        Date = x.Date,
-                //        Description = x.Description,
-                //        Location = x.Location,
-                //        PhotoUrl = x.PhotoUrl
-                //    }).ToList(),
-
-                
-                        City= user.TravelerCompanyProfile.City,
-                        Country =user.TravelerCompanyProfile.Country,
-                        BuildingNumber = user.TravelerCompanyProfile.BuildingNumber,
-                        Street = user.TravelerCompanyProfile.Street,
-                    
 
                 ExperiencePostTemplates = user.Posts?
                     .OfType<ExperiencePost>()
                     .Select(MapExperiencePost)
                     .ToList(),
 
-                //PrivateTrips = user.CreatedTrips?
-                //    .Select(MapPrivateTrip)
-                //    .ToList(),
 
             };
         }
@@ -250,7 +229,7 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
             };
         }
 
-        private static TemplateTrip MapPrivateTrip(PublicTrip trip)
+        private static TemplateTrip MapPublicTrip(PublicTrip trip)
         {
             return new TemplateTrip
             {
@@ -266,7 +245,7 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 TripCategory = trip.TripCategory,
 
 
-                Activities = trip.PublicActivities?.Select(x=>new TemplateActivity
+                Activities = trip.PublicActivities?.Select(x => new TemplateActivity
                 {
                     Id = x.Id,
                     Title = x.Title,
@@ -308,8 +287,9 @@ namespace ApplicationBusiness.Fetures.Authentication.Query.Response
                 BookingDate = booking.BookingDate,
                 IsPaid = booking.IsPaid,
                 TotalBookingPrice = booking.TotalBookingPrice,
+
                 //TripTilte = booking.t
-                
+
                 // Complete based on your model
             };
         }

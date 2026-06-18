@@ -180,6 +180,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query
             // هنا يمكنك استخدام Split وأي كود C# براحتك لأن البيانات أصبحت في الذاكرة
             var result = tripsFromDb.Select(x => new TemplateTrip
             {
+                TripStatus = x.TripStatus,
                 CreatedById = x.CreatedById,
                 Id = x.Id,
                 Title = x.Title,
@@ -298,6 +299,7 @@ namespace ApplicationBusiness.Fetures.TripService.Query
         {
             return new PrivateTemplateTrip
             {
+                TripStatus = x.TripStatus,
                 CreatedById = x.CreatedById,
                 Id = x.Id,
                 Title = x.Title,

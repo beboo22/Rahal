@@ -19,11 +19,13 @@ namespace ApplicationBusiness.Fetures.TripService.Command
 {
     public record AddTourguideToPivTrip(int TourGuideId, int pubTripId) : ICommand<ApiResponse>;
 
+    public record UpdatePrivTripStatus(int createdby,int pubTripId, TripStatus TripStatus) : ICommand<ApiResponse>;
 
     public class PrivateTripCommadHandler : ICommandHandler<AddPrivateTrip, ApiResponse>,
                                     ICommandHandler<DeletePrivateTrip, ApiResponse>,
                                     ICommandHandler<AddTourguideToPivTrip, ApiResponse>,
-                                    ICommandHandler<CheckPrivTripExsist, ApiResponse>
+                                    ICommandHandler<CheckPrivTripExsist, ApiResponse>,
+                                    ICommandHandler<UpdatePrivTripStatus, ApiResponse>
 
     {
         private IWriteGenericRepo<PrivateTrip> _wTRepo;
@@ -59,6 +61,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 // 2. إنشاء الكيان (Trip Entity) مع الـ Activities الملحقة بكل تفاصيلها
                 var trip = new PrivateTrip()
                 {
+                    TripStatus = TripStatus.Upcoming, // الحالة الافتراضية عند الإنشاء
                     From = request.dto.From,
                     Title = request.dto.Title,
                     Destination = request.dto.Destination,
@@ -111,6 +114,7 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 // 5. تجهيز الـ Template Trip للـ Response (لإرجاع الداتا للـ UI)
                 var temp = new PrivateTemplateTrip
                 {
+                    TourGuideId = trip.TourGuideId,
                     Id = trip.Id,
                     Title = trip.Title,
                     From = trip.From,
@@ -212,6 +216,27 @@ namespace ApplicationBusiness.Fetures.TripService.Command
                 if (trip is null)
                     return new ApiResponse(StatusCodes.Status404NotFound, "trip not found");
                 trip.TourGuideId = request.TourGuideId;
+                await _uot.BeginTransactionAsync();
+                await _wTRepo.UpdateAsync(trip, trip.Id);
+                await _uot.SaveChangesAsync();
+                await _uot.CommitAsync();
+                return new ApiResponse(200);
+            }
+            catch (Exception ex)
+            {
+                await _uot.RollbackAsync();
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> Handle(UpdatePrivTripStatus request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var trip = await _rPTR.GetByIdAsync(request.pubTripId);
+                if (trip is null)
+                    return new ApiResponse(StatusCodes.Status404NotFound, "trip not found");
+                trip.TripStatus = request.TripStatus;
                 await _uot.BeginTransactionAsync();
                 await _wTRepo.UpdateAsync(trip, trip.Id);
                 await _uot.SaveChangesAsync();

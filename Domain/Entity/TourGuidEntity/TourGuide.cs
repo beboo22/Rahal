@@ -16,6 +16,9 @@ namespace Domain.Entity.TourGuidEntity
         public string? PhotoUrl { get; set; }
         public decimal SalaryPerDay { get; set; }
 
+        //save his money
+        public decimal? TotalEarnings { get; set; } = 0;
+
 
         #region verification
         public string? FrontIdentityPhotoUrl { get; set; } = null!;
@@ -29,7 +32,7 @@ namespace Domain.Entity.TourGuidEntity
         public string City { get; set; }
         public string Street { get; set; }
         public string BuildingNumber { get; set; }
-
+        public ICollection<TourGuideBusinessGalary> TourGuideBusinessGalaries { get; set; } = new List<TourGuideBusinessGalary>();
         public ICollection<ReviewTourGuide> ReviewTourGuides { get; set; } = new List<ReviewTourGuide>();
 
 

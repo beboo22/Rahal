@@ -1,4 +1,6 @@
-﻿using ApplicationBusiness.Fetures.TripService.Query.Response;
+﻿using ApplicationBusiness.Dtos.Auth;
+using ApplicationBusiness.Fetures.TripService.Query.Response;
+using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Query.Response
         public int RequestId { get; set; }
         public bool IsAccepted { get; set; }
         public PrivateTemplateTrip Trip { get; set; }
+        public TravellerDto User { get; set; }
     }
 
     public class TourGuidePublicRequestDto
@@ -27,6 +30,7 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Query.Response
         public int RequestId { get; set; }
         public bool IsAccepted { get; set; }
         public TemplateTrip Trip { get; set; } // Matches your PublicTemplateTrip target property type
+        public TravellerDto User { get; set; }
     }
 
 public static class RequestMappingExtensions
@@ -36,6 +40,14 @@ public static class RequestMappingExtensions
         {
             RequestId = reg.Id, // Inherited from BaseEntity
             IsAccepted = reg.Accept ?? false,
+            User = new TravellerDto
+            {
+                Id = reg.PrivateTrip.CreatedBy.Id,
+                Name = reg.PrivateTrip.CreatedBy.FName + " "+ reg.PrivateTrip.CreatedBy.LName,
+                Email = reg.PrivateTrip.CreatedBy.Email,
+                PhoneNumber = reg.PrivateTrip.CreatedBy.phoneNumbers,
+                ProfileImage = reg.PrivateTrip.CreatedBy.TravelerProfile.PhotoUrl,
+            },
 
             // Inline execution of your original PrivateTrip mapping
             Trip = new PrivateTemplateTrip
@@ -85,7 +97,14 @@ public static class RequestMappingExtensions
         {
             RequestId = reg.Id, // Inherited from BaseEntity
             IsAccepted = reg.Accept ?? false,
-
+            User = new TravellerDto
+            {
+                Id = reg.PublicTrip.CreatedBy.Id,
+                Name = reg.PublicTrip.CreatedBy.FName + " " + reg.PublicTrip.CreatedBy.LName,
+                Email = reg.PublicTrip.CreatedBy.Email,
+                PhoneNumber = reg.PublicTrip.CreatedBy.phoneNumbers,
+                ProfileImage = reg.PublicTrip.CreatedBy.TravelerProfile.PhotoUrl,
+            },
             // Inline execution of your original PublicTemplateTrip mapping
             Trip = new TemplateTrip
             {
@@ -130,4 +149,12 @@ public static class RequestMappingExtensions
         };
     }
 
+    public class TravellerDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public ICollection<PhoneNumber> PhoneNumber { get; set; }
+        public string ProfileImage { get; set; }
+    }
 }

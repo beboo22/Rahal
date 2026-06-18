@@ -10,6 +10,7 @@ using ApplicationBusiness.Fetures.Profile.Query;
 
 namespace Presentation.Controllers
 {
+    public record RequestTourGuidePrivateTripCommandDTO(int Trip, List<int> TourguideIds);
 
     [ApiController]
     [Route("api/[controller]")]
@@ -31,10 +32,15 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RequestPrivateTripTourGuide(
-            [FromBody] RequestTourGuidePrivateTripCommand command,
+            [FromBody] RequestTourGuidePrivateTripCommandDTO command,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(command, cancellationToken);
+            int? userId = GetUserId(); // Replace with your method to get the user ID
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            var result = await Sender.Send(new RequestTourGuidePrivateTripCommand(userId.Value,command.Trip,command.TourguideIds), cancellationToken);
 
             // If your base ProcessResult handles ApiResponse, use it here. 
             // Otherwise, you can handle it explicitly based on the status code:
@@ -66,10 +72,15 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RequestPublicTripTourGuide(
-            [FromBody] RequestTourGuidePubTripCommand command,
+            [FromBody] RequestTourGuidePrivateTripCommandDTO command,
             CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(command, cancellationToken);
+            int? userId = GetUserId(); // Replace with your method to get the user ID
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            var result = await Sender.Send(new RequestTourGuidePubTripCommand(userId.Value,command.Trip, command.TourguideIds), cancellationToken);
             return StatusCode(result.statusCode, result);
         }
         /// <summary>

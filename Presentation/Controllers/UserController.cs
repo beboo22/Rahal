@@ -9,12 +9,14 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Fetures.Authentication.Query.Models;
 using ApplicationBusiness.Fetures.Authentication.Query;
 using ApplicationBusiness.Fetures.Authentication.Query.Response;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize] // Enabled Authorize as these methods rely on User context
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class UserController : ApiController
     {
         public UserController(ISender sender) : base(sender) { }

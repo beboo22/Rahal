@@ -9,6 +9,15 @@ using System.Threading.Tasks;
 namespace Domain.Entity.TripEntity
 {
     //[NotMapped]
+    public enum TripStatus
+    {
+        Upcoming = 0,
+        Published = 1,
+        WaitingForGuideApproval = 2,
+        GuideAssigned = 3,
+        Cancelled = 4,
+        Finished = 5
+    }
     public abstract class Trip : BaseEntity
     {
         public string From { get; set; } = null!;
@@ -18,6 +27,8 @@ namespace Domain.Entity.TripEntity
         public int Duration { get; set; }
         public DateTime? StartDate { get; set; }
         public TripCategory TripCategory { get; set; }
+        public TripStatus TripStatus { get; set; }
+
 
     }
     public class PrivateTrip : Trip

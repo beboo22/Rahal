@@ -17,9 +17,11 @@ using ApplicationBusiness.Fetures.Authentication.Command.Models;
 
 namespace ApplicationBusiness.Fetures.BookingTripService.Query
 {
+    public record IsBookingExistToTrip(int TripId) : IQuery<ApiResponse>;
     internal class BookingTripQueryHandler : IQueryHandler<GetBookingById, ApiResponse>,
         IQueryHandler<GetAllBooking, ApiResponse>,
-        IQueryHandler<ReturnMonyToUser, ApiResponse>
+        IQueryHandler<ReturnMonyToUser, ApiResponse>,
+        IQueryHandler<IsBookingExistToTrip, ApiResponse>
 
     {
         IReadGenericRepo<BookingPublicTrip> _RBTR { get; set; }
@@ -34,6 +36,7 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Query
         {
             var booking = await _RBTR.GetAll().Include(b => b.PublicTrip).AsNoTracking().Select(b => new BookingTripTemplate
             {
+                PublicTripId =  b.PublicTripId,
                 Id = b.Id,
                 BookingDate = b.BookingDate,
                 IsPaid = b.IsPaid,
@@ -91,6 +94,12 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Query
                 return new ApiResponse(500, ex.Message);
             }
 
+        }
+
+        public async Task<ApiResponse> Handle(IsBookingExistToTrip request, CancellationToken cancellationToken)
+        {
+            var isExist = await _RBTR.GetAll().AnyAsync(b => b.PublicTripId == request.TripId, cancellationToken);
+            return new ApiResultResponse<bool>((int)HttpStatusCode.OK, isExist);
         }
     }
 }

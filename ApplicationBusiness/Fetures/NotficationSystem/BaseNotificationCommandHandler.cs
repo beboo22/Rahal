@@ -119,17 +119,29 @@ namespace ApplicationBusiness.Fetures.NotficationSystem
             => NotificationTypes.Message;
     }
 
-    internal class SendGuideRequestNotificationCommandHandler
-    : BaseNotificationCommandHandler<SendGuideRequestNotificationCommand>
+    internal class SendGuideRequestNotificationForPublicTripCommandHandler
+    : BaseNotificationCommandHandler<SendGuideRequestNotificationForPublicTripCommand>
     {
-        public SendGuideRequestNotificationCommandHandler(
+        public SendGuideRequestNotificationForPublicTripCommandHandler(
             INotificationService notificationService)
             : base(notificationService)
         {
         }
 
         protected override string NotificationType
-            => NotificationTypes.GuideRequest;
+            => NotificationTypes.GuideRequestForPublicTrip;
+    }
+    internal class SendGuideRequestNotificationForPrivateTripCommandHandler
+    : BaseNotificationCommandHandler<SendGuideRequestNotificationForPrivateTripCommand>
+    {
+        public SendGuideRequestNotificationForPrivateTripCommandHandler(
+            INotificationService notificationService)
+            : base(notificationService)
+        {
+        }
+
+        protected override string NotificationType
+            => NotificationTypes.GuideRequestForPrivateTrip;
     }
 
     internal class SendSystemNotificationCommandHandler

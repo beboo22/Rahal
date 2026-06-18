@@ -81,6 +81,8 @@ namespace ApplicationBusiness.Abstraction.spacification
             includes.Add(x => x.TourGuideProfile);
             includes.Add(x => x.Followers);
             includes.Add(x => x.Following);
+            includes.Add(x => x.Languages);
+
 
             // Use your specialized chain method for collections
             AddIncludeChain(x => x.Include(u => u.Posts)
@@ -91,6 +93,7 @@ namespace ApplicationBusiness.Abstraction.spacification
             AddIncludeChain(x => x.Include(u => u.PublicTrips).ThenInclude(x=>x.PublicActivities));
 
             AddIncludeChain(x => x.Include(x => x.Roles).ThenInclude(x => x.Role));
+            AddIncludeChain(x => x.Include(x => x.TourGuideProfile).ThenInclude(x => x.ReviewTourGuides));
         }
     }
 

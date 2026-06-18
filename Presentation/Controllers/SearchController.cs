@@ -11,12 +11,16 @@ namespace Presentation.Controllers
     using ApplicationBusiness.service;
     using Domain.BaseResponce;
     using Domain.Entity.Identity;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
     [Route("api/[controller]")]
     // ✅ صلحنا الاسم هنا عشان يبقى طبيعي ومتوافق مع الـ Routing
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class SearchController : ApiController
     {
         public SearchController(ISender sender) : base(sender)

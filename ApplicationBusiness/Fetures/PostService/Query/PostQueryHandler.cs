@@ -27,7 +27,7 @@ namespace ApplicationBusiness.Fetures.PostService.Query
         {
             try
             {
-                var spec = new HiringPostSearchSpecification(request.Date, request.id,request.Title, request.OrderDesBytimeCreated, request.page, request.capacity);
+                var spec = new HiringPostSearchSpecification(request.Date, request.id, request.Title, request.OrderDesBytimeCreated, request.page, request.capacity);
 
                 var posts = await _RPR
                     .GetAllSpec(spec)
@@ -98,8 +98,10 @@ namespace ApplicationBusiness.Fetures.PostService.Query
         }
     }
 
+    public record GetUnValidPost() : IQuery<ApiResponse>;
     internal class ExperiencePostQueryHandler :
-        IQueryHandler<GetExperienceSpacificationPost, ApiResponse>
+        IQueryHandler<GetExperienceSpacificationPost, ApiResponse>,
+        IQueryHandler<GetUnValidPost, ApiResponse>
     {
         IReadGenericRepo<ExperiencePost> _RPR;
 
@@ -193,6 +195,47 @@ namespace ApplicationBusiness.Fetures.PostService.Query
                         return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts, "Hiring posts retrieved successfully");
 
                 return new ApiResponse(404, "No posts found");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> Handle(GetUnValidPost request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var posts = await _RPR
+                    .GetAll()
+                    .Where(p => p.IsValid == false)
+                    .Select(p => new ExperiencePostTemplate
+                    {
+                        Id = p.Id,
+                        UserPost = new TemplateUserPost
+                        {
+                            Id = p.CreatedBy.Id,
+                            PrifleUser =
+                            p.CreatedBy.TravelerProfile != null
+                                ? p.CreatedBy.TravelerProfile.PhotoUrl
+                                : p.CreatedBy.TourGuideProfile != null
+                                    ? p.CreatedBy.TourGuideProfile.PhotoUrl
+                                    : p.CreatedBy.TravelerCompanyProfile != null
+                                        ? p.CreatedBy.TravelerCompanyProfile.PhotoUrl
+                                        : null,
+                            FullName = p.CreatedBy.FName + " " + p.CreatedBy.LName,
+                        },
+                        CreatedAt = p.CreatedAt,
+                        Description = p.Description,
+                        PhotoUrl = p.PhotoUrl,
+                        Title = p.Title,
+                        City = p.City,
+                        Country = p.Country,
+                    })
+                    .ToListAsync();
+                if (posts.Any())
+                    return new ApiResultResponse<List<ExperiencePostTemplate>>(200, posts, "Unverified experience posts retrieved successfully");
+                return new ApiResponse(404, "No unverified experience posts found");
             }
             catch (Exception ex)
             {

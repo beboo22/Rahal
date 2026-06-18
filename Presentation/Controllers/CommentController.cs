@@ -4,6 +4,7 @@ using ApplicationBusiness.Fetures.PostService.Query.Response;
 using Domain.BaseResponce;
 using Domain.Entity.PostEntity;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,8 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class CommentController : ApiController
     {
         public CommentController(ISender sender) : base(sender) { }

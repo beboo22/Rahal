@@ -9,6 +9,7 @@ namespace ApplicationBusiness.Fetures.Profile.Command
 {
     public class TemplateTourGuide 
     {
+        public decimal? TotalEarnings { get; set; } = 0;
 
         public string Country { get; set; }
         public string City { get; set; }
@@ -28,8 +29,11 @@ namespace ApplicationBusiness.Fetures.Profile.Command
         public List<BusinessGalaryDto> BusinessGalaries { get; set; }
         public List<ExperiencePostTemplate> ExperiencePostTemplates { get; set; }
         public List<PrivateTemplateTrip> PrivateTrips { get; set; }
+        public List<TemplateTrip> PublicTrips { get; set; }
         public List<BookingTripTemplate> BookedTrip { get; set; }
         public ICollection<Languages> Languages { get; internal set; }
+        public string name { get;  set; }
+        public List<int> FolloewersIds { get; set; }
     }
     public class TemplateTokenTour
     {

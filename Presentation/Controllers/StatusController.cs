@@ -10,13 +10,15 @@ using ApplicationBusiness.Fetures.Authentication.Query.Response;
 using ApplicationBusiness.Fetures.Authentication.Query.Models;
 using Microsoft.AspNetCore.Http;
 using ApplicationBusiness.Fetures.StatusService.Qurey;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Presentation.Controllers
 {
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class StatusController : ApiController
     {
         public StatusController(ISender sender) : base(sender) { }

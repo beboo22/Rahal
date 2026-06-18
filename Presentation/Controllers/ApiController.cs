@@ -36,7 +36,8 @@ namespace Presentation.Controllers
             {
                 200 => Ok(result),
                 201 => Created(string.Empty, result),
-                403 => Forbid(),
+                403 => StatusCode(403, result),
+                //403 => Forbid(string.Empty,result),
                 404 => NotFound(result),
                 401 => Unauthorized(result),
                 _ => StatusCode((int)result.statusCode, result)

@@ -108,10 +108,16 @@ namespace ApplicationBusiness.Fetures.PostService.Command
             return new ApiResponse((int)HttpStatusCode.NotFound, "Hiring Post is not found");
         }
     }
+    
+
+    public record ValidatePostContentCommand(int PostId) : ICommand<ApiResponse>;
+    public record BlockPost(int PostId) : ICommand<ApiResponse>;
     internal class ExperiencePostCommadHandler : ICommandHandler<AddExperiencePostCommand, ApiResponse>,
         ICommandHandler<UpdateExperiencePostCommand, ApiResponse>,
         ICommandHandler<DeleteExperiencePostCommand, ApiResponse>,
-        ICommandHandler<IsExperiencePostExistCommand, ApiResponse>
+        ICommandHandler<IsExperiencePostExistCommand, ApiResponse>,
+        ICommandHandler<ValidatePostContentCommand, ApiResponse>,
+        ICommandHandler<BlockPost, ApiResponse>
 
     {
 
@@ -227,24 +233,84 @@ namespace ApplicationBusiness.Fetures.PostService.Command
         {
             try
             {
-                await _uow.BeginTransactionAsync();
                 var post = await _RPR.GetByIdAsync(request.dto.Id);
+
+                if (post == null)
+                    return new ApiResponse(404, "Post not found");
+
                 if (post.CreatedById != request.createdBy)
-                    return new ApiResponse((int)HttpStatusCode.BadRequest, "User Can't UpdatePost Bec. he is not the create it");
+                    return new ApiResponse(
+                        (int)HttpStatusCode.BadRequest,
+                        "User Can't Update Post because he didn't create it");
+
+                bool isPostValid = true;
+
+                using var httpClient = new HttpClient();
+                var baseUrl = "https://driven-committees-parade-burner.trycloudflare.com/api/v1";
+
+                // Text Validation
+                var fullText = $"{request.dto.Title} {request.dto.Description}";
+
+                var textPayload = new
+                {
+                    text = fullText
+                };
+
+                var textContent = new StringContent(
+                    JsonSerializer.Serialize(textPayload),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var textResponse = await httpClient.PostAsync(
+                    $"{baseUrl}/toxic-text-classify",
+                    textContent,
+                    cancellationToken);
+
+                if (textResponse.IsSuccessStatusCode)
+                {
+                    var textJson = await textResponse.Content.ReadAsStringAsync(cancellationToken);
+
+                    using var doc = JsonDocument.Parse(textJson);
+
+                    bool isHarmful = doc.RootElement
+                        .GetProperty("is_harmful")
+                        .GetBoolean();
+
+                    if (isHarmful)
+                        isPostValid = false;
+                }
+
+                await _uow.BeginTransactionAsync();
+
                 post.Country = request.dto.Country;
                 post.City = request.dto.City;
-                post.CreatedById = request.createdBy;
-                post.Description = request.dto.Description;
                 post.Title = request.dto.Title;
                 post.Description = request.dto.Description;
+                post.IsValid = isPostValid;
+
                 await _WPR.UpdateAsync(post, post.Id);
+
                 await _uow.SaveChangesAsync();
                 await _uow.CommitAsync();
-                return new ApiResponse(200);
+
+                if (!isPostValid)
+                {
+                    return new ApiResponse(
+                        StatusCodes.Status202Accepted,
+                        "Post updated but marked for review due to content policy violations.");
+                }
+
+                return new ApiResponse(
+                    StatusCodes.Status200OK,
+                    "Post updated successfully.");
             }
             catch (Exception ex)
             {
-                return new ApiResponse(500, ex.Message);
+                await _uow.RollbackAsync();
+
+                return new ApiResponse(
+                    StatusCodes.Status500InternalServerError,
+                    ex.Message);
             }
         }
 
@@ -273,6 +339,42 @@ namespace ApplicationBusiness.Fetures.PostService.Command
             if (await _WPR.ExistsAsync(request.id))
                 return new ApiResponse((int)HttpStatusCode.Found, "Post Is Found");
             return new ApiResponse((int)HttpStatusCode.NotFound, "Experience Post is not found");
+        }
+
+        public async Task<ApiResponse> Handle(ValidatePostContentCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _uow.BeginTransactionAsync();
+                var post = await _RPR.GetByIdAsync(request.PostId);
+                
+                post.IsValid = true;
+                await _WPR.UpdateAsync(post, post.Id);
+                await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
+                return new ApiResponse(200);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse> Handle(BlockPost request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _uow.BeginTransactionAsync();
+                var post = await _RPR.GetByIdAsync(request.PostId);
+                await _WPR.DeleteAsync(request.PostId);
+                await _uow.SaveChangesAsync();
+                await _uow.CommitAsync();
+                return new ApiResponse(200);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500);
+            }
         }
     }
 }

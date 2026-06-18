@@ -43,12 +43,12 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
                 await Sender.Send(
-new SendPaymentNotificationCommand(
-booking.UserId.ToString(),
-"success New payment for booking flight🔥",
-$"✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️.",
-""
-));
+                new SendPaymentNotificationCommand(
+                booking.UserId.ToString(),
+                "success New payment for booking flight🔥",
+                $"✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️✈️.",
+                ""
+                ));
             }
             catch (Exception ex)
             {

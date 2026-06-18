@@ -3,6 +3,7 @@ using ApplicationBusiness.Fetures.BookHotel.Command.Models;
 using ApplicationBusiness.Fetures.BookHotel.Query.Models;
 using Domain.BaseResponce;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -13,7 +14,9 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
+
     public class BookHotelController : ApiController
     {
         public BookHotelController(ISender sender) : base(sender) { }

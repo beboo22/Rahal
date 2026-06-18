@@ -73,14 +73,20 @@ namespace ApplicationBusiness.Fetures.BookingTripService.Command
                 {
                     return new ApiResponse((int)HttpStatusCode.NotFound, "Trip not found");
                 }
+                if (Trip.Data.TripStatus != TripStatus.Published &&
+                    Trip.Data.TripStatus != TripStatus.GuideAssigned &&
+                    Trip.Data.TripStatus != TripStatus.Finished)
+                {
+                    return new ApiResponse((int)HttpStatusCode.Conflict, "Trip is not open for booking");
+                }
                 var CheckUser = await Sender.Send(new IsUserExist(request.UserId));
                 //await _WUR.ExistsAsync(request.UserId);
                 if (CheckUser.statusCode != 200)
                 {
                     return new ApiResponse((int)HttpStatusCode.NotFound, "User not found");
                 }
-                if (Trip.Data.CreatedById == request.UserId)
-                    return new ApiResponse((int)HttpStatusCode.Conflict, "User who create trip can't book it");
+                //if (Trip.Data.CreatedById == request.UserId)
+                //    return new ApiResponse((int)HttpStatusCode.Conflict, "User who create trip can't book it");
                 //var Trip = await _RTR.GetByIdAsync(request.TripId);
 
                 var entity = new BookingPublicTrip()

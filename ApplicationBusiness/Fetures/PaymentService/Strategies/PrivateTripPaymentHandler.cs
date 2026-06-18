@@ -1,8 +1,10 @@
 ﻿using ApplicationBusiness.Fetures.NotficationSystem.Command.Models;
+using ApplicationBusiness.Fetures.Profile.Command;
 using Domain.Abstraction;
 using Domain.Entity.Identity;
 using Domain.Entity.TripEntity;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +32,8 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
 
         public async Task HandleAsync(int entityId, bool success)
         {
-            var booking = await _rrepo.GetByIdAsync(entityId);
+            var booking = await _rrepo.GetAll().Include(x => x.PrivateTrip).Where(x => x.Id == entityId).FirstOrDefaultAsync();
+
 
             if (booking == null)
                 throw new Exception("Private booking not found");
@@ -40,13 +43,15 @@ namespace ApplicationBusiness.Fetures.PaymentService.Strategies
             await _wrepo.UpdateAsync(booking, entityId);
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitAsync();
+            if (booking.PrivateTrip.TourGuideId.HasValue)
+                await Sender.Send(new AddEarnToTourguide(booking.PrivateTrip.TourGuideId.Value, booking.TotalOwnerProfit));
             await Sender.Send(
-            new SendPaymentNotificationCommand(
-                booking.UserId.ToString(),
-                "success New payment for booking ur trip🔥",
-                $"{booking.BookingDate}.",
-                ""
-            ));
+                    new SendPaymentNotificationCommand(
+                        booking.UserId.ToString(),
+                        "success New payment for booking private trip🔥",
+                        $"{booking.BookingDate}.",
+                        ""
+                    ));
         }
     }
 }

@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
 {
-    public record RequestTourGuidePubTripCommand(int Trip, List<int> TourguideIds) : ICommand<ApiResponse>;
+    public record RequestTourGuidePubTripCommand(int userId, int Trip, List<int> TourguideIds) : ICommand<ApiResponse>;
     public record AcceptPubRequest(int RequestId) : ICommand<ApiResponse>;
 
 
@@ -41,41 +41,71 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
         }
 
 
-
         public async Task<ApiResponse> Handle(RequestTourGuidePubTripCommand request, CancellationToken cancellationToken)
         {
+            // 1. التأكد من وجود المرشدين أولاً
             foreach (var TourguideId in request.TourguideIds)
             {
-
                 var cheacktour = await Sender.Send(new CheckTourguideExsist(TourguideId));
                 if (cheacktour.statusCode != StatusCodes.Status302Found)
-                    return new ApiResponse(StatusCodes.Status404NotFound, "Can't found tourguide");
-
+                    return new ApiResponse(StatusCodes.Status404NotFound, $"Can't find tourguide with id {TourguideId}");
             }
 
-            //var cheacktrip = await Sender.Send(new CheckPubTripExsist(request.Trip));
-            //if (cheacktrip.statusCode != StatusCodes.Status302Found)
-            //    return new ApiResponse(StatusCodes.Status404NotFound, "Can't found trip");
-
+            // 2. جلب بيانات الرحلة والتحقق من الشروط
             var trip = await Sender.Send(new GetPubTripSpecQuery(new TripFilter
             {
                 Id = request.Trip,
             })) as ApiResultResponse<TemplateTrip>;
+
             if (trip?.Data == null)
                 return new ApiResponse(404);
 
-            var item = new List<RequestTourGuidePulicTrip>();
+            if (request.userId != trip.Data.CreatedById)
+                return new ApiResponse(StatusCodes.Status403Forbidden, "You are not the owner of this trip, so you can't request tourguide for it");
 
+            if (trip.Data.TripStatus == TripStatus.Published)
+                return new ApiResponse(StatusCodes.Status400BadRequest, "Can't request tourguide for this trip, bec it published already");
+
+            // ------------------------------------------------------------
+            // التعديل الجديد: الفلترة لمنع التكرار لنفس الـ Trip ونفس الـ Guide
+            // ------------------------------------------------------------
+            var validTourguideIds = new List<int>();
 
             foreach (var TourguideId in request.TourguideIds)
             {
+                // افترضنا هنا وجود ميثود في الـ ReadGenericRepo بتجيب بالـ Specification أو الـ Expression
+                // لو مش متوفرة، تقدر تعدلها حسب الـ Repository Pattern اللي شغال بيه
+                var isAlreadyRequested = await ReadGenericRepo.GetAll().AnyAsync(x => x.PublicTripId == request.Trip && x.TourGuideId == TourguideId);
+
+                if (!isAlreadyRequested)
+                {
+                    validTourguideIds.Add(TourguideId);
+                }
+            }
+
+            // إذا كانت كل المعرفات المرسلة مبعوت لها طلبات مسبقاً
+            if (!validTourguideIds.Any())
+            {
+                return new ApiResponse(StatusCodes.Status400BadRequest, "All selected tour guides have already been requested for this trip.");
+            }
+            // ------------------------------------------------------------
+
+            var item = new List<RequestTourGuidePulicTrip>();
+
+            // نستخدم القائمة المفلترة فقط (validTourguideIds) بدلاً من القائمة القديمة
+            foreach (var TourguideId in validTourguideIds)
+            {
                 item.Add(new RequestTourGuidePulicTrip
                 {
-
                     PublicTripId = request.Trip,
                     TourGuideId = TourguideId,
                 });
             }
+
+            var res = await Sender.Send(new UpdatePubTripStatus(trip.Data.CreatedById, trip.Data.Id, TripStatus.WaitingForGuideApproval));
+            if (res.statusCode != 200)
+                return res;
+
             try
             {
                 await writeUnitOfWork.BeginTransactionAsync();
@@ -83,28 +113,26 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
                 await writeUnitOfWork.SaveChangesAsync();
                 await writeUnitOfWork.CommitAsync();
 
-
-                foreach (var TourguideId in request.TourguideIds)
+                // إرسال الإشعارات فقط للمرشدين الجدد الذين تم حفظهم بالفعل
+                foreach (var TourguideId in validTourguideIds)
                 {
                     await Sender.Send(
-                    new SendGuideRequestNotificationCommand(
+                    new SendGuideRequestNotificationForPublicTripCommand(
                         TourguideId.ToString(),
-                        "New Guide Request 🧭",
+                        "New Guide Request to Public Trip 🧭",
                         $"{trip.Data.Title} requested you to a guide.",
                         trip.Data.Id.ToString()
                     ));
                 }
-
                 return new ApiResponse(StatusCodes.Status201Created);
-
             }
             catch (Exception ex)
             {
                 await writeUnitOfWork.RollbackAsync();
                 return new ApiResponse(500, ex.Message);
             }
-
         }
+
 
         public async Task<ApiResponse> Handle(AcceptPubRequest request, CancellationToken cancellationToken)
         {
@@ -126,8 +154,24 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
 
                 if (isAlreadyAcceptedByAnother)
                 {
-                    return new ApiResponse(StatusCodes.Status400BadRequest, "عذراً، تم قبول هذه الرحلة بالفعل من قِبل مرشد سياحي آخر.");
+                    return new ApiResponse(
+                    StatusCodes.Status400BadRequest,
+                    "Sorry, this trip has already been accepted by another tour guide."
+                    );
                 }
+
+
+                var trip = await Sender.Send(new GetPubTripSpecQuery(new TripFilter
+                {
+                    Id = item.PublicTripId,
+                })) as ApiResultResponse<TemplateTrip>;
+                if (trip?.Data == null)
+                    return new ApiResponse(404);
+
+
+                var res = await Sender.Send(new UpdatePubTripStatus(trip.Data.CreatedById, item.PublicTripId, TripStatus.GuideAssigned));
+                if (res.statusCode != 200)
+                    return res;
 
 
                 item.Accept = true;
@@ -135,9 +179,6 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
                 var updatetrip = await Sender.Send(new AddTourguideToPubTrip(item.TourGuideId, item.PublicTripId));
                 if (updatetrip.statusCode != 200)
                     return updatetrip;
-                var res = await Sender.Send(new AddTourguideToPubTrip(item.TourGuideId, item.PublicTripId));
-                if (res.statusCode != 200)
-                    return res;
                 await writeUnitOfWork.BeginTransactionAsync();
                 await WriteGenericRepo.UpdateAsync(item, item.Id);
                 await writeUnitOfWork.SaveChangesAsync();
@@ -155,7 +196,7 @@ namespace ApplicationBusiness.Fetures.RequestTourGuideForTrip.Command
 
 
         }
-    
+
     }
 
 }

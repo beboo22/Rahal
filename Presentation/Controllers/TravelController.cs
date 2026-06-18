@@ -13,6 +13,8 @@ using Domain.BaseResponce;
 using Domain.Entity.Hotel_flights;
 using Domain.Entity.photo;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +27,7 @@ namespace Presentation.Controllers
     [ApiController]
     [Route("api/travel")]
     [Produces("application/json")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Traveler,TourGuide,TravelerProfileController")]
     public class TravelController : ApiController
     {
         public TravelController(ISender sender) : base(sender) { }

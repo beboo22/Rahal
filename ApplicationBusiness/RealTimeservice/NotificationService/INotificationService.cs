@@ -14,7 +14,8 @@ namespace ApplicationBusiness.RealTimeservice.NotificationService
 {
     public static class NotificationTypes
     {
-        public const string GuideRequest = "GuideRequest";
+        public const string GuideRequestForPublicTrip = "GuideRequestForPublicTrip";
+        public const string GuideRequestForPrivateTrip = "GuideRequestForPrivateTrip";
         public const string Message = "Message";
         public const string Booking = "Booking";
         public const string Payment = "Payment";
